@@ -1,1 +1,371 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>طقس هُدى وما جاورها</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Tahoma,Arial,sans-serif;
+    background:linear-gradient(180deg,#09213a,#0c3b5c);
+    color:white;
+    min-height:100vh;
+}
+
+.container{
+    max-width:600px;
+    margin:auto;
+    padding:18px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:5px;
+}
+
+.location{
+    text-align:center;
+    color:#c6dfef;
+    margin-bottom:20px;
+}
+
+.card{
+    background:rgba(255,255,255,.12);
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:15px;
+}
+
+.current{
+    text-align:center;
+}
+
+.icon{
+    font-size:60px;
+}
+
+.temp{
+    font-size:58px;
+    font-weight:bold;
+}
+
+.condition{
+    font-size:20px;
+    margin-bottom:15px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.box{
+    background:rgba(255,255,255,.09);
+    padding:13px;
+    border-radius:14px;
+    text-align:center;
+}
+
+.box small{
+    display:block;
+    color:#c6dfef;
+    margin-bottom:5px;
+}
+
+.row{
+    display:flex;
+    justify-content:space-between;
+    padding:12px 0;
+    border-bottom:1px solid rgba(255,255,255,.12);
+}
+
+.row:last-child{
+    border-bottom:none;
+}
+
+.agri{
+    width:100%;
+    padding:17px;
+    border:none;
+    border-radius:17px;
+    background:#24583d;
+    color:#c9f1d6;
+    font-size:17px;
+    font-weight:bold;
+}
+
+.status{
+    text-align:center;
+    padding:25px;
+}
+
+.update{
+    text-align:center;
+    font-size:12px;
+    color:#adc7d8;
+    margin-top:15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🌦️ طقس هُدى وما جاورها</h1>
+<div class="location">📍 هُدى – حبان – شبوة</div>
+
+<div id="loading" class="card status">
+جاري جلب بيانات الطقس...
+</div>
+
+<div id="content" style="display:none">
+
+<div class="card current">
+
+<div id="icon" class="icon">🌤️</div>
+
+<div id="temperature" class="temp">--°</div>
+
+<div id="condition" class="condition">--</div>
+
+<div class="grid">
+
+<div class="box">
+<small>🌡️ المحسوسة</small>
+<strong id="feels">--</strong>
+</div>
+
+<div class="box">
+<small>💧 الرطوبة</small>
+<strong id="humidity">--</strong>
+</div>
+
+<div class="box">
+<small>💨 سرعة الرياح</small>
+<strong id="wind">--</strong>
+</div>
+
+<div class="box">
+<small>🧭 اتجاه الرياح</small>
+<strong id="windDirection">--</strong>
+</div>
+
+</div>
+</div>
+
+<div class="card">
+
+<h3>🌧️ فرص الأمطار خلال الساعات القادمة</h3>
+
+<div id="rain"></div>
+
+</div>
+
+<div class="card">
+
+<h3>📅 توقعات 7 أيام</h3>
+
+<div id="days"></div>
+
+</div>
+
+<button class="agri">
+🌱 الزراعة والمواسم — قريبًا
+</button>
+
+<div id="updated" class="update"></div>
+
+</div>
+</div>
+
+<script>
+
+const latitude = 14.230586;
+const longitude = 47.199415;
+
+function weather(code){
+
+const conditions={
+0:["☀️","صحو"],
+1:["🌤️","صحو غالبًا"],
+2:["⛅","غائم جزئيًا"],
+3:["☁️","غائم"],
+45:["🌫️","ضباب"],
+48:["🌫️","ضباب"],
+51:["🌦️","رذاذ خفيف"],
+53:["🌦️","رذاذ"],
+55:["🌧️","رذاذ كثيف"],
+61:["🌦️","أمطار خفيفة"],
+63:["🌧️","أمطار متوسطة"],
+65:["🌧️","أمطار غزيرة"],
+80:["🌦️","زخات خفيفة"],
+81:["🌧️","زخات مطر"],
+82:["⛈️","زخات قوية"],
+95:["⛈️","عواصف رعدية"],
+96:["⛈️","عواصف رعدية مع برد"],
+99:["⛈️","عواصف رعدية قوية"]
+};
+
+return conditions[code] || ["🌤️","طقس متغير"];
+
+}
+
+function direction(deg){
+
+const d=[
+"شمالية",
+"شمالية شرقية",
+"شرقية",
+"جنوبية شرقية",
+"جنوبية",
+"جنوبية غربية",
+"غربية",
+"شمالية غربية"
+];
+
+return d[Math.round(deg/45)%8];
+
+}
+
+async function loadWeather(){
+
+try{
+
+const url =
+`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m&hourly=precipitation_probability,precipitation&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum&timezone=Asia%2FAden&forecast_days=7`;
+
+const response=await fetch(url);
+
+if(!response.ok){
+throw new Error("API");
+}
+
+const data=await response.json();
+
+const current=data.current;
+
+const info=weather(current.weather_code);
+
+document.getElementById("icon").textContent=info[0];
+
+document.getElementById("condition").textContent=info[1];
+
+document.getElementById("temperature").textContent=
+Math.round(current.temperature_2m)+"°";
+
+document.getElementById("feels").textContent=
+Math.round(current.apparent_temperature)+"°م";
+
+document.getElementById("humidity").textContent=
+current.relative_humidity_2m+"٪";
+
+document.getElementById("wind").textContent=
+Math.round(current.wind_speed_10m)+" كم/س";
+
+document.getElementById("windDirection").textContent=
+direction(current.wind_direction_10m);
+
+
+/* الأمطار */
+
+let rainHTML="";
+
+const currentHour=new Date().getHours();
+
+for(let i=currentHour;i<Math.min(currentHour+12,data.hourly.time.length);i++){
+
+const t=new Date(data.hourly.time[i]);
+
+const time=t.toLocaleTimeString("ar-YE",{
+hour:"numeric",
+minute:"2-digit"
+});
+
+rainHTML+=`
+<div class="row">
+<span>${time}</span>
+<span>🌧️ ${data.hourly.precipitation_probability[i] ?? 0}٪</span>
+<strong>${data.hourly.precipitation[i] ?? 0} ملم</strong>
+</div>
+`;
+
+}
+
+document.getElementById("rain").innerHTML=rainHTML;
+
+
+/* توقعات الأيام */
+
+const arabicDays=[
+"الأحد",
+"الاثنين",
+"الثلاثاء",
+"الأربعاء",
+"الخميس",
+"الجمعة",
+"السبت"
+];
+
+let daysHTML="";
+
+data.daily.time.forEach((date,i)=>{
+
+const dt=new Date(date+"T12:00:00");
+
+const day=i===0 ? "اليوم" : arabicDays[dt.getDay()];
+
+const w=weather(data.daily.weather_code[i]);
+
+daysHTML+=`
+<div class="row">
+<span>${w[0]} ${day}</span>
+
+<span>
+🌧️ ${data.daily.precipitation_probability_max[i] ?? 0}٪
+</span>
+
+<strong>
+${Math.round(data.daily.temperature_2m_max[i])}° /
+${Math.round(data.daily.temperature_2m_min[i])}°
+</strong>
+
+</div>
+`;
+
+});
+
+document.getElementById("days").innerHTML=daysHTML;
+
+
+/* وقت التحديث */
+
+document.getElementById("updated").textContent=
+"🔄 بيانات الطقس محدثة تلقائيًا";
+
+
+document.getElementById("loading").style.display="none";
+
+document.getElementById("content").style.display="block";
+
+}
+
+catch(error){
+
+document.getElementById("loading").innerHTML=
+"⚠️ تعذر جلب بيانات الطقس حاليًا.<br>حدّث الصفحة وحاول مرة أخرى.";
+
+}
+
+}
+
+loadWeather();
+
+</script>
+
+</body>
+</html>
