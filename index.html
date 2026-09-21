@@ -4,13 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>طقس هُدى وما جاورها</title>
+<title>طقس هدى وما جاورها</title>
 
 <style>
+*{box-sizing:border-box}
+
 body{
     margin:0;
     font-family:Tahoma,Arial,sans-serif;
-    background:linear-gradient(180deg,#09213a,#0c3b5c);
+    background:linear-gradient(180deg,#071a2d,#0a304d,#0b4160);
     color:white;
     min-height:100vh;
 }
@@ -23,29 +25,40 @@ body{
 
 h1{
     text-align:center;
-    margin-bottom:5px;
+    margin:8px 0 5px;
+    font-size:27px;
 }
 
 .location{
     text-align:center;
     color:#c6dfef;
-    margin-bottom:20px;
+    margin-bottom:8px;
+}
+
+.date{
+    text-align:center;
+    color:#e8f5ff;
+    font-size:14px;
+    line-height:1.8;
+    margin-bottom:18px;
 }
 
 .card{
-    background:rgba(255,255,255,.12);
+    background:rgba(255,255,255,.11);
+    border:1px solid rgba(255,255,255,.07);
+    box-shadow:0 8px 25px rgba(0,0,0,.12);
     border-radius:20px;
     padding:20px;
     margin-bottom:15px;
 }
 
-.current{
-    text-align:center;
+.card h3{
+    margin-top:0;
 }
 
-.icon{
-    font-size:60px;
-}
+.current{text-align:center}
+
+.icon{font-size:60px}
 
 .temp{
     font-size:58px;
@@ -64,8 +77,8 @@ h1{
 }
 
 .box{
-    background:rgba(255,255,255,.09);
-    padding:13px;
+    background:rgba(255,255,255,.08);
+    padding:13px 8px;
     border-radius:14px;
     text-align:center;
 }
@@ -73,29 +86,78 @@ h1{
 .box small{
     display:block;
     color:#c6dfef;
-    margin-bottom:5px;
+    margin-bottom:6px;
 }
 
 .row{
     display:flex;
+    align-items:center;
     justify-content:space-between;
+    gap:8px;
     padding:12px 0;
     border-bottom:1px solid rgba(255,255,255,.12);
 }
 
-.row:last-child{
-    border-bottom:none;
+.row:last-child{border-bottom:none}
+
+.prayer-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:9px;
 }
 
-.agri{
-    width:100%;
-    padding:17px;
+.prayer{
+    background:rgba(255,255,255,.08);
+    border-radius:14px;
+    padding:12px 5px;
+    text-align:center;
+}
+
+.prayer span{
+    display:block;
+    color:#c6dfef;
+    font-size:13px;
+    margin-bottom:6px;
+}
+
+.prayer strong{
+    font-size:16px;
+}
+
+.source{
+    color:#a9c8da;
+    text-align:center;
+    font-size:11px;
+    margin-top:12px;
+}
+
+.buttons{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:15px;
+}
+
+.action{
     border:none;
     border-radius:17px;
-    background:#24583d;
-    color:#c9f1d6;
-    font-size:17px;
+    padding:16px 8px;
+    color:white;
+    font-family:inherit;
+    font-size:16px;
     font-weight:bold;
+    cursor:pointer;
+}
+
+.map{background:#176b87}
+.sea{background:#075f86}
+.stars{background:#4e466d}
+
+.soon{
+    display:block;
+    font-size:11px;
+    opacity:.75;
+    margin-top:4px;
 }
 
 .status{
@@ -107,7 +169,55 @@ h1{
     text-align:center;
     font-size:12px;
     color:#adc7d8;
-    margin-top:15px;
+    margin:15px 0 8px;
+}
+
+.modal{
+    display:none;
+    position:fixed;
+    z-index:100;
+    inset:0;
+    background:rgba(0,0,0,.72);
+    padding:18px;
+    overflow:auto;
+}
+
+.modal-box{
+    max-width:600px;
+    margin:40px auto;
+    background:#0b2940;
+    border-radius:22px;
+    padding:20px;
+    border:1px solid rgba(255,255,255,.12);
+}
+
+.close{
+    float:left;
+    background:#a93737;
+    color:white;
+    border:none;
+    border-radius:10px;
+    padding:9px 13px;
+    font-size:16px;
+}
+
+iframe{
+    width:100%;
+    height:450px;
+    border:0;
+    border-radius:15px;
+    margin-top:12px;
+}
+
+.seaStatus{
+    text-align:center;
+    padding:15px;
+    line-height:1.9;
+}
+
+@media(max-width:400px){
+    .prayer-grid{grid-template-columns:repeat(2,1fr)}
+    .buttons{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -116,14 +226,24 @@ h1{
 
 <div class="container">
 
-<h1>🌦️ طقس هُدى وما جاورها</h1>
-<div class="location">📍 هُدى – حبان – شبوة</div>
+<h1>🌦️ طقس هدى وما جاورها</h1>
+
+<div class="location">
+📍 هدى – حبان – شبوة
+</div>
+
+<div class="date">
+<div id="gregorianDate">--</div>
+<div id="hijriDate">--</div>
+</div>
 
 <div id="loading" class="card status">
 جاري جلب بيانات الطقس...
 </div>
 
 <div id="content" style="display:none">
+
+<!-- الطقس الحالي -->
 
 <div class="card current">
 
@@ -158,6 +278,76 @@ h1{
 </div>
 </div>
 
+
+<!-- مواقيت الصلاة -->
+
+<div class="card">
+
+<h3>🕌 مواقيت الصلاة – هدى</h3>
+
+<div id="prayers" class="prayer-grid">
+
+<div class="prayer">
+<span>الفجر</span>
+<strong id="fajr">--</strong>
+</div>
+
+<div class="prayer">
+<span>الشروق</span>
+<strong id="sunrise">--</strong>
+</div>
+
+<div class="prayer">
+<span>الظهر</span>
+<strong id="dhuhr">--</strong>
+</div>
+
+<div class="prayer">
+<span>العصر</span>
+<strong id="asr">--</strong>
+</div>
+
+<div class="prayer">
+<span>المغرب</span>
+<strong id="maghrib">--</strong>
+</div>
+
+<div class="prayer">
+<span>العشاء</span>
+<strong id="isha">--</strong>
+</div>
+
+</div>
+
+<div class="source">
+المواقيت محسوبة حسب إحداثيات هدى
+</div>
+
+</div>
+
+
+<!-- الأزرار -->
+
+<div class="buttons">
+
+<button class="action map" onclick="openMap()">
+🗺️ خريطة الطقس
+</button>
+
+<button class="action sea" onclick="openSea()">
+🌊 بحر العرب
+</button>
+
+<button class="action stars" disabled>
+⭐ حساب النجوم
+<span class="soon">قريبًا</span>
+</button>
+
+</div>
+
+
+<!-- الأمطار -->
+
 <div class="card">
 
 <h3>🌧️ فرص الأمطار خلال الساعات القادمة</h3>
@@ -165,6 +355,9 @@ h1{
 <div id="rain"></div>
 
 </div>
+
+
+<!-- 7 أيام -->
 
 <div class="card">
 
@@ -174,19 +367,71 @@ h1{
 
 </div>
 
-<button class="agri">
-🌱 الزراعة والمواسم — قريبًا
-</button>
-
 <div id="updated" class="update"></div>
 
 </div>
 </div>
 
+
+<!-- نافذة الخريطة -->
+
+<div id="mapModal" class="modal">
+
+<div class="modal-box">
+
+<button class="close" onclick="closeMap()">✕</button>
+
+<h3>🗺️ خريطة هدى</h3>
+
+<iframe
+id="mapFrame"
+loading="lazy"
+src="https://www.openstreetmap.org/export/embed.html?bbox=47.10%2C14.15%2C47.30%2C14.31&layer=mapnik&marker=14.230586%2C47.199415">
+</iframe>
+
+</div>
+</div>
+
+
+<!-- نافذة بحر العرب -->
+
+<div id="seaModal" class="modal">
+
+<div class="modal-box">
+
+<button class="close" onclick="closeSea()">✕</button>
+
+<h3>🌊 بحر العرب</h3>
+
+<div class="seaStatus">
+
+<div style="font-size:45px">🌀</div>
+
+<strong>متابعة الحالات المؤثرة على الأمطار</strong>
+
+<p>
+سيخصص هذا القسم لمتابعة المنخفضات والاضطرابات
+والحالات المدارية والرطوبة القادمة من بحر العرب
+والتي قد تؤثر على شبوة وهدى.
+</p>
+
+<p style="color:#ffd77a">
+⚠️ سيتم تفعيل الرصد الآلي للحالات المدارية في تحديث لاحق.
+</p>
+
+</div>
+
+</div>
+</div>
+
+
 <script>
 
 const latitude = 14.230586;
 const longitude = 47.199415;
+
+
+/* حالة الطقس */
 
 function weather(code){
 
@@ -215,6 +460,9 @@ return conditions[code] || ["🌤️","طقس متغير"];
 
 }
 
+
+/* اتجاه الرياح */
+
 function direction(deg){
 
 const d=[
@@ -232,6 +480,113 @@ return d[Math.round(deg/45)%8];
 
 }
 
+
+/* التاريخ الميلادي */
+
+function loadDate(){
+
+const now=new Date();
+
+document.getElementById("gregorianDate").textContent =
+"📅 " + now.toLocaleDateString("ar-YE",{
+weekday:"long",
+year:"numeric",
+month:"long",
+day:"numeric",
+timeZone:"Asia/Aden"
+});
+
+}
+
+
+/* تنسيق وقت الصلاة */
+
+function prayerTime(time){
+
+if(!time) return "--";
+
+const clean=time.split(" ")[0];
+const parts=clean.split(":");
+
+let hour=parseInt(parts[0]);
+const minute=parts[1];
+
+const period=hour>=12 ? "م" : "ص";
+
+hour=hour%12;
+
+if(hour===0) hour=12;
+
+return hour+":"+minute+" "+period;
+
+}
+
+
+/* مواقيت الصلاة + التاريخ الهجري */
+
+async function loadPrayers(){
+
+try{
+
+const today=new Date();
+
+const date =
+String(today.getDate()).padStart(2,"0")+"-"+
+String(today.getMonth()+1).padStart(2,"0")+"-"+
+today.getFullYear();
+
+const url =
+`https://api.aladhan.com/v1/timings/${date}?latitude=${latitude}&longitude=${longitude}&method=4`;
+
+const response=await fetch(url);
+
+if(!response.ok) throw new Error("Prayer API");
+
+const json=await response.json();
+
+const data=json.data;
+const t=data.timings;
+
+document.getElementById("fajr").textContent=
+prayerTime(t.Fajr);
+
+document.getElementById("sunrise").textContent=
+prayerTime(t.Sunrise);
+
+document.getElementById("dhuhr").textContent=
+prayerTime(t.Dhuhr);
+
+document.getElementById("asr").textContent=
+prayerTime(t.Asr);
+
+document.getElementById("maghrib").textContent=
+prayerTime(t.Maghrib);
+
+document.getElementById("isha").textContent=
+prayerTime(t.Isha);
+
+
+/* التاريخ الهجري */
+
+const h=data.date.hijri;
+
+document.getElementById("hijriDate").textContent =
+"🌙 "+h.day+" "+h.month.ar+" "+h.year+" هـ";
+
+}
+
+catch(error){
+
+document.getElementById("hijriDate").textContent=
+"🌙 تعذر تحميل التاريخ الهجري";
+
+}
+
+}
+
+
+/* الطقس */
+
 async function loadWeather(){
 
 try{
@@ -241,14 +596,11 @@ const url =
 
 const response=await fetch(url);
 
-if(!response.ok){
-throw new Error("API");
-}
+if(!response.ok) throw new Error("Weather API");
 
 const data=await response.json();
 
 const current=data.current;
-
 const info=weather(current.weather_code);
 
 document.getElementById("icon").textContent=info[0];
@@ -271,26 +623,58 @@ document.getElementById("windDirection").textContent=
 direction(current.wind_direction_10m);
 
 
-/* الأمطار */
+/* الساعات القادمة */
 
 let rainHTML="";
 
-const currentHour=new Date().getHours();
+const nowYemen = new Date(
+new Date().toLocaleString("en-US",{timeZone:"Asia/Aden"})
+);
 
-for(let i=currentHour;i<Math.min(currentHour+12,data.hourly.time.length);i++){
+const currentKey =
+nowYemen.getFullYear()+"-"+
+String(nowYemen.getMonth()+1).padStart(2,"0")+"-"+
+String(nowYemen.getDate()).padStart(2,"0")+"T"+
+String(nowYemen.getHours()).padStart(2,"0")+":00";
 
-const t=new Date(data.hourly.time[i]);
+let startIndex =
+data.hourly.time.findIndex(t => t >= currentKey);
 
-const time=t.toLocaleTimeString("ar-YE",{
-hour:"numeric",
-minute:"2-digit"
-});
+if(startIndex < 0) startIndex=0;
+
+for(
+let i=startIndex;
+i<Math.min(startIndex+12,data.hourly.time.length);
+i++
+){
+
+const hour =
+parseInt(data.hourly.time[i].substring(11,13));
+
+const minute =
+data.hourly.time[i].substring(14,16);
+
+const period=hour>=12 ? "م" : "ص";
+
+let h=hour%12;
+
+if(h===0) h=12;
+
+const time=h+":"+minute+" "+period;
 
 rainHTML+=`
 <div class="row">
+
 <span>${time}</span>
-<span>🌧️ ${data.hourly.precipitation_probability[i] ?? 0}٪</span>
-<strong>${data.hourly.precipitation[i] ?? 0} ملم</strong>
+
+<span>
+🌧️ ${data.hourly.precipitation_probability[i] ?? 0}٪
+</span>
+
+<strong>
+${data.hourly.precipitation[i] ?? 0} ملم
+</strong>
+
 </div>
 `;
 
@@ -299,7 +683,7 @@ rainHTML+=`
 document.getElementById("rain").innerHTML=rainHTML;
 
 
-/* توقعات الأيام */
+/* الأيام */
 
 const arabicDays=[
 "الأحد",
@@ -317,13 +701,17 @@ data.daily.time.forEach((date,i)=>{
 
 const dt=new Date(date+"T12:00:00");
 
-const day=i===0 ? "اليوم" : arabicDays[dt.getDay()];
+const day=
+i===0 ? "اليوم" : arabicDays[dt.getDay()];
 
 const w=weather(data.daily.weather_code[i]);
 
 daysHTML+=`
 <div class="row">
-<span>${w[0]} ${day}</span>
+
+<span>
+${w[0]} ${day}
+</span>
 
 <span>
 🌧️ ${data.daily.precipitation_probability_max[i] ?? 0}٪
@@ -342,11 +730,8 @@ ${Math.round(data.daily.temperature_2m_min[i])}°
 document.getElementById("days").innerHTML=daysHTML;
 
 
-/* وقت التحديث */
-
 document.getElementById("updated").textContent=
-"🔄 بيانات الطقس محدثة تلقائيًا";
-
+"🔄 بيانات الطقس محدثة تلقائيًا • هدى، حبان";
 
 document.getElementById("loading").style.display="none";
 
@@ -363,6 +748,30 @@ document.getElementById("loading").innerHTML=
 
 }
 
+
+/* النوافذ */
+
+function openMap(){
+document.getElementById("mapModal").style.display="block";
+}
+
+function closeMap(){
+document.getElementById("mapModal").style.display="none";
+}
+
+function openSea(){
+document.getElementById("seaModal").style.display="block";
+}
+
+function closeSea(){
+document.getElementById("seaModal").style.display="none";
+}
+
+
+/* التشغيل */
+
+loadDate();
+loadPrayers();
 loadWeather();
 
 </script>
