@@ -67,6 +67,28 @@ header h1{font-size:27px;margin-bottom:7px}
 
 .detail strong{font-size:14px}
 
+/* ملخص المطر */
+
+.rain-highlight{
+  background:linear-gradient(135deg,#0c3550,#102b46);
+  border:1px solid #1f6286;
+}
+
+.rain-main{
+  font-size:17px;
+  line-height:1.9;
+  font-weight:bold;
+}
+
+.rain-sub{
+  color:#a9cbe4;
+  font-size:13px;
+  margin-top:7px;
+  line-height:1.8;
+}
+
+/* الصلاة */
+
 .prayers{
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -90,6 +112,8 @@ header h1{font-size:27px;margin-bottom:7px}
   font-weight:bold;
   font-size:15px;
 }
+
+/* الأزرار */
 
 .buttons{
   display:grid;
@@ -118,6 +142,8 @@ header h1{font-size:27px;margin-bottom:7px}
   cursor:not-allowed;
 }
 
+/* الساعات */
+
 .hourly{
   display:flex;
   overflow-x:auto;
@@ -138,20 +164,70 @@ header h1{font-size:27px;margin-bottom:7px}
 .hour-rain{color:#6dc8ff;font-weight:bold;font-size:14px}
 .hour-temp{margin-top:5px;font-size:14px}
 
-.day{
-  display:grid;
-  grid-template-columns:1.4fr .8fr .8fr .8fr;
-  align-items:center;
-  gap:5px;
-  padding:12px 4px;
+/* الأسبوع */
+
+.day-wrap{
   border-bottom:1px solid #203b56;
 }
 
-.day:last-child{border-bottom:none}
+.day-wrap:last-child{border-bottom:none}
+
+.day{
+  display:grid;
+  grid-template-columns:1.4fr .8fr .9fr .8fr;
+  align-items:center;
+  gap:5px;
+  padding:13px 4px;
+  cursor:pointer;
+}
+
 .day-name{font-weight:bold}
 .day-temp,.day-rain,.day-icon{text-align:center}
-.day-rain{color:#6dc8ff}
+.day-rain{color:#6dc8ff;font-weight:bold}
 .day-icon{font-size:23px}
+
+.day-details{
+  display:none;
+  background:#091827;
+  border-radius:12px;
+  padding:13px;
+  margin:0 0 12px;
+}
+
+.day-details.open{display:block}
+
+.detail-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.forecast-detail{
+  background:#10253a;
+  border-radius:10px;
+  padding:10px;
+}
+
+.forecast-detail span{
+  display:block;
+  color:#91b8d4;
+  font-size:12px;
+  margin-bottom:5px;
+}
+
+.forecast-detail strong{
+  font-size:14px;
+  line-height:1.6;
+}
+
+.day-note{
+  margin-top:10px;
+  color:#b9d2e5;
+  line-height:1.8;
+  font-size:13px;
+}
+
+/* النوافذ */
 
 .modal{
   display:none;
@@ -206,6 +282,8 @@ header h1{font-size:27px;margin-bottom:7px}
   height:100%;
 }
 
+/* بحر العرب */
+
 .sea-content{padding:18px}
 
 .sea-status{
@@ -238,6 +316,25 @@ header h1{font-size:27px;margin-bottom:7px}
 .sea-value{
   font-weight:bold;
   line-height:1.6;
+}
+
+.route{
+  margin-top:14px;
+  background:#081725;
+  border-radius:14px;
+  padding:14px;
+  text-align:center;
+  line-height:2;
+}
+
+.route-title{
+  color:#91b8d4;
+  font-size:13px;
+}
+
+.route-path{
+  font-weight:bold;
+  font-size:15px;
 }
 
 .sea-map{
@@ -294,6 +391,7 @@ footer{
   .weather-details{grid-template-columns:1fr 1fr}
   .prayers{grid-template-columns:repeat(2,1fr)}
   .sea-grid{grid-template-columns:1fr}
+  .detail-grid{grid-template-columns:1fr 1fr}
   .map-wrap{height:65vh;min-height:400px}
   .sea-map{height:390px}
 }
@@ -307,7 +405,6 @@ footer{
 <header>
   <h1>طقس هدى وما جاورها</h1>
   <div class="location">📍 هدى – حبان – شبوة</div>
-
   <div class="date">
     <div id="gregorianDate">جاري تحميل التاريخ...</div>
     <div id="hijriDate"></div>
@@ -315,7 +412,6 @@ footer{
 </header>
 
 <section class="card current">
-
   <div class="weather-icon" id="currentIcon">⛅</div>
 
   <div class="temperature">
@@ -350,6 +446,22 @@ footer{
 
   </div>
 </section>
+
+
+<!-- أفضل فرصة مطر -->
+
+<section class="card rain-highlight">
+  <div class="card-title">🌧️ أفضل فرصة مطر على هدى</div>
+
+  <div class="rain-main" id="bestRain">
+    جاري تحليل توقعات الأيام القادمة...
+  </div>
+
+  <div class="rain-sub" id="bestRainDetails"></div>
+</section>
+
+
+<!-- الصلاة -->
 
 <section class="card">
 
@@ -390,6 +502,7 @@ footer{
   </div>
 </section>
 
+
 <div class="buttons">
 
   <button class="action-btn" onclick="openMap()">
@@ -406,6 +519,7 @@ footer{
 
 </div>
 
+
 <section class="card">
 
   <div class="card-title">
@@ -418,6 +532,7 @@ footer{
 
 </section>
 
+
 <section class="card">
 
   <div class="card-title">
@@ -429,6 +544,7 @@ footer{
   </div>
 
 </section>
+
 
 <footer>
   بيانات الطقس تتحدث تلقائيًا
@@ -456,6 +572,7 @@ footer{
       </iframe>
 
     </div>
+
   </div>
 </div>
 
@@ -467,7 +584,7 @@ footer{
   <div class="modal-content">
 
     <div class="modal-header">
-      <h2>🌀 بحر العرب والحالات المدارية</h2>
+      <h2>🌀 مركز متابعة بحر العرب</h2>
       <button class="close" onclick="closeSea()">×</button>
     </div>
 
@@ -480,17 +597,37 @@ footer{
       <div class="sea-grid">
 
         <div class="sea-item">
+          <span>📍 أقوى منطقة نشاط</span>
+          <div class="sea-value" id="seaArea">--</div>
+        </div>
+
+        <div class="sea-item">
+          <span>🕒 وقت أقوى إشارة</span>
+          <div class="sea-value" id="seaTime">--</div>
+        </div>
+
+        <div class="sea-item">
+          <span>🗺️ الإحداثيات</span>
+          <div class="sea-value" id="seaCoords">--</div>
+        </div>
+
+        <div class="sea-item">
+          <span>📏 المسافة من هدى</span>
+          <div class="sea-value" id="seaDistance">--</div>
+        </div>
+
+        <div class="sea-item">
           <span>🌡️ أدنى ضغط جوي</span>
           <div class="sea-value" id="seaPressure">--</div>
         </div>
 
         <div class="sea-item">
-          <span>📍 المنطقة الأنشط</span>
-          <div class="sea-value" id="seaArea">--</div>
+          <span>💨 أقوى رياح</span>
+          <div class="sea-value" id="seaWind">--</div>
         </div>
 
         <div class="sea-item">
-          <span>🌧️ أعلى نشاط مطري</span>
+          <span>🌧️ أعلى هطول</span>
           <div class="sea-value" id="seaRain">--</div>
         </div>
 
@@ -500,17 +637,17 @@ footer{
         </div>
 
         <div class="sea-item">
-          <span>💨 أقوى رياح</span>
-          <div class="sea-value" id="seaWind">--</div>
+          <span>💧 أعلى رطوبة</span>
+          <div class="sea-value" id="seaHumidity">--</div>
         </div>
 
         <div class="sea-item">
-          <span>🧭 اتجاه الرياح في المنطقة الأنشط</span>
+          <span>🧭 اتجاه الرياح عند النشاط</span>
           <div class="sea-value" id="seaDirection">--</div>
         </div>
 
         <div class="sea-item">
-          <span>🇾🇪 الامتداد نحو اليمن وشبوة</span>
+          <span>🇾🇪 العلاقة باليمن وشبوة</span>
           <div class="sea-value" id="seaYemen">--</div>
         </div>
 
@@ -521,12 +658,24 @@ footer{
 
       </div>
 
+
+      <div class="route">
+        <div class="route-title">مسار المتابعة</div>
+        <div class="route-path">
+          🌊 بحر العرب ← 🇾🇪 اليمن ← شبوة ← حبان ← 📍 هدى
+        </div>
+      </div>
+
+
       <div class="sea-map">
+
         <iframe
           loading="lazy"
-          src="https://embed.windy.com/embed2.html?lat=14.5&lon=56.5&detailLat=14.5&detailLon=56.5&width=650&height=450&zoom=4&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=false&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1">
+          src="https://embed.windy.com/embed2.html?lat=15&lon=57&detailLat=15&detailLon=57&width=650&height=450&zoom=4&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=false&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1">
         </iframe>
+
       </div>
+
 
       <a
         class="official-btn"
@@ -536,14 +685,16 @@ footer{
         🌀 النشرة الرسمية للحالات المدارية
       </a>
 
+
       <div class="sea-note">
-        يتم تحليل مؤشرات نموذجية من عدة نقاط داخل بحر العرب.
-        انخفاض الضغط أو زيادة السحب والأمطار والرياح لا يعني وحده
-        وجود منخفض مداري أو إعصار. تسمية وتصنيف الحالات المدارية
-        يعتمد على النشرات الرسمية لمركز RSMC New Delhi.
+        ⚠️ بيانات بحر العرب هنا مؤشرات من نماذج الطقس وليست تصنيفًا
+        رسميًا للحالات المدارية. انخفاض الضغط أو زيادة الأمطار والرياح
+        لا يعني وحده وجود منخفض مداري أو عاصفة أو إعصار.
+        التصنيف الرسمي يعتمد على نشرات RSMC New Delhi.
       </div>
 
     </div>
+
   </div>
 </div>
 
@@ -577,7 +728,7 @@ function loadDate(){
 }
 
 
-/* طقس هدى */
+/* تحميل طقس هدى */
 
 async function loadWeather(){
 
@@ -586,15 +737,14 @@ async function loadWeather(){
     const url =
       `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
       `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m` +
-      `&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,cloud_cover,wind_speed_10m` +
-      `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max` +
+      `&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,cape` +
+      `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,precipitation_hours,wind_speed_10m_max` +
       `&timezone=Asia%2FAden&forecast_days=7`;
 
     const response = await fetch(url);
 
-    if(!response.ok){
+    if(!response.ok)
       throw new Error("Weather API error");
-    }
 
     const data = await response.json();
 
@@ -603,6 +753,7 @@ async function loadWeather(){
     showCurrentWeather(data);
     showHourlyWeather(data);
     showWeeklyWeather(data);
+    showBestRain(data);
 
   }catch(error){
 
@@ -614,25 +765,28 @@ async function loadWeather(){
 
     document.getElementById("weeklyForecast").innerHTML =
       '<span class="error">تعذر تحميل التوقعات</span>';
+
+    document.getElementById("bestRain").innerHTML =
+      '<span class="error">تعذر تحليل فرص المطر</span>';
   }
 }
 
 
 function showCurrentWeather(data){
 
-  const c = data.current;
+  const c=data.current;
 
   document.getElementById("temperature").textContent =
     Math.round(c.temperature_2m);
 
   document.getElementById("humidity").textContent =
-    Math.round(c.relative_humidity_2m) + "%";
+    Math.round(c.relative_humidity_2m)+"%";
 
   document.getElementById("feelsLike").textContent =
-    Math.round(c.apparent_temperature) + "°";
+    Math.round(c.apparent_temperature)+"°";
 
   document.getElementById("windSpeed").textContent =
-    Math.round(c.wind_speed_10m) + " كم/س";
+    Math.round(c.wind_speed_10m)+" كم/س";
 
   document.getElementById("windDirection").textContent =
     windDirection(c.wind_direction_10m);
@@ -645,7 +799,7 @@ function showCurrentWeather(data){
 }
 
 
-/* الساعات */
+/* تحديد الساعة الحالية */
 
 function getCurrentHourIndex(data){
 
@@ -669,50 +823,40 @@ function getCurrentHourIndex(data){
     `${p.year}-${p.month}-${p.day}T${p.hour}:00`;
 
   let index =
-    data.hourly.time.findIndex(t => t === currentHour);
+    data.hourly.time.findIndex(t=>t===currentHour);
 
-  if(index < 0) index=0;
+  if(index<0) index=0;
 
   return index;
 }
 
 
+/* الساعات القادمة */
+
 function showHourlyWeather(data){
 
-  const box =
-    document.getElementById("hourlyForecast");
+  const box=document.getElementById("hourlyForecast");
 
   box.innerHTML="";
 
-  const start =
-    getCurrentHourIndex(data);
-
-  const end =
-    Math.min(start+18,data.hourly.time.length);
+  const start=getCurrentHourIndex(data);
+  const end=Math.min(start+18,data.hourly.time.length);
 
   for(let i=start;i<end;i++){
 
-    const date =
-      new Date(data.hourly.time[i]);
+    const date=new Date(data.hourly.time[i]);
 
-    const time =
-      date.toLocaleTimeString("ar-YE",{
-        hour:"numeric",
-        minute:"2-digit",
-        hour12:true
-      });
+    const time=date.toLocaleTimeString("ar-YE",{
+      hour:"numeric",
+      minute:"2-digit",
+      hour12:true
+    });
 
-    const rain =
-      data.hourly.precipitation_probability[i] ?? 0;
+    const rain=data.hourly.precipitation_probability[i] ?? 0;
+    const temp=Math.round(data.hourly.temperature_2m[i]);
+    const code=data.hourly.weather_code[i];
 
-    const temp =
-      Math.round(data.hourly.temperature_2m[i]);
-
-    const code =
-      data.hourly.weather_code[i];
-
-    const item =
-      document.createElement("div");
+    const item=document.createElement("div");
 
     item.className="hour";
 
@@ -728,12 +872,65 @@ function showHourlyWeather(data){
 }
 
 
-/* الأسبوع */
+/* أفضل فرصة مطر */
+
+function showBestRain(data){
+
+  let bestIndex=0;
+  let bestChance=-1;
+
+  for(let i=0;i<data.daily.time.length;i++){
+
+    const chance =
+      data.daily.precipitation_probability_max[i] ?? 0;
+
+    if(chance>bestChance){
+      bestChance=chance;
+      bestIndex=i;
+    }
+  }
+
+  const date =
+    new Date(data.daily.time[bestIndex]+"T12:00:00");
+
+  const day =
+    date.toLocaleDateString("ar-YE",{
+      weekday:"long"
+    });
+
+  const amount =
+    data.daily.precipitation_sum[bestIndex] ?? 0;
+
+  const hours =
+    data.daily.precipitation_hours[bestIndex] ?? 0;
+
+  const bestHour =
+    getBestHourForDay(data,data.daily.time[bestIndex]);
+
+  document.getElementById("bestRain").textContent =
+    bestChance>0
+      ? `${day}: فرصة تصل إلى ${Math.round(bestChance)}%`
+      : "لا تظهر فرصة مطر واضحة خلال الأيام السبعة.";
+
+  if(bestChance>0){
+
+    document.getElementById("bestRainDetails").textContent =
+      `الكمية المتوقعة نحو ${Number(amount).toFixed(1)} ملم • ` +
+      `ساعات الهطول المتوقعة ${Number(hours).toFixed(0)} ساعة` +
+      (bestHour ? ` • أفضل فترة قرابة ${bestHour}` : "");
+
+  }else{
+
+    document.getElementById("bestRainDetails").textContent="";
+  }
+}
+
+
+/* توقعات الأسبوع */
 
 function showWeeklyWeather(data){
 
-  const box =
-    document.getElementById("weeklyForecast");
+  const box=document.getElementById("weeklyForecast");
 
   box.innerHTML="";
 
@@ -759,50 +956,342 @@ function showWeeklyWeather(data){
     const code =
       data.daily.weather_code[i];
 
-    const row =
+    const details =
+      getDayDetails(data,data.daily.time[i],i);
+
+    const wrap =
       document.createElement("div");
 
-    row.className="day";
+    wrap.className="day-wrap";
 
-    row.innerHTML=`
-      <div class="day-name">${dayName}</div>
-      <div class="day-icon">${weatherIcon(code)}</div>
-      <div class="day-temp">${max}° / ${min}°</div>
-      <div class="day-rain">💧 ${rain}%</div>
+    wrap.innerHTML=`
+
+      <div class="day" onclick="toggleDay(${i})">
+
+        <div class="day-name">
+          ${dayName}
+          <div style="font-size:11px;color:#7fa1bd;margin-top:3px">
+            اضغط للتفاصيل
+          </div>
+        </div>
+
+        <div class="day-icon">
+          ${weatherIcon(code)}
+        </div>
+
+        <div class="day-temp">
+          ${max}° / ${min}°
+        </div>
+
+        <div class="day-rain">
+          💧 ${rain}%
+        </div>
+
+      </div>
+
+      <div class="day-details" id="dayDetails${i}">
+
+        <div class="detail-grid">
+
+          <div class="forecast-detail">
+            <span>🌧️ كمية المطر</span>
+            <strong>${details.amount} ملم</strong>
+          </div>
+
+          <div class="forecast-detail">
+            <span>🕒 ساعات الهطول</span>
+            <strong>${details.hours} ساعة</strong>
+          </div>
+
+          <div class="forecast-detail">
+            <span>⏰ أفضل فترة</span>
+            <strong>${details.bestHour}</strong>
+          </div>
+
+          <div class="forecast-detail">
+            <span>💧 أعلى رطوبة</span>
+            <strong>${details.humidity}%</strong>
+          </div>
+
+          <div class="forecast-detail">
+            <span>☁️ أعلى سحب</span>
+            <strong>${details.cloud}%</strong>
+          </div>
+
+          <div class="forecast-detail">
+            <span>💨 أقوى رياح</span>
+            <strong>${details.wind} كم/س</strong>
+          </div>
+
+          <div class="forecast-detail">
+            <span>⚡ CAPE</span>
+            <strong>${details.cape} J/kg</strong>
+          </div>
+
+          <div class="forecast-detail">
+            <span>⛈️ عدم الاستقرار</span>
+            <strong>${details.instability}</strong>
+          </div>
+
+        </div>
+
+        <div class="day-note">
+          ${details.note}
+        </div>
+
+      </div>
     `;
 
-    box.appendChild(row);
+    box.appendChild(wrap);
   }
+}
+
+
+function toggleDay(index){
+
+  const element =
+    document.getElementById("dayDetails"+index);
+
+  element.classList.toggle("open");
+}
+
+
+function getDayDetails(data,dateString,dailyIndex){
+
+  const indexes=[];
+
+  for(let i=0;i<data.hourly.time.length;i++){
+
+    if(data.hourly.time[i].startsWith(dateString))
+      indexes.push(i);
+  }
+
+  if(!indexes.length){
+
+    return {
+      amount:"0.0",
+      hours:"0",
+      bestHour:"--",
+      humidity:0,
+      cloud:0,
+      wind:0,
+      cape:0,
+      instability:"--",
+      note:"لا توجد بيانات تفصيلية."
+    };
+  }
+
+  const humidity =
+    maxFromIndexes(
+      data.hourly.relative_humidity_2m,
+      indexes
+    );
+
+  const cloud =
+    maxFromIndexes(
+      data.hourly.cloud_cover,
+      indexes
+    );
+
+  const wind =
+    maxFromIndexes(
+      data.hourly.wind_speed_10m,
+      indexes
+    );
+
+  const cape =
+    maxFromIndexes(
+      data.hourly.cape,
+      indexes
+    );
+
+  const amount =
+    Number(
+      data.daily.precipitation_sum[dailyIndex] ?? 0
+    ).toFixed(1);
+
+  const hours =
+    Number(
+      data.daily.precipitation_hours[dailyIndex] ?? 0
+    ).toFixed(0);
+
+  const bestHour =
+    getBestHourForDay(data,dateString) || "--";
+
+  let instability="ضعيف";
+
+  if(cape>=1500)
+    instability="مرتفع";
+
+  else if(cape>=700)
+    instability="متوسط إلى مرتفع";
+
+  else if(cape>=300)
+    instability="متوسط";
+
+  const rainChance =
+    data.daily.precipitation_probability_max[dailyIndex] ?? 0;
+
+  let note="";
+
+  if(rainChance>=70){
+
+    note =
+      "🌧️ فرصة المطر مرتفعة نسبيًا وفق التوقع الحالي. راقب تحديث الساعات لأن التوقيت والكمية قد يتغيران.";
+
+  }else if(rainChance>=40){
+
+    note =
+      "☁️ توجد فرصة متوسطة للمطر، والتفاصيل الساعية ستوضح الفترة الأفضل مع اقتراب الموعد.";
+
+  }else if(rainChance>=20){
+
+    note =
+      "🌤️ توجد إشارة محدودة للمطر، لكنها ليست قوية حاليًا.";
+
+  }else{
+
+    note =
+      "☀️ لا تظهر حاليًا إشارة قوية للمطر في هذا اليوم.";
+  }
+
+  return {
+    amount,
+    hours,
+    bestHour,
+    humidity:Math.round(humidity),
+    cloud:Math.round(cloud),
+    wind:Math.round(wind),
+    cape:Math.round(cape),
+    instability,
+    note
+  };
+}
+
+
+function maxFromIndexes(array,indexes){
+
+  const values =
+    indexes
+      .map(i=>array[i])
+      .filter(Number.isFinite);
+
+  return values.length ?
+    Math.max(...values) : 0;
+}
+
+
+function getBestHourForDay(data,dateString){
+
+  let bestIndex=-1;
+  let bestScore=-1;
+
+  for(let i=0;i<data.hourly.time.length;i++){
+
+    if(!data.hourly.time[i].startsWith(dateString))
+      continue;
+
+    const probability =
+      data.hourly.precipitation_probability[i] ?? 0;
+
+    const precipitation =
+      data.hourly.precipitation[i] ?? 0;
+
+    const score =
+      probability + precipitation*10;
+
+    if(score>bestScore){
+      bestScore=score;
+      bestIndex=i;
+    }
+  }
+
+  if(bestIndex<0)
+    return null;
+
+  if(
+    (data.hourly.precipitation_probability[bestIndex] ?? 0)===0 &&
+    (data.hourly.precipitation[bestIndex] ?? 0)===0
+  ){
+    return null;
+  }
+
+  const date =
+    new Date(data.hourly.time[bestIndex]);
+
+  return date.toLocaleTimeString("ar-YE",{
+    hour:"numeric",
+    minute:"2-digit",
+    hour12:true
+  });
 }
 
 
 /* بحر العرب */
 
-const seaPoints = [
-  {name:"غرب بحر العرب – قبالة اليمن",lat:14.5,lon:52.5},
-  {name:"وسط بحر العرب",lat:14.5,lon:58.0},
-  {name:"شمال غرب بحر العرب",lat:18.0,lon:58.0},
-  {name:"شمال بحر العرب",lat:20.0,lon:63.0},
-  {name:"وسط وشرق بحر العرب",lat:14.0,lon:64.0},
-  {name:"جنوب بحر العرب",lat:10.0,lon:60.0}
+const seaPoints=[
+
+  {
+    name:"غرب بحر العرب – قبالة اليمن",
+    lat:14.5,
+    lon:52.5
+  },
+
+  {
+    name:"شرق سقطرى",
+    lat:12.5,
+    lon:55.5
+  },
+
+  {
+    name:"شمال غرب بحر العرب",
+    lat:17.0,
+    lon:57.0
+  },
+
+  {
+    name:"وسط بحر العرب",
+    lat:14.5,
+    lon:59.5
+  },
+
+  {
+    name:"شمال بحر العرب",
+    lat:19.0,
+    lon:62.0
+  },
+
+  {
+    name:"وسط وشرق بحر العرب",
+    lat:14.0,
+    lon:64.0
+  },
+
+  {
+    name:"جنوب بحر العرب",
+    lat:10.0,
+    lon:60.0
+  }
+
 ];
 
 
 async function loadSea(){
 
   document.getElementById("seaSummary").textContent =
-    "جاري فحص عدة مناطق داخل بحر العرب...";
+    "جاري تحليل عدة مناطق داخل بحر العرب...";
 
   try{
 
     const results =
       await Promise.all(
+
         seaPoints.map(async point=>{
 
           const url =
             `https://api.open-meteo.com/v1/forecast?latitude=${point.lat}&longitude=${point.lon}` +
-            `&hourly=pressure_msl,precipitation,cloud_cover,wind_speed_10m,wind_direction_10m` +
-            `&timezone=Asia%2FAden&forecast_days=3`;
+            `&hourly=pressure_msl,precipitation,cloud_cover,relative_humidity_2m,wind_speed_10m,wind_direction_10m` +
+            `&timezone=Asia%2FAden&forecast_days=5&cell_selection=sea`;
 
           const response =
             await fetch(url);
@@ -818,6 +1307,7 @@ async function loadSea(){
       );
 
     showSeaAnalysis(results);
+
     seaLoaded=true;
 
   }catch(error){
@@ -830,62 +1320,74 @@ async function loadSea(){
 
 function analyzeSeaPoint(point,data){
 
-  const pressure =
-    data.hourly.pressure_msl.filter(Number.isFinite);
-
-  const rain =
-    data.hourly.precipitation.filter(Number.isFinite);
-
-  const cloud =
-    data.hourly.cloud_cover.filter(Number.isFinite);
-
-  const wind =
-    data.hourly.wind_speed_10m.filter(Number.isFinite);
-
-  const minPressure =
-    pressure.length ? Math.min(...pressure) : 9999;
-
-  const maxRain =
-    rain.length ? Math.max(...rain) : 0;
-
-  const maxCloud =
-    cloud.length ? Math.max(...cloud) : 0;
-
-  const maxWind =
-    wind.length ? Math.max(...wind) : 0;
-
-  let activeIndex=0;
+  let bestIndex=0;
   let bestScore=-Infinity;
+
+  let minPressure=9999;
+  let maxRain=0;
+  let maxCloud=0;
+  let maxHumidity=0;
+  let maxWind=0;
 
   for(let i=0;i<data.hourly.time.length;i++){
 
     const p=data.hourly.pressure_msl[i];
     const r=data.hourly.precipitation[i] ?? 0;
     const c=data.hourly.cloud_cover[i] ?? 0;
+    const h=data.hourly.relative_humidity_2m[i] ?? 0;
     const w=data.hourly.wind_speed_10m[i] ?? 0;
 
-    if(!Number.isFinite(p)) continue;
+    if(Number.isFinite(p))
+      minPressure=Math.min(minPressure,p);
+
+    if(Number.isFinite(r))
+      maxRain=Math.max(maxRain,r);
+
+    if(Number.isFinite(c))
+      maxCloud=Math.max(maxCloud,c);
+
+    if(Number.isFinite(h))
+      maxHumidity=Math.max(maxHumidity,h);
+
+    if(Number.isFinite(w))
+      maxWind=Math.max(maxWind,w);
+
+    if(!Number.isFinite(p))
+      continue;
+
+    const pressureSignal =
+      Math.max(0,1012-p);
 
     const score =
-      (1013-p)*2 +
-      r*6 +
-      c*0.08 +
+      pressureSignal*2 +
+      r*7 +
+      c*0.05 +
+      h*0.03 +
       w*0.15;
 
     if(score>bestScore){
+
       bestScore=score;
-      activeIndex=i;
+      bestIndex=i;
     }
   }
 
   return {
+
     point,
+
     minPressure,
     maxRain,
     maxCloud,
+    maxHumidity,
     maxWind,
+
     direction:
-      data.hourly.wind_direction_10m[activeIndex] ?? 0,
+      data.hourly.wind_direction_10m[bestIndex] ?? 0,
+
+    time:
+      data.hourly.time[bestIndex],
+
     score:bestScore
   };
 }
@@ -908,20 +1410,42 @@ function showSeaAnalysis(results){
   const maxCloud =
     Math.max(...results.map(x=>x.maxCloud));
 
+  const maxHumidity =
+    Math.max(...results.map(x=>x.maxHumidity));
+
   const maxWind =
     Math.max(...results.map(x=>x.maxWind));
 
-  document.getElementById("seaPressure").textContent =
-    Math.round(minPressure)+" hPa";
+
+  const distance =
+    haversine(
+      latitude,
+      longitude,
+      active.point.lat,
+      active.point.lon
+    );
+
 
   document.getElementById("seaArea").textContent =
     active.point.name;
+
+  document.getElementById("seaCoords").textContent =
+    `${active.point.lat.toFixed(1)}°N ، ${active.point.lon.toFixed(1)}°E`;
+
+  document.getElementById("seaDistance").textContent =
+    `نحو ${Math.round(distance)} كم`;
+
+  document.getElementById("seaPressure").textContent =
+    Math.round(minPressure)+" hPa";
 
   document.getElementById("seaRain").textContent =
     maxRain.toFixed(1)+" ملم/ساعة";
 
   document.getElementById("seaCloud").textContent =
     Math.round(maxCloud)+"%";
+
+  document.getElementById("seaHumidity").textContent =
+    Math.round(maxHumidity)+"%";
 
   document.getElementById("seaWind").textContent =
     Math.round(maxWind)+" كم/س";
@@ -930,88 +1454,123 @@ function showSeaAnalysis(results){
     windDirection(active.direction);
 
 
+  const activeDate =
+    new Date(active.time);
+
+  document.getElementById("seaTime").textContent =
+    activeDate.toLocaleString("ar-YE",{
+      weekday:"long",
+      hour:"numeric",
+      minute:"2-digit",
+      hour12:true
+    });
+
+
   /*
-    هذا تقييم مؤشرات نموذجية فقط.
-    لا يقوم بتسمية منخفض مداري أو عاصفة أو إعصار.
+    لا نستخدم اتجاه الرياح باعتباره اتجاه حركة النظام.
+    هو فقط اتجاه الرياح عند نقطة النشاط.
   */
 
-  let summary="";
-  let yemen="";
-  let impact="";
+  const westernSector =
+    active.point.lon<=57.5;
 
-  const westActive =
-    active.point.lon <= 58.5;
-
-  const towardWest =
-    active.direction >= 45 &&
-    active.direction <= 135;
+  const closeToYemen =
+    distance<=900;
 
   const strongSignal =
-    minPressure <= 1005 ||
-    maxWind >= 45 ||
-    maxRain >= 8;
+    minPressure<=1005 ||
+    maxWind>=45 ||
+    maxRain>=8;
 
   const mediumSignal =
-    minPressure <= 1009 ||
-    maxWind >= 30 ||
-    maxRain >= 3;
+    minPressure<=1009 ||
+    maxWind>=30 ||
+    maxRain>=3;
+
+
+  let summary;
+  let yemen;
+  let impact;
 
 
   if(strongSignal){
 
     summary =
-      "⚠️ توجد مؤشرات جوية نشطة في أجزاء من بحر العرب وفق بيانات النموذج. هذا لا يعني تلقائيًا وجود حالة مدارية رسمية؛ يجب مراجعة النشرة الرسمية.";
+      "⚠️ تظهر مؤشرات نموذجية نشطة فوق جزء من بحر العرب. يلزم متابعة تطورها وتحديثاتها، ولا تعني هذه القراءة وحدها وجود حالة مدارية مصنفة رسميًا.";
 
   }else if(mediumSignal){
 
     summary =
-      "🌧️ توجد مؤشرات متوسطة للنشاط الجوي فوق أجزاء من بحر العرب، وتحتاج للمتابعة مع تحديثات النماذج.";
+      "🌧️ توجد مؤشرات متوسطة للنشاط الجوي فوق أجزاء من بحر العرب. تستحق المتابعة لمعرفة تطور الضغط والسحب والأمطار خلال التحديثات القادمة.";
 
   }else{
 
     summary =
-      "✅ لا تظهر في نقاط المتابعة حاليًا مؤشرات نموذجية قوية على اضطراب واسع فوق بحر العرب.";
+      "✅ لا تظهر في نقاط المتابعة حاليًا مؤشرات نموذجية قوية على اضطراب واسع في بحر العرب.";
   }
 
 
-  if(westActive && towardWest){
+  if(westernSector && closeToYemen){
 
     yemen =
-      "توجد إشارة تستحق المتابعة في القطاع الأقرب لليمن مع رياح قد تساعد على انتقال الرطوبة غربًا.";
+      "النشاط الأبرز يقع في القطاع الغربي الأقرب إلى اليمن، لذلك يستحق متابعة تطور السحب والرطوبة باتجاه السواحل.";
 
-  }else if(westActive){
+  }else if(westernSector){
 
     yemen =
-      "النشاط الأبرز يقع في القطاع الغربي من بحر العرب، لكن اتجاه الرياح الحالي لا يكفي وحده لإثبات انتقاله نحو اليمن.";
+      "النشاط الأبرز يقع في غرب بحر العرب، لكن موقعه الحالي لا يكفي لتأكيد تأثير مباشر على اليمن.";
 
   }else{
 
     yemen =
-      "النشاط الأبرز حاليًا أبعد شرقًا عن سواحل اليمن.";
+      "أقوى نشاط مرصود في نقاط المتابعة يقع حاليًا أبعد شرقًا عن سواحل اليمن.";
+  }
+
+
+  /*
+    نستخدم توقع هدى نفسه عند وصف التأثير،
+    حتى لا نقول إن بحر العرب غير نشط بينما هدى لديها فرصة مطر محلية.
+  */
+
+  let localRain=0;
+
+  if(
+    weatherData &&
+    weatherData.daily &&
+    weatherData.daily.precipitation_probability_max
+  ){
+
+    localRain =
+      Math.max(
+        ...weatherData.daily.precipitation_probability_max
+          .filter(Number.isFinite)
+      );
   }
 
 
   if(
+    westernSector &&
     strongSignal &&
-    westActive &&
-    towardWest
+    localRain>=40
   ){
 
     impact =
-      "يستحق المتابعة لشبوة وهدى خلال التحديثات القادمة، دون تأكيد تأثير مباشر حاليًا.";
+      `يستحق المتابعة؛ هدى لديها أيضًا فرصة مطر تصل حاليًا إلى ${Math.round(localRain)}%. لا يمكن الجزم بأن مصدرها الحالة البحرية دون متابعة الخرائط.`;
 
-  }else if(
-    mediumSignal &&
-    westActive
-  ){
+  }else if(localRain>=60){
 
     impact =
-      "تأثير محتمل غير مؤكد؛ تتم متابعة انتقال الرطوبة والسحب نحو شبوة.";
+      `توجد فرصة مطر جيدة على هدى تصل إلى ${Math.round(localRain)}% خلال فترة التوقع، حتى لو لم تظهر حالة مدارية قوية في بحر العرب.`;
+
+  }else if(localRain>=30){
+
+    impact =
+      `توجد فرصة مطر على هدى تصل إلى ${Math.round(localRain)}%، بينما ارتباطها المباشر بنشاط بحر العرب غير مؤكد حاليًا.`;
 
   }else{
 
     impact =
-      "لا تظهر حاليًا إشارة نموذجية واضحة على تأثير مباشر من بحر العرب على هدى.";
+      "لا تظهر حاليًا إشارة واضحة على تأثير مباشر من نشاط بحر العرب على هدى.";
   }
 
 
@@ -1023,6 +1582,37 @@ function showSeaAnalysis(results){
 
   document.getElementById("seaImpact").textContent =
     impact;
+}
+
+
+/* المسافة */
+
+function haversine(lat1,lon1,lat2,lon2){
+
+  const R=6371;
+
+  const toRad =
+    value=>value*Math.PI/180;
+
+  const dLat =
+    toRad(lat2-lat1);
+
+  const dLon =
+    toRad(lon2-lon1);
+
+  const a =
+    Math.sin(dLat/2)**2 +
+    Math.cos(toRad(lat1)) *
+    Math.cos(toRad(lat2)) *
+    Math.sin(dLon/2)**2;
+
+  const c =
+    2*Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1-a)
+    );
+
+  return R*c;
 }
 
 
@@ -1081,6 +1671,9 @@ function weatherIcon(code){
 
 function windDirection(deg){
 
+  if(!Number.isFinite(deg))
+    return "--";
+
   const directions=[
     "شمالية",
     "شمالية شرقية",
@@ -1131,18 +1724,14 @@ async function loadPrayers(){
     const response =
       await fetch(url);
 
-    if(!response.ok){
+    if(!response.ok)
       throw new Error("Prayer API error");
-    }
 
     const result =
       await response.json();
 
-    const data =
-      result.data;
-
-    const t =
-      data.timings;
+    const data=result.data;
+    const t=data.timings;
 
     document.getElementById("fajr").textContent =
       prayerTime(t.Fajr);
@@ -1162,10 +1751,10 @@ async function loadPrayers(){
     document.getElementById("isha").textContent =
       prayerTime(t.Isha);
 
+
     if(data.date && data.date.hijri){
 
-      const h =
-        data.date.hijri;
+      const h=data.date.hijri;
 
       document.getElementById("hijriDate").textContent =
         `${h.day} ${h.month.ar} ${h.year} هـ`;
@@ -1189,7 +1778,8 @@ async function loadPrayers(){
 
 function prayerTime(value){
 
-  if(!value) return "--";
+  if(!value)
+    return "--";
 
   const clean =
     value.split(" ")[0];
@@ -1208,7 +1798,8 @@ function prayerTime(value){
 
   hour=hour%12;
 
-  if(hour===0) hour=12;
+  if(hour===0)
+    hour=12;
 
   return `${hour}:${minute} ${period}`;
 }
@@ -1217,11 +1808,14 @@ function prayerTime(value){
 /* النوافذ */
 
 function openMap(){
+
   document.getElementById("mapModal").style.display="block";
   document.body.style.overflow="hidden";
 }
 
+
 function closeMap(){
+
   document.getElementById("mapModal").style.display="none";
   document.body.style.overflow="";
 }
@@ -1232,12 +1826,13 @@ function openSea(){
   document.getElementById("seaModal").style.display="block";
   document.body.style.overflow="hidden";
 
-  if(!seaLoaded){
+  if(!seaLoaded)
     loadSea();
-  }
 }
 
+
 function closeSea(){
+
   document.getElementById("seaModal").style.display="none";
   document.body.style.overflow="";
 }
