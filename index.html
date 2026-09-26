@@ -446,6 +446,17 @@ footer{
 .modal-pad{padding:16px}
 @media(max-width:420px){.update-grid,.models-grid,.quake-grid{grid-template-columns:1fr}}
 
+/* ما الجديد + النجم الحالي */
+.whats-new-wrap{text-align:center;margin:8px 0 14px}
+.whats-new-btn{border:1px solid #2b6472;background:#0d2a35;color:#dff8fb;border-radius:10px;padding:9px 14px;font-family:inherit;font-size:13px;font-weight:bold;cursor:pointer}
+.current-star-card{background:linear-gradient(135deg,#2b2616,#17252b);border:1px solid #9a7427;border-radius:14px;padding:14px;margin-bottom:13px}
+.current-star-title{font-size:16px;font-weight:bold;color:#e3bd61;margin-bottom:10px}
+.current-star-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.current-star-item{background:#091d26;border-radius:10px;padding:9px}
+.current-star-item span{display:block;color:#91b8d4;font-size:11px;margin-bottom:4px}
+.current-star-item strong{font-size:13px;line-height:1.5}
+@media(max-width:420px){.current-star-grid{grid-template-columns:1fr 1fr}}
+
 
 
 /* هوية تحديث 2 – ألوان جديدة بدون صور طبيعية */
@@ -666,19 +677,6 @@ footer{color:#789da7}
 
 
 
-<!-- ما الجديد في تحديث 2 -->
-<section class="card">
-  <div class="card-title">✨ ما الجديد في تحديث 2</div>
-  <div class="update-grid">
-    <div class="update-item"><span>📡 الراصد</span><strong>مطر • سحب • غبار • رؤية • برد • رياح</strong></div>
-    <div class="update-item"><span>🛰️ الموديلات</span><strong>ECMWF • GFS • ICON • GEM/CMC • AIFS</strong></div>
-    <div class="update-item"><span>🌍 الزلازل</span><strong>متابعة أحدث الرصد القريب من المنطقة</strong></div>
-    <div class="update-item"><span>⭐ النجوم</span><strong>28 نجمًا مع التاريخ والتفاصيل قريبًا</strong></div>
-    <div class="update-item"><span>🕌 الصلاة</span><strong>جدول حبان المعتمد • بدون وقت الجمعة</strong></div>
-    <div class="update-item"><span>📱 التطبيق</span><strong>قابل للتثبيت على شاشة الجوال</strong></div>
-  </div>
-</section>
-
 <section class="card">
   <div class="card-title">📢 مساحة إعلانية</div>
   <div class="ad-space">مساحة إعلانية متاحة</div>
@@ -690,6 +688,10 @@ footer{color:#789da7}
   <img class="sponsor-image" src="sponsor-albaqira.jpg" alt="البقيرة للصرافة وتحويلات – وكيل حوالة">
 </section>
 
+<div class="whats-new-wrap">
+  <button class="whats-new-btn" onclick="openWhatsNew()">✨ ما الجديد</button>
+</div>
+
 <footer>
   بيانات الطقس والراصد تتحدث تلقائيًا
 </footer>
@@ -699,6 +701,26 @@ footer{color:#789da7}
 
 
 
+<!-- ما الجديد -->
+<div class="modal" id="whatsNewModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>✨ ما الجديد في تحديث 2</h2>
+      <button class="close" onclick="closeWhatsNew()">×</button>
+    </div>
+    <div class="modal-pad">
+      <div class="update-grid">
+        <div class="update-item"><span>📡 الراصد</span><strong>مطر • سحب • غبار • رؤية • برد • رياح</strong></div>
+        <div class="update-item"><span>🛰️ الموديلات</span><strong>ECMWF • GFS • ICON • GEM/CMC • AIFS</strong></div>
+        <div class="update-item"><span>🌍 الزلازل</span><strong>متابعة أحدث الرصد القريب من المنطقة</strong></div>
+        <div class="update-item"><span>⭐ النجوم</span><strong>28 نجمًا مع التاريخ والتفاصيل قريبًا</strong></div>
+        <div class="update-item"><span>🕌 الصلاة</span><strong>جدول حبان المعتمد • بدون وقت الجمعة</strong></div>
+        <div class="update-item"><span>📱 التطبيق</span><strong>قابل للتثبيت على شاشة الجوال</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- حساب النجوم -->
 <div class="modal" id="starsModal">
   <div class="modal-content">
@@ -707,6 +729,10 @@ footer{color:#789da7}
       <button class="close" onclick="closeStars()">×</button>
     </div>
     <div class="stars-content">
+      <div class="current-star-card" id="currentStarCard">
+        <div class="current-star-title">⭐ النجم الحالي</div>
+        <div class="current-star-grid" id="currentStarGrid"><div class="loading">جاري الحساب...</div></div>
+      </div>
       <div class="stars-note">4 فصول • 7 نجوم لكل فصل • مدة كل نجم 13 يومًا. اضغط على أي نجم لعرض نافذته.<br><strong style="color:#e3bd61">إعداد الراصد محمد شمروخ الطهيبي</strong></div>
       <div id="starsList"></div>
     </div>
@@ -938,7 +964,7 @@ async function loadWeather(){
     const url =
       `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
       `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m` +
-      `&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,cape,visibility` +
+      `&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cape,visibility` +
       `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,precipitation_hours,wind_speed_10m_max,wind_gusts_10m_max` +
       `&timezone=Asia%2FAden&forecast_days=7`;
 
@@ -2432,38 +2458,80 @@ function prayerTime(value){
    ========================================================= */
 const starsData=[
   {season:"الربيع",stars:[
-    ["الجبهة","30 يناير – 11 فبراير 2026"],
-    ["الزبرة","12 – 24 فبراير 2026"],
-    ["الصرفة","25 فبراير – 9 مارس 2026"],
-    ["العواء","10 – 22 مارس 2026"],
-    ["السماك","23 مارس – 4 أبريل 2026"],
-    ["الغفر","5 – 17 أبريل 2026"],
-    ["الزبان","18 – 30 أبريل 2026"]]},
+    ["الجبهة","30 يناير 2026"],
+    ["الزبرة","12 فبراير 2026"],
+    ["الصرفة","25 فبراير 2026"],
+    ["العواء","10 مارس 2026"],
+    ["السماك","23 مارس 2026"],
+    ["الغفر","5 أبريل 2026"],
+    ["الزبان","18 أبريل 2026"]]},
   {season:"الصيف",stars:[
-    ["لكليل","1 – 13 مايو 2026"],
-    ["القلب","14 – 26 مايو 2026"],
-    ["الشول","27 مايو – 8 يونيو 2026"],
-    ["النعيم","9 – 21 يونيو 2026"],
-    ["البلدة","22 يونيو – 4 يوليو 2026"],
-    ["القويدم","5 – 17 يوليو 2026"],
-    ["المرزم","18 – 30 يوليو 2026"]]},
+    ["لكليل","1 مايو 2026"],
+    ["القلب","14 مايو 2026"],
+    ["الشول","27 مايو 2026"],
+    ["النعيم","9 يونيو 2026"],
+    ["البلدة","22 يونيو 2026"],
+    ["القويدم","5 يوليو 2026"],
+    ["المرزم","18 يوليو 2026"]]},
   {season:"الخريف",stars:[
-    ["سهيل","31 يوليو – 12 أغسطس 2026"],
-    ["سعد","13 – 25 أغسطس 2026"],
-    ["ناهز","26 أغسطس – 7 سبتمبر 2026"],
-    ["عُرج","8 – 20 سبتمبر 2026"],
-    ["خامس","21 سبتمبر – 3 أكتوبر 2026"],
-    ["سادس","4 – 16 أكتوبر 2026"],
-    ["سابع","17 – 29 أكتوبر 2026"]]},
+    ["سهيل","31 يوليو 2026"],
+    ["سعد","13 أغسطس 2026"],
+    ["ناهز","26 أغسطس 2026"],
+    ["عُرج","8 سبتمبر 2026"],
+    ["خامس","21 سبتمبر 2026"],
+    ["سادس","4 أكتوبر 2026"],
+    ["سابع","17 أكتوبر 2026"]]},
   {season:"الشتاء",stars:[
-    ["ثريا","30 أكتوبر – 11 نوفمبر 2026"],
-    ["بركان","12 – 24 نوفمبر 2026"],
-    ["هقاع","25 نوفمبر – 7 ديسمبر 2026"],
-    ["هناع","8 – 20 ديسمبر 2026"],
-    ["ذراع","21 ديسمبر 2026 – 2 يناير 2027"],
-    ["نثرة","3 – 15 يناير 2027"],
-    ["طرف","16 – 28 يناير 2027"]]}
+    ["ثريا","30 أكتوبر 2026"],
+    ["بركان","12 نوفمبر 2026"],
+    ["هقاع","25 نوفمبر 2026"],
+    ["هناع","8 ديسمبر 2026"],
+    ["ذراع","21 ديسمبر 2026"],
+    ["نثرة","3 يناير 2027"],
+    ["طرف","16 يناير 2027"]]}
 ];
+
+function parseStarEntryDate(text){
+  const months={"يناير":0,"فبراير":1,"مارس":2,"أبريل":3,"مايو":4,"يونيو":5,"يوليو":6,"أغسطس":7,"سبتمبر":8,"أكتوبر":9,"نوفمبر":10,"ديسمبر":11};
+  const match=text.trim().match(/(\d+)\s+([^\s]+)\s+(\d{4})/);
+  if(!match || months[match[2]]===undefined) return null;
+  return new Date(Number(match[3]),months[match[2]],Number(match[1]));
+}
+
+function showCurrentStar(){
+  const box=document.getElementById("currentStarGrid");
+  if(!box) return;
+  const now=new Date();
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  let current=null;
+  for(const group of starsData){
+    for(const star of group.stars){
+      const start=parseStarEntryDate(star[1]);
+      if(start){
+        const end=new Date(start);
+        end.setDate(end.getDate()+12);
+        if(today>=start && today<=end){
+          current={name:star[0],season:group.season,date:star[1],start,end};
+          break;
+        }
+      }
+    }
+    if(current) break;
+  }
+  if(!current){
+    box.innerHTML='<div class="current-star-item" style="grid-column:1/-1"><strong>التاريخ الحالي خارج نطاق جدول هدى 2026–2027.</strong></div>';
+    return;
+  }
+  const dayMs=86400000;
+  const currentDay=Math.floor((today-current.start)/dayMs)+1;
+  const remaining=Math.max(0,13-currentDay);
+  box.innerHTML=`
+    <div class="current-star-item"><span>اسم النجم</span><strong>⭐ ${current.name}</strong></div>
+    <div class="current-star-item"><span>الفصل</span><strong>${current.season}</strong></div>
+    <div class="current-star-item"><span>تاريخ الدخول</span><strong>${current.date}</strong></div>
+    <div class="current-star-item"><span>اليوم الحالي</span><strong>اليوم ${currentDay} من النجم</strong></div>
+    <div class="current-star-item"><span>الأيام المتبقية</span><strong>${remaining} يوم</strong></div>`;
+}
 
 function renderStars(){
   const root=document.getElementById("starsList");
@@ -2480,8 +2548,17 @@ function renderStars(){
       </div>
     </section>`).join("");
 }
+function openWhatsNew(){
+  document.getElementById("whatsNewModal").style.display="block";
+  document.body.style.overflow="hidden";
+}
+function closeWhatsNew(){
+  document.getElementById("whatsNewModal").style.display="none";
+  document.body.style.overflow="";
+}
 function openStars(){
   renderStars();
+  showCurrentStar();
   document.getElementById("starsModal").style.display="block";
   document.body.style.overflow="hidden";
 }
@@ -2637,6 +2714,7 @@ window.addEventListener(
       document.getElementById("starDetailModal");
     const models=document.getElementById("modelsModal");
     const quakes=document.getElementById("quakesModal");
+    const whatsNew=document.getElementById("whatsNewModal");
 
     if(event.target===map)
       closeMap();
@@ -2648,6 +2726,7 @@ window.addEventListener(
     if(event.target===starDetail) closeStarDetail();
     if(event.target===models) closeModels();
     if(event.target===quakes) closeQuakes();
+    if(event.target===whatsNew) closeWhatsNew();
   }
 );
 
