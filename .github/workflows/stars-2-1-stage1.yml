@@ -1,0 +1,67 @@
+name: Stars 2.1 Stage 1
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/stars-2-1-stage1.yml']
+permissions:
+  contents: write
+jobs:
+  update-stars:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Update stars only
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+
+          old_css='''.season{margin-bottom:15px}\n.season-title{font-size:16px;font-weight:bold;margin-bottom:8px;color:#f0cf76}\n.stars-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}\n.star-item{border:1px solid #294760;background:#0b192a;color:#fff;border-radius:12px;padding:11px;font-family:inherit;cursor:pointer;text-align:right}\n.star-name{display:block;font-weight:bold;font-size:15px;margin-bottom:5px}\n.star-date{display:block;color:#9fc3df;font-size:12px;line-height:1.6}'''
+          new_css='''.season{margin-bottom:11px;background:#091d26;border:1px solid #294760;border-radius:14px;padding:10px}\n.season-title{font-size:16px;font-weight:bold;margin-bottom:8px;color:#f0cf76}\n.stars-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}\n.star-item{border:1px solid #294760;background:#0b192a;color:#fff;border-radius:10px;padding:8px 9px;font-family:inherit;cursor:pointer;text-align:right;min-width:0}\n.star-name{display:block;font-weight:bold;font-size:14px;margin-bottom:3px}\n.star-date{display:block;color:#9fc3df;font-size:11px;line-height:1.5}'''
+          if old_css not in s: raise SystemExit('Expected stars CSS block not found')
+          s=s.replace(old_css,new_css,1)
+          s=s.replace('@media(max-width:420px){.stars-grid{grid-template-columns:1fr}}','@media(max-width:420px){.stars-content{padding:10px}.season{padding:8px}.stars-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.star-item{padding:7px}.star-name{font-size:13px}.star-date{font-size:10px}}',1)
+
+          old_render='''function renderStars(){\n  const root=document.getElementById("starsList");\n  if(!root) return;\n  root.innerHTML=starsData.map(group=>`\n    <section class="season">\n      <div class="season-title">${group.season}</div>\n      <div class="stars-grid">\n        ${group.stars.map(star=>`\n          <button class="star-item" onclick="openStarDetail('${star[0]}','${star[1]}')">\n            <span class="star-name">⭐ ${star[0]}</span>\n            <span class="star-date">${star[1]}</span>\n          </button>`).join("")}\n      </div>\n    </section>`).join("");\n}'''
+          new_render='''function renderStars(){\n  const root=document.getElementById("starsList");\n  if(!root) return;\n  const seasonIcons={"الربيع":"🌱","الصيف":"☀️","الخريف":"🍂","الشتاء":"❄️"};\n  root.innerHTML=starsData.map(group=>`\n    <section class="season">\n      <div class="season-title">${seasonIcons[group.season] || "⭐"} ${group.season}</div>\n      <div class="stars-grid">\n        ${group.stars.map(star=>`\n          <button class="star-item" onclick="openStarDetail('${star[0]}','${star[1]}')">\n            <span class="star-name">${star[0]}</span>\n            <span class="star-date">${star[1]}</span>\n          </button>`).join("")}\n      </div>\n    </section>`).join("");\n}'''
+          if old_render not in s: raise SystemExit('Expected renderStars block not found')
+          s=s.replace(old_render,new_render,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate stars
+        run: |
+          python3 - <<'PY'
+          import re
+          from datetime import date,timedelta
+          s=open('index.html',encoding='utf-8').read()
+          m=re.search(r'const starsData=\[(.*?)\n\];',s,re.S)
+          assert m, 'starsData missing'
+          block=m.group(1)
+          seasons=re.findall(r'\{season:"([^"]+)",stars:\[(.*?)\]\}',block,re.S)
+          assert len(seasons)==4, f'Expected 4 seasons, got {len(seasons)}'
+          expected=['الربيع','الصيف','الخريف','الشتاء']
+          assert [x[0] for x in seasons]==expected
+          total=0
+          for name,stars in seasons:
+            entries=re.findall(r'\["([^"]+)","([^"]+)"\]',stars)
+            assert len(entries)==7, f'{name}: {len(entries)} stars'
+            total+=len(entries)
+          assert total==28, total
+          assert '["خامس","21 سبتمبر 2026"]' in block
+          start=date(2026,9,21); end=start+timedelta(days=12); test=date(2026,9,26)
+          assert start<=test<=end
+          assert 'seasonIcons={"الربيع":"🌱","الصيف":"☀️","الخريف":"🍂","الشتاء":"❄️"}' in s
+          assert 'openStarDetail' in s and 'قريبًا' in s
+          print('PASS: 28 stars = 4 x 7; 2026-09-26 = خامس; compact four-season render present')
+          PY
+      - name: Commit index only
+        run: |
+          git config user.name "humairi-del"
+          git config user.email "humairi855@gmail.com"
+          git add index.html
+          test "$(git diff --cached --name-only)" = "index.html"
+          git commit -m "feat: compact four-season stars layout for 2.1"
+          git push origin main
