@@ -420,17 +420,17 @@ footer{
 .stars-btn{background:#8a6418}
 .stars-content{padding:14px}
 .stars-note{background:#0b192a;border-radius:12px;padding:11px;color:#b9d2e5;font-size:13px;line-height:1.8;margin-bottom:12px}
-.season{margin-bottom:15px}
+.season{margin-bottom:11px;background:#091d26;border:1px solid #294760;border-radius:14px;padding:10px}
 .season-title{font-size:16px;font-weight:bold;margin-bottom:8px;color:#f0cf76}
-.stars-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.star-item{border:1px solid #294760;background:#0b192a;color:#fff;border-radius:12px;padding:11px;font-family:inherit;cursor:pointer;text-align:right}
-.star-name{display:block;font-weight:bold;font-size:15px;margin-bottom:5px}
-.star-date{display:block;color:#9fc3df;font-size:12px;line-height:1.6}
+.stars-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.star-item{border:1px solid #294760;background:#0b192a;color:#fff;border-radius:10px;padding:8px 9px;font-family:inherit;cursor:pointer;text-align:right;min-width:0}
+.star-name{display:block;font-weight:bold;font-size:14px;margin-bottom:3px}
+.star-date{display:block;color:#9fc3df;font-size:11px;line-height:1.5}
 .star-detail{padding:22px 16px;text-align:center;line-height:2}
 .star-detail strong{display:block;font-size:21px;color:#f0cf76;margin-bottom:5px}
 .star-detail span{display:block;color:#b9d2e5;font-size:14px}
 .star-coming{margin-top:14px;background:#0b192a;border-radius:12px;padding:13px;color:#d8e6f2}
-@media(max-width:420px){.stars-grid{grid-template-columns:1fr}}
+@media(max-width:420px){.stars-content{padding:10px}.season{padding:8px}.stars-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.star-item{padding:7px}.star-name{font-size:13px}.star-date{font-size:10px}}
 
 
 /* تحديث 2 النهائي */
@@ -2536,13 +2536,14 @@ function showCurrentStar(){
 function renderStars(){
   const root=document.getElementById("starsList");
   if(!root) return;
+  const seasonIcons={"الربيع":"🌱","الصيف":"☀️","الخريف":"🍂","الشتاء":"❄️"};
   root.innerHTML=starsData.map(group=>`
     <section class="season">
-      <div class="season-title">${group.season}</div>
+      <div class="season-title">${seasonIcons[group.season] || "⭐"} ${group.season}</div>
       <div class="stars-grid">
         ${group.stars.map(star=>`
           <button class="star-item" onclick="openStarDetail('${star[0]}','${star[1]}')">
-            <span class="star-name">⭐ ${star[0]}</span>
+            <span class="star-name">${star[0]}</span>
             <span class="star-date">${star[1]}</span>
           </button>`).join("")}
       </div>
