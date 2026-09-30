@@ -1,0 +1,2765 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>طقس هدى وما جاورها</title>
+  <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "350a509c62504a2c97dd7ced413410e1"}'></script><!-- End Cloudflare Web Analytics -->
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:Tahoma,Arial,sans-serif;
+  background:#07111f;
+  color:#fff;
+  min-height:100vh;
+}
+
+.container{
+  width:100%;
+  max-width:650px;
+  margin:auto;
+  padding:15px;
+}
+
+header{text-align:center;padding:18px 5px 15px}
+header h1{font-size:27px;margin-bottom:7px}
+.location{color:#a9c8e8;font-size:15px}
+.date{margin-top:8px;color:#d7e7f7;font-size:14px;line-height:1.8}
+
+.card{
+  background:#102238;
+  border:1px solid #1e3a57;
+  border-radius:18px;
+  padding:17px;
+  margin-bottom:14px;
+}
+
+.card-title{
+  font-size:18px;
+  font-weight:bold;
+  margin-bottom:14px;
+}
+
+.current{text-align:center}
+.weather-icon{font-size:48px;margin-bottom:5px}
+.temperature{font-size:55px;font-weight:bold}
+.description{color:#bcd5ed;font-size:18px;margin-bottom:17px}
+
+.weather-details{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+
+.detail{
+  background:#0b192a;
+  border-radius:12px;
+  padding:11px 5px;
+}
+
+.detail span{
+  display:block;
+  color:#91b3d1;
+  font-size:12px;
+  margin-bottom:5px;
+}
+
+.detail strong{font-size:14px}
+
+/* أفضل فرصة مطر */
+
+.rain-highlight{
+  background:linear-gradient(135deg,#0c3550,#102b46);
+  border:1px solid #1f6286;
+}
+
+.rain-main{
+  font-size:17px;
+  line-height:1.9;
+  font-weight:bold;
+}
+
+.rain-sub{
+  color:#a9cbe4;
+  font-size:13px;
+  margin-top:7px;
+  line-height:1.8;
+}
+
+/* الصلاة */
+
+.prayers{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+
+.prayer{
+  background:#0b192a;
+  border-radius:12px;
+  text-align:center;
+  padding:11px 4px;
+}
+
+.prayer-name{
+  color:#9fc3df;
+  font-size:13px;
+  margin-bottom:5px;
+}
+
+.prayer-time{
+  font-weight:bold;
+  font-size:15px;
+}
+
+/* الأزرار */
+
+.buttons{
+  display:grid;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.action-btn{
+  width:100%;
+  border:0;
+  border-radius:14px;
+  padding:15px;
+  font-family:inherit;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+  background:#1769aa;
+  color:#fff;
+}
+
+.sea-btn{background:#087f8c}
+
+.disabled-btn{
+  background:#34475b;
+  color:#aebdca;
+  cursor:not-allowed;
+}
+
+/* الساعات */
+
+.hourly{
+  display:flex;
+  overflow-x:auto;
+  gap:9px;
+  padding-bottom:7px;
+}
+
+.hour{
+  min-width:82px;
+  text-align:center;
+  background:#0b192a;
+  border-radius:13px;
+  padding:10px 7px;
+}
+
+.hour-time{font-size:13px;color:#b8d0e4}
+.hour-icon{font-size:25px;margin:7px 0}
+.hour-rain{color:#6dc8ff;font-weight:bold;font-size:14px}
+.hour-temp{margin-top:5px;font-size:14px}
+
+/* توقعات الأسبوع */
+
+.day-wrap{
+  border-bottom:1px solid #203b56;
+}
+
+.day-wrap:last-child{border-bottom:none}
+
+.day{
+  display:grid;
+  grid-template-columns:1.4fr .8fr .9fr .8fr;
+  align-items:center;
+  gap:5px;
+  padding:13px 4px;
+  cursor:pointer;
+}
+
+.day-name{font-weight:bold}
+.day-temp,.day-rain,.day-icon{text-align:center}
+.day-rain{color:#6dc8ff;font-weight:bold}
+.day-icon{font-size:23px}
+
+.day-details{
+  display:none;
+  background:#091827;
+  border-radius:12px;
+  padding:13px;
+  margin:0 0 12px;
+}
+
+.day-details.open{display:block}
+
+.detail-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.forecast-detail{
+  background:#10253a;
+  border-radius:10px;
+  padding:10px;
+}
+
+.forecast-detail span{
+  display:block;
+  color:#91b8d4;
+  font-size:12px;
+  margin-bottom:5px;
+}
+
+.forecast-detail strong{
+  font-size:14px;
+  line-height:1.6;
+}
+
+.day-note{
+  margin-top:10px;
+  color:#b9d2e5;
+  line-height:1.8;
+  font-size:13px;
+}
+
+/* النوافذ */
+
+.modal{
+  display:none;
+  position:fixed;
+  z-index:999;
+  inset:0;
+  background:rgba(0,0,0,.82);
+  padding:15px;
+  overflow:auto;
+}
+
+.modal-content{
+  width:100%;
+  max-width:850px;
+  margin:20px auto;
+  background:#0d1c2e;
+  border:1px solid #294760;
+  border-radius:18px;
+  overflow:hidden;
+}
+
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 15px;
+  background:#102842;
+}
+
+.modal-header h2{font-size:18px}
+
+.close{
+  border:0;
+  background:#b93636;
+  color:#fff;
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  font-size:22px;
+  cursor:pointer;
+}
+
+.map-wrap{
+  width:100%;
+  height:70vh;
+  min-height:450px;
+}
+
+.map-wrap iframe{
+  border:0;
+  width:100%;
+  height:100%;
+}
+
+/* بحر العرب */
+
+.sea-content{padding:18px}
+
+.sea-status{
+  background:#102842;
+  border-radius:14px;
+  padding:15px;
+  line-height:1.9;
+  margin-bottom:12px;
+}
+
+.sea-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+}
+
+.sea-item{
+  background:#081725;
+  border-radius:12px;
+  padding:13px;
+}
+
+.sea-item span{
+  display:block;
+  color:#91b8d4;
+  font-size:13px;
+  margin-bottom:6px;
+}
+
+.sea-value{
+  font-weight:bold;
+  line-height:1.7;
+}
+
+.sea-small{
+  color:#8fb2ca;
+  font-size:11px;
+  font-weight:normal;
+}
+
+.route{
+  margin-top:14px;
+  background:#081725;
+  border-radius:14px;
+  padding:14px;
+  text-align:center;
+  line-height:2;
+}
+
+.route-title{
+  color:#91b8d4;
+  font-size:13px;
+}
+
+.route-path{
+  font-weight:bold;
+  font-size:15px;
+}
+
+.sea-map{
+  margin-top:15px;
+  height:430px;
+  overflow:hidden;
+  border-radius:14px;
+  border:1px solid #294760;
+}
+
+.sea-map iframe{
+  width:100%;
+  height:100%;
+  border:0;
+}
+
+.official-btn{
+  display:block;
+  text-align:center;
+  text-decoration:none;
+  color:#fff;
+  background:#1769aa;
+  border-radius:12px;
+  padding:13px;
+  margin-top:14px;
+  font-weight:bold;
+}
+
+.sea-note{
+  color:#9fb5c7;
+  font-size:13px;
+  line-height:1.8;
+  margin-top:15px;
+}
+
+.loading{
+  color:#9fc2df;
+  text-align:center;
+  padding:10px;
+}
+
+.error{color:#ffaaaa}
+
+footer{
+  text-align:center;
+  padding:10px 5px 22px;
+  color:#68849c;
+  font-size:12px;
+}
+
+
+/* تحديث 2: الراصد + الراعي */
+.observer-card{background:linear-gradient(135deg,#102842,#0b1f34);border:1px solid #2c5878}
+.observer-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.observer-item{background:#081725;border-radius:12px;padding:12px;text-align:center}
+.observer-item span{display:block;color:#91b8d4;font-size:12px;margin-bottom:6px}
+.observer-item strong{font-size:15px;line-height:1.6}
+.observer-summary{margin-top:11px;background:#0b192a;border-radius:12px;padding:12px;line-height:1.8;font-size:13px;color:#c8dcec}
+.sponsor-card{padding:10px;overflow:hidden}
+.sponsor-label{text-align:center;color:#9fc3df;font-size:12px;margin-bottom:8px}
+.sponsor-image{display:block;width:100%;height:auto;border-radius:13px}
+.source-note{margin-top:10px;color:#7fa1bd;font-size:11px;text-align:center;line-height:1.7}
+
+@media(max-width:420px){
+  header h1{font-size:24px}
+  .temperature{font-size:49px}
+  .weather-details{grid-template-columns:1fr 1fr}
+  .prayers{grid-template-columns:repeat(2,1fr)}
+  .sea-grid{grid-template-columns:1fr}
+  .detail-grid{grid-template-columns:1fr 1fr}
+  .map-wrap{height:65vh;min-height:400px}
+  .sea-map{height:390px}
+}
+
+/* حساب النجوم - تحديث 2 */
+.stars-btn{background:#8a6418}
+.stars-content{padding:14px}
+.stars-note{background:#0b192a;border-radius:12px;padding:11px;color:#b9d2e5;font-size:13px;line-height:1.8;margin-bottom:12px}
+.season{margin-bottom:11px;background:#091d26;border:1px solid #294760;border-radius:14px;padding:10px}
+.season-title{font-size:16px;font-weight:bold;margin-bottom:8px;color:#f0cf76}
+.stars-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.star-item{border:1px solid #294760;background:#0b192a;color:#fff;border-radius:10px;padding:8px 9px;font-family:inherit;cursor:pointer;text-align:right;min-width:0}
+.star-name{display:block;font-weight:bold;font-size:14px;margin-bottom:3px}
+.star-date{display:block;color:#9fc3df;font-size:11px;line-height:1.5}
+.star-detail{padding:22px 16px;text-align:center;line-height:2}
+.star-detail strong{display:block;font-size:21px;color:#f0cf76;margin-bottom:5px}
+.star-detail span{display:block;color:#b9d2e5;font-size:14px}
+.star-coming{margin-top:14px;background:#0b192a;border-radius:12px;padding:13px;color:#d8e6f2}
+@media(max-width:420px){.stars-content{padding:10px}.season{padding:8px}.stars-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.star-item{padding:7px}.star-name{font-size:13px}.star-date{font-size:10px}}
+
+
+/* تحديث 2 النهائي */
+.update-grid,.models-grid,.quake-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.update-item,.model-item,.quake-item{background:#0b192a;border-radius:12px;padding:12px;line-height:1.7}
+.update-item span,.model-item span,.quake-item span{display:block;color:#91b8d4;font-size:12px;margin-bottom:5px}
+.model-item strong,.quake-item strong{font-size:14px}
+.status-box{background:#081725;border-radius:12px;padding:12px;line-height:1.8;margin-top:10px;color:#c8dcec}
+.install-btn{background:#5a43a8}.models-btn{background:#285f8f}.quake-btn{background:#7b4b36}
+.ad-space{min-height:105px;display:flex;align-items:center;justify-content:center;text-align:center;border:1px dashed #42627e;color:#9fb9cf;border-radius:14px;line-height:1.8}
+.small-note{font-size:11px;color:#7fa1bd;line-height:1.7;margin-top:8px}
+.winter-value{color:#dceeff}
+.modal-pad{padding:16px}
+@media(max-width:420px){.update-grid,.models-grid,.quake-grid{grid-template-columns:1fr}}
+
+/* ما الجديد + النجم الحالي */
+.whats-new-wrap{text-align:center;margin:8px 0 14px}
+.whats-new-btn{border:1px solid #2b6472;background:#0d2a35;color:#dff8fb;border-radius:10px;padding:9px 14px;font-family:inherit;font-size:13px;font-weight:bold;cursor:pointer}
+.current-star-card{background:linear-gradient(135deg,#2b2616,#17252b);border:1px solid #9a7427;border-radius:14px;padding:14px;margin-bottom:13px}
+.current-star-title{font-size:16px;font-weight:bold;color:#e3bd61;margin-bottom:10px}
+.current-star-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.current-star-item{background:#091d26;border-radius:10px;padding:9px}
+.current-star-item span{display:block;color:#91b8d4;font-size:11px;margin-bottom:4px}
+.current-star-item strong{font-size:13px;line-height:1.5}
+@media(max-width:420px){.current-star-grid{grid-template-columns:1fr 1fr}}
+
+
+
+/* هوية تحديث 2 – ألوان جديدة بدون صور طبيعية */
+:root{
+  --bg:#07131b;--panel:#0d2630;--panel2:#0a1d26;--line:#1d4b58;
+  --text:#f4fbff;--muted:#9cc3ce;--cyan:#35c6d0;--blue:#287fa5;
+  --gold:#d6aa45;--sea:#168c91;--alert:#b86d3b;--violet:#6556a8;
+}
+body{background:linear-gradient(180deg,#06151d 0%,#081b24 52%,#06131a 100%);color:var(--text)}
+.card{background:linear-gradient(145deg,#0e2a35,#0b202a);border-color:#205160;box-shadow:0 10px 28px rgba(0,0,0,.16)}
+header h1{color:#f5fcff}.location{color:#87cbd1}.date{color:#c8e1e6}
+.detail,.prayer,.hour,.update-item,.model-item,.quake-item,.star-item,.stars-note,.star-coming,.forecast-detail,.sea-item,.route,.status-box{background:#091d26;border-color:#245463}
+.card-title{color:#eafcff}.rain-highlight{background:linear-gradient(135deg,#0d3b46,#102b3b);border-color:#267989}
+.action-btn{background:#247da0}.sea-btn{background:#16878c}.stars-btn{background:#9a7427}.models-btn{background:#326d91}.quake-btn{background:#87563d}.install-btn{background:#6256a0}
+.hour-rain,.day-rain{color:#62d7e4}.season-title,.star-detail strong{color:#e3bd61}
+.modal-content{background:#091b24;border-color:#28606d}.modal-header{background:#0e3440}
+.sponsor-card{border-color:#8a7137}.sponsor-label{color:#e3bd61;font-weight:bold}
+.ad-space{border-color:#47717c;color:#a9c9d1;background:#091b24}
+footer{color:#789da7}
+
+</style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#07111f">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+  <h1>طقس هدى وما جاورها</h1>
+  <div class="location">📍 هدى – حبان – شبوة</div>
+
+  <div class="date">
+    <div id="gregorianDate">جاري تحميل التاريخ...</div>
+    <div id="hijriDate"></div>
+  </div>
+</header>
+
+
+<!-- الطقس الحالي -->
+
+<section class="card current">
+
+  <div class="weather-icon" id="currentIcon">⛅</div>
+
+  <div class="temperature">
+    <span id="temperature">--</span>°
+  </div>
+
+  <div class="description" id="weatherDescription">
+    جاري تحميل الطقس...
+  </div>
+
+  <div class="weather-details">
+
+    <div class="detail">
+      <span>الرطوبة</span>
+      <strong id="humidity">--%</strong>
+    </div>
+
+    <div class="detail">
+      <span>المحسوسة</span>
+      <strong id="feelsLike">--°</strong>
+    </div>
+
+    <div class="detail">
+      <span>الرياح</span>
+      <strong id="windSpeed">--</strong>
+    </div>
+
+    <div class="detail">
+      <span>اتجاه الرياح</span>
+      <strong id="windDirection">--</strong>
+    </div>
+
+  </div>
+</section>
+
+<!-- الراصد المحلي -->
+<section class="card observer-card">
+  <div class="card-title">🌤️ الأجواء حاليًا</div>
+  <div class="observer-grid">
+    <div class="observer-item"><span>🌧️ المطر</span><strong id="observerRain">--</strong></div>
+    <div class="observer-item"><span>☁️ السحب</span><strong id="observerCloud">--</strong></div>
+    <div class="observer-item"><span>🌫️ مؤشر PM10</span><strong id="observerDust">--</strong></div>
+    <div class="observer-item"><span>👁️ مدى الرؤية</span><strong id="observerVisibility">--</strong></div>
+    <div class="observer-item"><span>❄️ الشتاء والبرد</span><strong class="winter-value" id="observerWinter">--</strong></div>
+    <div class="observer-item"><span>💨 هبات الرياح</span><strong id="observerGust">--</strong></div>
+  </div>
+  <div class="observer-summary" id="observerSummary">جاري تحديث الراصد...</div>
+  <div class="source-note" id="observerUpdated"></div>
+</section>
+
+
+<!-- أفضل فرصة مطر -->
+
+<section class="card rain-highlight">
+
+  <div class="card-title">
+    🌧️ أفضل فرصة مطر على هدى
+  </div>
+
+  <div class="rain-main" id="bestRain">
+    جاري تحليل توقعات الأيام القادمة...
+  </div>
+
+  <div class="rain-sub" id="bestRainDetails"></div>
+
+</section>
+
+
+<!-- مواقيت الصلاة -->
+
+<section class="card">
+
+  <div class="card-title">🕌 مواقيت الصلاة</div>
+
+  <div class="prayers">
+
+    <div class="prayer">
+      <div class="prayer-name">الفجر</div>
+      <div class="prayer-time" id="fajr">--</div>
+    </div>
+
+    <div class="prayer">
+      <div class="prayer-name">الشروق</div>
+      <div class="prayer-time" id="sunrise">--</div>
+    </div>
+
+    <div class="prayer">
+      <div class="prayer-name">الظهر</div>
+      <div class="prayer-time" id="dhuhr">--</div>
+    </div>
+
+    <div class="prayer">
+      <div class="prayer-name">العصر</div>
+      <div class="prayer-time" id="asr">--</div>
+    </div>
+
+    <div class="prayer">
+      <div class="prayer-name">المغرب</div>
+      <div class="prayer-time" id="maghrib">--</div>
+    </div>
+
+    <div class="prayer">
+      <div class="prayer-name">العشاء</div>
+      <div class="prayer-time" id="isha">--</div>
+    </div>
+
+  </div>
+  <div class="source-note" id="prayerSource">مواقيت هدى – حبان</div>
+</section>
+
+
+<!-- الأزرار -->
+
+<div class="buttons">
+
+  <button class="action-btn" onclick="openMap()">
+    🗺️ خريطة الطقس
+  </button>
+
+  <button class="action-btn sea-btn" onclick="openSea()">
+    🌊 بحر العرب
+  </button>
+
+  <button class="action-btn stars-btn" onclick="openStars()">
+    ⭐ حساب النجوم
+  </button>
+
+  <button class="action-btn models-btn" onclick="openModels()">
+    🌦️ توقعات الموديلات
+  </button>
+
+  <button class="action-btn quake-btn" onclick="openQuakes()">
+    🌍 الزلازل
+  </button>
+
+  <button class="action-btn install-btn" id="installButton" onclick="installApp()">
+    📱 تثبيت الموقع كتطبيق
+  </button>
+  <div class="small-note" style="text-align:center;margin-top:-3px">📲 اضغط للتثبيت. إذا لم تظهر نافذة التثبيت، اختر من قائمة المتصفح «إضافة إلى الشاشة الرئيسية» أو «تثبيت التطبيق».</div>
+
+</div>
+
+
+<!-- تنبيهات الطقس داخل الموقع -->
+<section class="card" id="weatherAlertsCard">
+  <div class="card-title">🔔 تنبيهات الطقس</div>
+  <div class="status-box" id="weatherAlerts">جاري فحص التوقعات القادمة...</div>
+  <div class="small-note">🔴 «يحدث الآن» لا يُستخدم هنا إلا مع رصد فعلي مؤكد. تنبيهات هذا القسم مبنية على التوقعات وتظهر بصيغة 🕒 «متوقع». إشعارات الهاتف الخارجية غير مفعلة حاليًا.</div>
+</section>
+
+<!-- الساعات -->
+
+<section class="card">
+
+  <div class="card-title">
+    🌧️ فرص الأمطار خلال الساعات القادمة
+  </div>
+
+  <div class="hourly" id="hourlyForecast">
+    <div class="loading">جاري التحميل...</div>
+  </div>
+
+</section>
+
+
+<!-- 7 أيام -->
+
+<section class="card">
+
+  <div class="card-title">
+    📅 توقعات 7 أيام
+  </div>
+
+  <div id="weeklyForecast">
+    <div class="loading">جاري التحميل...</div>
+  </div>
+
+</section>
+
+
+
+
+<section class="card">
+  <div class="card-title">📢 مساحة إعلانية</div>
+  <div class="ad-space">مساحة إعلانية متاحة</div>
+</section>
+
+<!-- الراعي -->
+<section class="card sponsor-card">
+  <div class="sponsor-label">برعاية</div>
+  <img class="sponsor-image" src="sponsor-albaqira.jpg" alt="البقيرة للصرافة وتحويلات – وكيل حوالة">
+</section>
+
+<div class="whats-new-wrap">
+  <button class="whats-new-btn" onclick="openWhatsNew()">ℹ️ عن الموقع</button>
+</div>
+
+<footer>
+  بيانات الطقس تتحدث تلقائيًا • الإصدار 2.1.1
+</footer>
+
+</div>
+
+
+
+
+<!-- عن الموقع -->
+<div class="modal" id="whatsNewModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>ℹ️ عن الموقع</h2><button class="close" onclick="closeWhatsNew()">×</button></div>
+    <div class="modal-pad">
+      <div class="status-box"><strong>طقس هدى وما جاورها</strong><br>موقع محلي مبسط لخدمة هدى وحبان وما جاورهما في محافظة شبوة، ويجمع حالة الطقس والتوقعات وخرائط الطقس وبحر العرب وحساب النجوم ومواقيت الصلاة في مكان واحد.</div>
+      <div class="small-note" style="font-size:13px;margin-top:12px">بيانات الطقس والتوقعات تعتمد على خدمات ونماذج جوية رقمية، وتُعرض بصورة مبسطة للمتابعة. القيم المتوقعة ليست رصدًا ميدانيًا مؤكدًا.</div>
+      <div class="source-note" style="margin-top:14px">الإصدار 2.1.1</div>
+    </div>
+  </div>
+</div>
+
+<!-- حساب النجوم -->
+<div class="modal" id="starsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>⭐ حساب النجوم – هدى</h2>
+      <button class="close" onclick="closeStars()">×</button>
+    </div>
+    <div class="stars-content">
+      <div class="current-star-card" id="currentStarCard">
+        <div class="current-star-title">⭐ النجم الحالي</div>
+        <div class="current-star-grid" id="currentStarGrid"><div class="loading">جاري الحساب...</div></div>
+      </div>
+      <div class="stars-note">4 فصول • 7 نجوم لكل فصل • مدة كل نجم 13 يومًا. اضغط على أي نجم لعرض نافذته.<br><strong style="color:#e3bd61">إعداد الراصد محمد شمروخ الطهيبي</strong></div>
+      <div id="starsList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="starDetailModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="starDetailTitle">⭐ تفاصيل النجم</h2>
+      <button class="close" onclick="closeStarDetail()">×</button>
+    </div>
+    <div class="star-detail">
+      <strong id="starDetailName">--</strong>
+      <span id="starDetailDate">--</span>
+      <div class="star-coming">تفاصيل النجم — قريبًا<br><span style="font-size:12px;color:#9cc3ce">إعداد حساب النجوم: الراصد محمد شمروخ الطهيبي</span></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- مقارنة الموديلات -->
+<div class="modal" id="modelsModal"><div class="modal-content">
+  <div class="modal-header"><h2>🌦️ توقعات الموديلات – هدى</h2><button class="close" onclick="closeModels()">×</button></div>
+  <div class="modal-pad">
+    <div id="modelsSummary" class="status-box">جاري تحميل مقارنة الموديلات...</div>
+    <div id="modelsGrid" class="models-grid" style="margin-top:10px"></div>
+    <div class="small-note">المقارنة تعرض أحدث تشغيل متاح لكل نموذج. اختلاف النماذج طبيعي، وتتغير النتائج مع كل تحديث.</div>
+  </div>
+</div></div>
+
+<!-- الزلازل -->
+<div class="modal" id="quakesModal"><div class="modal-content">
+  <div class="modal-header"><h2>🌍 الزلازل</h2><button class="close" onclick="closeQuakes()">×</button></div>
+  <div class="modal-pad">
+    <div id="quakeSummary" class="status-box">جاري جلب أحدث الرصد...</div>
+    <div id="quakeGrid" class="quake-grid" style="margin-top:10px"></div>
+    <div class="small-note">المصدر: هيئة المسح الجيولوجي الأمريكية USGS. الرصد لا يعني توقع الزلازل مستقبلًا.</div>
+  </div>
+</div></div>
+
+<!-- خريطة هدى -->
+
+<div class="modal" id="mapModal">
+
+  <div class="modal-content">
+
+    <div class="modal-header">
+      <h2>🗺️ خريطة الطقس – هدى</h2>
+      <button class="close" onclick="closeMap()">×</button>
+    </div>
+
+    <div class="map-wrap">
+
+      <iframe
+        loading="lazy"
+        src="https://embed.windy.com/embed2.html?lat=14.230586&lon=47.199415&detailLat=14.230586&detailLon=47.199415&width=650&height=450&zoom=7&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=true&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1">
+      </iframe>
+
+    </div>
+
+  </div>
+</div>
+
+
+<!-- مركز بحر العرب -->
+
+<div class="modal" id="seaModal">
+
+  <div class="modal-content">
+
+    <div class="modal-header">
+      <h2>🌀 مركز متابعة بحر العرب</h2>
+      <button class="close" onclick="closeSea()">×</button>
+    </div>
+
+    <div class="sea-content">
+
+      <div class="sea-status" id="seaSummary">
+        جاري فحص مؤشرات بحر العرب...
+      </div>
+
+      <div class="sea-grid">
+
+        <div class="sea-item">
+          <span>📍 أقوى إشارة نموذجية</span>
+          <div class="sea-value" id="seaArea">--</div>
+        </div>
+
+        <div class="sea-item">
+          <span>🕒 وقت أقوى إشارة</span>
+          <div class="sea-value" id="seaTime">--</div>
+        </div>
+
+        <div class="sea-item">
+          <span>🗺️ الإحداثيات</span>
+          <div class="sea-value" id="seaCoords">--</div>
+        </div>
+
+        <div class="sea-item">
+          <span>📏 المسافة من هدى</span>
+          <div class="sea-value" id="seaDistance">--</div>
+        </div>
+
+        <div class="sea-item">
+          <span>🌡️ أدنى ضغط جوي</span>
+          <div class="sea-value" id="seaPressure">--</div>
+        </div>
+
+        <div class="sea-item">
+          <span>💨 أقوى رياح</span>
+          <div class="sea-value" id="seaWind">--</div>
+        </div>
+
+        <div class="sea-item">
+          <span>🌧️ أعلى هطول</span>
+          <div class="sea-value" id="seaRain">--</div>
+        </div>
+
+        <div class="sea-item">
+          <span>☁️ أعلى غطاء سحابي</span>
+          <div class="sea-value" id="seaCloud">--</div>
+        </div>
+
+        <div class="sea-item">
+          <span>💧 أعلى رطوبة</span>
+          <div class="sea-value" id="seaHumidity">--</div>
+        </div>
+
+        <div class="sea-item">
+          <span>🧭 اتجاه الرياح عند النشاط</span>
+          <div class="sea-value" id="seaDirection">--</div>
+        </div>
+
+        <div class="sea-item">
+          <span>🇾🇪 الأقرب لليمن وشبوة</span>
+          <div class="sea-value" id="seaYemen">--</div>
+        </div>
+
+        <div class="sea-item">
+          <span>📍 التأثير المحتمل على هدى</span>
+          <div class="sea-value" id="seaImpact">--</div>
+        </div>
+        <div class="sea-item"><span>🌊 ارتفاع الموج</span><div class="sea-value" id="seaWave">--</div></div>
+        <div class="sea-item"><span>🧭 اتجاه الموج</span><div class="sea-value" id="seaWaveDirection">--</div></div>
+
+      </div>
+
+
+      <div class="route">
+        <div class="route-title">مسار المتابعة</div>
+        <div class="route-path">
+          🌊 بحر العرب ← 🇾🇪 اليمن ← شبوة ← حبان ← 📍 هدى
+        </div>
+      </div>
+
+
+      <div class="sea-map">
+
+        <iframe
+          loading="lazy"
+          src="https://embed.windy.com/embed2.html?lat=15&lon=57&detailLat=15&detailLon=57&width=650&height=450&zoom=4&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=false&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1">
+        </iframe>
+
+      </div>
+
+
+      <a
+        class="official-btn"
+        href="https://rsmcnewdelhi.imd.gov.in/"
+        target="_blank"
+        rel="noopener noreferrer">
+        🌀 النشرة الرسمية للحالات المدارية
+      </a>
+
+
+      <div class="sea-note">
+        ⚠️ هذا القسم يحلل مؤشرات نماذج الطقس من شبكة نقاط موزعة
+        فوق بحر العرب. عبارة «أقوى إشارة» لا تعني وجود مركز منخفض
+        أو إعصار. كما أن اتجاه الرياح لا يعني اتجاه حركة النظام الجوي.
+        تسمية وتصنيف الحالات المدارية يعتمد على النشرات الرسمية.
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+
+<script>
+
+const latitude  = 14.230586;
+const longitude = 47.199415;
+
+let weatherData = null;
+let seaLoaded = false;
+
+
+/* =========================================================
+   التاريخ
+   ========================================================= */
+
+function loadDate(){
+
+  const now=new Date();
+
+  const gregorian=
+    new Intl.DateTimeFormat("ar-YE",{
+      timeZone:"Asia/Aden",
+      weekday:"long",
+      year:"numeric",
+      month:"long",
+      day:"numeric"
+    }).format(now);
+
+  document.getElementById("gregorianDate").textContent=
+    gregorian;
+}
+
+
+/* =========================================================
+   طقس هدى
+   ========================================================= */
+
+async function loadWeather(){
+
+  try{
+
+    const url =
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
+      `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m` +
+      `&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cape,visibility` +
+      `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,precipitation_hours,wind_speed_10m_max,wind_gusts_10m_max` +
+      `&timezone=Asia%2FAden&forecast_days=7`;
+
+    const response=await fetch(url);
+
+    if(!response.ok)
+      throw new Error("Weather API error");
+
+    const data=await response.json();
+
+    weatherData=data;
+
+    showCurrentWeather(data);
+    showHourlyWeather(data);
+    showWeeklyWeather(data);
+    showBestRain(data);
+    showObserverWeather(data);
+    showWeatherAlerts(data);
+
+  }catch(error){
+
+    console.error(error);
+
+    document.getElementById("weatherDescription").innerHTML=
+      '<span class="error">تعذر تحميل بيانات الطقس</span>';
+
+    document.getElementById("hourlyForecast").innerHTML=
+      '<span class="error">تعذر تحميل التوقعات</span>';
+
+    document.getElementById("weeklyForecast").innerHTML=
+      '<span class="error">تعذر تحميل التوقعات</span>';
+
+    document.getElementById("bestRain").innerHTML=
+      '<span class="error">تعذر تحليل فرص المطر</span>';
+  }
+}
+
+
+function showCurrentWeather(data){
+
+  const c=data.current;
+
+  document.getElementById("temperature").textContent=
+    Math.round(c.temperature_2m);
+
+  document.getElementById("humidity").textContent=
+    Math.round(c.relative_humidity_2m)+"%";
+
+  document.getElementById("feelsLike").textContent=
+    Math.round(c.apparent_temperature)+"°";
+
+  document.getElementById("windSpeed").textContent=
+    Math.round(c.wind_speed_10m)+" كم/س";
+
+  document.getElementById("windDirection").textContent=
+    windDirection(c.wind_direction_10m);
+
+  document.getElementById("weatherDescription").textContent=
+    weatherText(c.weather_code);
+
+  document.getElementById("currentIcon").textContent=
+    weatherIcon(c.weather_code);
+}
+
+
+/* الساعة الحالية */
+
+function getCurrentHourIndex(data){
+
+  const parts=
+    new Intl.DateTimeFormat("en-CA",{
+      timeZone:"Asia/Aden",
+      year:"numeric",
+      month:"2-digit",
+      day:"2-digit",
+      hour:"2-digit",
+      hourCycle:"h23"
+    }).formatToParts(new Date());
+
+  const p={};
+
+  parts.forEach(x=>{
+    p[x.type]=x.value;
+  });
+
+  const currentHour=
+    `${p.year}-${p.month}-${p.day}T${p.hour}:00`;
+
+  let index=
+    data.hourly.time.findIndex(t=>t===currentHour);
+
+  if(index<0)
+    index=0;
+
+  return index;
+}
+
+
+/* =========================================================
+   الساعات القادمة
+   ========================================================= */
+
+function showHourlyWeather(data){
+
+  const box=
+    document.getElementById("hourlyForecast");
+
+  box.innerHTML="";
+
+  const start=getCurrentHourIndex(data);
+
+  const end=
+    Math.min(
+      start+18,
+      data.hourly.time.length
+    );
+
+  for(let i=start;i<end;i++){
+
+    const date=
+      new Date(data.hourly.time[i]);
+
+    const time=
+      date.toLocaleTimeString("ar-YE",{
+        hour:"numeric",
+        minute:"2-digit",
+        hour12:true
+      });
+
+    const rain=
+      data.hourly.precipitation_probability[i] ?? 0;
+
+    const temp=
+      Math.round(
+        data.hourly.temperature_2m[i]
+      );
+
+    const code=
+      data.hourly.weather_code[i];
+
+    const item=
+      document.createElement("div");
+
+    item.className="hour";
+
+    item.innerHTML=`
+      <div class="hour-time">${time}</div>
+      <div class="hour-icon">${weatherIcon(code)}</div>
+      <div class="hour-rain">💧 ${rain}%</div>
+      <div class="hour-temp">${temp}°</div>
+    `;
+
+    box.appendChild(item);
+  }
+}
+
+
+/* =========================================================
+   أفضل فرصة مطر
+   ========================================================= */
+
+function showBestRain(data){
+
+  let bestIndex=0;
+  let bestChance=-1;
+
+  for(let i=0;i<data.daily.time.length;i++){
+
+    const chance=
+      data.daily.precipitation_probability_max[i] ?? 0;
+
+    if(chance>bestChance){
+
+      bestChance=chance;
+      bestIndex=i;
+    }
+  }
+
+  const date=
+    new Date(
+      data.daily.time[bestIndex]+"T12:00:00"
+    );
+
+  const day=
+    date.toLocaleDateString("ar-YE",{
+      weekday:"long"
+    });
+
+  const amount=
+    data.daily.precipitation_sum[bestIndex] ?? 0;
+
+  const hours=
+    data.daily.precipitation_hours[bestIndex] ?? 0;
+
+  const bestHour=
+    getBestHourForDay(
+      data,
+      data.daily.time[bestIndex]
+    );
+
+  document.getElementById("bestRain").textContent=
+    bestChance>0
+      ? `${day}: فرصة تصل إلى ${Math.round(bestChance)}%`
+      : "لا تظهر فرصة مطر واضحة خلال الأيام السبعة.";
+
+  if(bestChance>0){
+
+    document.getElementById("bestRainDetails").textContent=
+      `الكمية المتوقعة نحو ${Number(amount).toFixed(1)} ملم • ` +
+      `ساعات الهطول المتوقعة ${Number(hours).toFixed(0)} ساعة` +
+      (bestHour ? ` • أفضل فترة قرابة ${bestHour}` : "");
+
+  }else{
+
+    document.getElementById("bestRainDetails").textContent="";
+  }
+}
+
+
+/* =========================================================
+   توقعات 7 أيام
+   ========================================================= */
+
+function showWeeklyWeather(data){
+
+  const box=
+    document.getElementById("weeklyForecast");
+
+  box.innerHTML="";
+
+  for(let i=0;i<data.daily.time.length;i++){
+
+    const date=
+      new Date(
+        data.daily.time[i]+"T12:00:00"
+      );
+
+    const dayName=
+      date.toLocaleDateString("ar-YE",{
+        weekday:"long"
+      });
+
+    const max=
+      Math.round(
+        data.daily.temperature_2m_max[i]
+      );
+
+    const min=
+      Math.round(
+        data.daily.temperature_2m_min[i]
+      );
+
+    const rain=
+      data.daily.precipitation_probability_max[i] ?? 0;
+
+    const code=
+      data.daily.weather_code[i];
+
+    const details=
+      getDayDetails(
+        data,
+        data.daily.time[i],
+        i
+      );
+
+    const wrap=
+      document.createElement("div");
+
+    wrap.className="day-wrap";
+
+    wrap.innerHTML=`
+
+      <div class="day" onclick="toggleDay(${i})">
+
+        <div class="day-name">
+          ${dayName}
+          <div style="font-size:11px;color:#7fa1bd;margin-top:3px">
+            اضغط للتفاصيل
+          </div>
+        </div>
+
+        <div class="day-icon">
+          ${weatherIcon(code)}
+        </div>
+
+        <div class="day-temp">
+          ${max}° / ${min}°
+        </div>
+
+        <div class="day-rain">
+          💧 ${rain}%
+        </div>
+
+      </div>
+
+      <div class="day-details" id="dayDetails${i}">
+
+        <div class="detail-grid">
+
+          <div class="forecast-detail">
+            <span>🌧️ كمية المطر</span>
+            <strong>${details.amount} ملم</strong>
+          </div>
+
+          <div class="forecast-detail">
+            <span>🕒 ساعات الهطول</span>
+            <strong>${details.hours} ساعة</strong>
+          </div>
+
+          <div class="forecast-detail">
+            <span>⏰ أفضل فترة</span>
+            <strong>${details.bestHour}</strong>
+          </div>
+
+          <div class="forecast-detail">
+            <span>💧 أعلى رطوبة</span>
+            <strong>${details.humidity}%</strong>
+          </div>
+
+          <div class="forecast-detail">
+            <span>☁️ أعلى سحب</span>
+            <strong>${details.cloud}%</strong>
+          </div>
+
+          <div class="forecast-detail">
+            <span>💨 أقوى رياح</span>
+            <strong>${details.wind} كم/س</strong>
+          </div>
+
+          <div class="forecast-detail">
+            <span>⚡ CAPE</span>
+            <strong>${details.cape} J/kg</strong>
+          </div>
+
+          <div class="forecast-detail">
+            <span>⛈️ عدم الاستقرار</span>
+            <strong>${details.instability}</strong>
+          </div>
+
+        </div>
+
+        <div class="day-note">
+          ${details.note}
+        </div>
+
+      </div>
+    `;
+
+    box.appendChild(wrap);
+  }
+}
+
+
+function toggleDay(index){
+
+  const element=
+    document.getElementById(
+      "dayDetails"+index
+    );
+
+  element.classList.toggle("open");
+}
+
+
+function getDayDetails(data,dateString,dailyIndex){
+
+  const indexes=[];
+
+  for(let i=0;i<data.hourly.time.length;i++){
+
+    if(
+      data.hourly.time[i].startsWith(dateString)
+    ){
+      indexes.push(i);
+    }
+  }
+
+  if(!indexes.length){
+
+    return{
+      amount:"0.0",
+      hours:"0",
+      bestHour:"--",
+      humidity:0,
+      cloud:0,
+      wind:0,
+      cape:0,
+      instability:"--",
+      note:"لا توجد بيانات تفصيلية."
+    };
+  }
+
+  const humidity=
+    maxFromIndexes(
+      data.hourly.relative_humidity_2m,
+      indexes
+    );
+
+  const cloud=
+    maxFromIndexes(
+      data.hourly.cloud_cover,
+      indexes
+    );
+
+  const wind=
+    maxFromIndexes(
+      data.hourly.wind_speed_10m,
+      indexes
+    );
+
+  const cape=
+    maxFromIndexes(
+      data.hourly.cape,
+      indexes
+    );
+
+  const amount=
+    Number(
+      data.daily.precipitation_sum[dailyIndex] ?? 0
+    ).toFixed(1);
+
+  const hours=
+    Number(
+      data.daily.precipitation_hours[dailyIndex] ?? 0
+    ).toFixed(0);
+
+  const bestHour=
+    getBestHourForDay(
+      data,
+      dateString
+    ) || "--";
+
+  let instability="ضعيف";
+
+  if(cape>=1500)
+    instability="مرتفع";
+
+  else if(cape>=700)
+    instability="متوسط إلى مرتفع";
+
+  else if(cape>=300)
+    instability="متوسط";
+
+  const rainChance=
+    data.daily.precipitation_probability_max[dailyIndex] ?? 0;
+
+  let note="";
+
+  if(rainChance>=70){
+
+    note=
+      "🌧️ فرصة المطر مرتفعة نسبيًا وفق التوقع الحالي. راقب تحديث الساعات لأن التوقيت والكمية قد يتغيران.";
+
+  }else if(rainChance>=40){
+
+    note=
+      "☁️ توجد فرصة متوسطة للمطر، والتفاصيل الساعية ستوضح الفترة الأفضل مع اقتراب الموعد.";
+
+  }else if(rainChance>=20){
+
+    note=
+      "🌤️ توجد إشارة محدودة للمطر، لكنها ليست قوية حاليًا.";
+
+  }else{
+
+    note=
+      "☀️ لا تظهر حاليًا إشارة قوية للمطر في هذا اليوم.";
+  }
+
+  return{
+    amount,
+    hours,
+    bestHour,
+    humidity:Math.round(humidity),
+    cloud:Math.round(cloud),
+    wind:Math.round(wind),
+    cape:Math.round(cape),
+    instability,
+    note
+  };
+}
+
+
+function maxFromIndexes(array,indexes){
+
+  const values=
+    indexes
+      .map(i=>array[i])
+      .filter(Number.isFinite);
+
+  return values.length ?
+    Math.max(...values) : 0;
+}
+
+
+function getBestHourForDay(data,dateString){
+
+  let bestIndex=-1;
+  let bestScore=-1;
+
+  for(let i=0;i<data.hourly.time.length;i++){
+
+    if(
+      !data.hourly.time[i].startsWith(dateString)
+    ){
+      continue;
+    }
+
+    const probability=
+      data.hourly.precipitation_probability[i] ?? 0;
+
+    const precipitation=
+      data.hourly.precipitation[i] ?? 0;
+
+    const score=
+      probability +
+      precipitation*10;
+
+    if(score>bestScore){
+
+      bestScore=score;
+      bestIndex=i;
+    }
+  }
+
+  if(bestIndex<0)
+    return null;
+
+  if(
+    (data.hourly.precipitation_probability[bestIndex] ?? 0)===0 &&
+    (data.hourly.precipitation[bestIndex] ?? 0)===0
+  ){
+    return null;
+  }
+
+  const date=
+    new Date(
+      data.hourly.time[bestIndex]
+    );
+
+  return date.toLocaleTimeString("ar-YE",{
+    hour:"numeric",
+    minute:"2-digit",
+    hour12:true
+  });
+}
+
+
+/* =========================================================
+   الراصد المحلي: مطر + سحب + غبار + مدى الرؤية
+   ========================================================= */
+
+function showObserverWeather(data){
+  const i=getCurrentHourIndex(data);
+  const rain=Number(data.hourly.precipitation[i] ?? 0);
+  const chance=Number(data.hourly.precipitation_probability[i] ?? 0);
+  const cloud=Number(data.hourly.cloud_cover[i] ?? 0);
+  const visibility=Number(data.hourly.visibility?.[i] ?? 0);
+
+  document.getElementById("observerRain").textContent=
+    `${rain.toFixed(1)} ملم • ${Math.round(chance)}%`;
+  document.getElementById("observerCloud").textContent=
+    `${Math.round(cloud)}%`;
+  document.getElementById("observerVisibility").textContent=
+    visibility>0 ? `${(visibility/1000).toFixed(1)} كم` : "--";
+  const gust=Number(data.hourly.wind_gusts_10m?.[i] ?? 0);
+  document.getElementById("observerGust").textContent=`${Math.round(gust)} كم/س`;
+  const min7=Math.min(...(data.daily.temperature_2m_min||[]).filter(Number.isFinite));
+  let winter="معتدل";
+  if(Number.isFinite(min7) && min7<=8) winter=`برد قوي • أدنى ${Math.round(min7)}°`;
+  else if(Number.isFinite(min7) && min7<=13) winter=`بارد • أدنى ${Math.round(min7)}°`;
+  else if(Number.isFinite(min7) && min7<=18) winter=`مائل للبرودة • أدنى ${Math.round(min7)}°`;
+  else if(Number.isFinite(min7)) winter=`لا برد قوي • أدنى ${Math.round(min7)}°`;
+  document.getElementById("observerWinter").textContent=winter;
+
+  let summary="";
+  if(rain>=1) summary="🕒 هطول متوقع في الساعة الحالية حسب بيانات التوقع، وليس رصدًا ميدانيًا.";
+  else if(chance>=50) summary="🕒 فرصة مطر متوقعة مرتفعة نسبيًا خلال الفترة الحالية.";
+  else if(cloud>=75) summary="🕒 غطاء سحابي كثيف متوقع نسبيًا فوق المنطقة.";
+  else summary="🕒 لا تظهر في التوقع الحالي إشارة قوية لهطول على هدى.";
+
+  document.getElementById("observerSummary").textContent=summary;
+  document.getElementById("observerUpdated").textContent=
+    "آخر تحديث: "+new Date().toLocaleTimeString("ar-YE",{timeZone:"Asia/Aden",hour:"numeric",minute:"2-digit",hour12:true});
+
+  loadDust();
+}
+
+async function loadDust(){
+  try{
+    const url=
+      `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${latitude}&longitude=${longitude}`+
+      `&current=pm10,pm2_5,dust&timezone=Asia%2FAden`;
+    const response=await fetch(url);
+    if(!response.ok) throw new Error("Air quality API error");
+    const data=await response.json();
+    const c=data.current || {};
+    const dust=Number(c.dust ?? 0);
+    const pm10=Number(c.pm10 ?? 0);
+    const value=Math.max(dust,pm10);
+    let label="منخفض";
+    if(value>=150) label="مرتفع جدًا";
+    else if(value>=75) label="مرتفع";
+    else if(value>=35) label="متوسط";
+    document.getElementById("observerDust").textContent=
+      `${Math.round(value)} µg/m³ • ${label}`;
+  }catch(error){
+    console.error(error);
+    document.getElementById("observerDust").textContent="تعذر التحديث";
+  }
+}
+
+/* تنبيهات الطقس داخل الموقع - توقعات فقط */
+function showWeatherAlerts(data){
+  const box=document.getElementById("weatherAlerts"); if(!box||!data?.hourly)return;
+  const start=getCurrentHourIndex(data),end=Math.min(start+24,data.hourly.time.length),alerts=[];
+  let maxRain=0,maxGust=0,minTemp=Infinity,maxTemp=-Infinity,minVis=Infinity,thunder=false,northWind=false;
+  for(let i=start;i<end;i++){
+    const rain=Number(data.hourly.precipitation_probability?.[i]??0),gust=Number(data.hourly.wind_gusts_10m?.[i]??0),temp=Number(data.hourly.temperature_2m?.[i]),vis=Number(data.hourly.visibility?.[i]),code=Number(data.hourly.weather_code?.[i]??0),dir=Number(data.hourly.wind_direction_10m?.[i]);
+    maxRain=Math.max(maxRain,rain);maxGust=Math.max(maxGust,gust);if(Number.isFinite(temp)){minTemp=Math.min(minTemp,temp);maxTemp=Math.max(maxTemp,temp)}if(Number.isFinite(vis)&&vis>0)minVis=Math.min(minVis,vis);if(code>=95)thunder=true;if(gust>=35&&Number.isFinite(dir)&&(dir>=315||dir<=45))northWind=true;
+  }
+  if(maxRain>=40)alerts.push(`🕒 🌧️ مطر متوقع: أعلى احتمال خلال 24 ساعة ${Math.round(maxRain)}%`);
+  if(maxGust>=40)alerts.push(`🕒 💨 رياح قوية متوقعة: هبات قد تصل إلى ${Math.round(maxGust)} كم/س${northWind?' • بينها رياح شمالية':''}`);
+  if(Number.isFinite(minTemp)&&minTemp<=15)alerts.push(`🕒 🥶 برودة متوقعة: قد تنخفض الحرارة إلى ${Math.round(minTemp)}°`);
+  if(thunder)alerts.push('🕒 ⛈️ عواصف رعدية أو برق متوقع خلال الساعات القادمة');
+  if(Number.isFinite(maxTemp)&&maxTemp>=40)alerts.push(`🕒 🌡️ حرارة شديدة متوقعة: قد تصل إلى ${Math.round(maxTemp)}°`);
+  if(Number.isFinite(minVis)&&minVis<=5000)alerts.push(`🕒 🌫️ تدنٍ في مدى الرؤية متوقع: قد يصل إلى ${(minVis/1000).toFixed(1)} كم`);
+  box.innerHTML=alerts.length?alerts.map(x=>`<div style="margin:7px 0">${x}</div>`).join(''):'✅ لا تظهر خلال الساعات الـ24 القادمة تنبيهات جوية بارزة وفق التوقع الحالي.';
+}
+
+/* =========================================================
+   شبكة بحر العرب الموسعة
+   ========================================================= */
+
+const seaPoints=[
+
+  /* غرب بحر العرب */
+  {name:"غرب بحر العرب",lat:10,lon:52},
+  {name:"غرب بحر العرب",lat:12,lon:52},
+  {name:"غرب بحر العرب",lat:14,lon:52},
+  {name:"غرب بحر العرب",lat:16,lon:52},
+
+  /* شرق سقطرى والقطاع الغربي */
+  {name:"شرق سقطرى",lat:10,lon:55},
+  {name:"شرق سقطرى",lat:12,lon:55},
+  {name:"غرب بحر العرب",lat:14,lon:55},
+  {name:"شمال غرب بحر العرب",lat:16,lon:55},
+  {name:"شمال غرب بحر العرب",lat:18,lon:55},
+
+  /* الوسط الغربي */
+  {name:"جنوب غرب بحر العرب",lat:8,lon:58},
+  {name:"جنوب بحر العرب",lat:10,lon:58},
+  {name:"وسط بحر العرب الغربي",lat:12,lon:58},
+  {name:"وسط بحر العرب الغربي",lat:14,lon:58},
+  {name:"شمال غرب بحر العرب",lat:16,lon:58},
+  {name:"شمال غرب بحر العرب",lat:18,lon:58},
+  {name:"شمال بحر العرب",lat:20,lon:58},
+
+  /* الوسط */
+  {name:"جنوب بحر العرب",lat:8,lon:61},
+  {name:"جنوب بحر العرب",lat:10,lon:61},
+  {name:"وسط بحر العرب",lat:12,lon:61},
+  {name:"وسط بحر العرب",lat:14,lon:61},
+  {name:"وسط بحر العرب",lat:16,lon:61},
+  {name:"شمال بحر العرب",lat:18,lon:61},
+  {name:"شمال بحر العرب",lat:20,lon:61},
+
+  /* الوسط الشرقي */
+  {name:"جنوب شرق بحر العرب",lat:8,lon:64},
+  {name:"جنوب شرق بحر العرب",lat:10,lon:64},
+  {name:"وسط بحر العرب الشرقي",lat:12,lon:64},
+  {name:"وسط بحر العرب الشرقي",lat:14,lon:64},
+  {name:"وسط بحر العرب الشرقي",lat:16,lon:64},
+  {name:"شمال شرق بحر العرب",lat:18,lon:64},
+  {name:"شمال شرق بحر العرب",lat:20,lon:64},
+
+  /* شرق بحر العرب */
+  {name:"شرق بحر العرب",lat:10,lon:67},
+  {name:"شرق بحر العرب",lat:12,lon:67},
+  {name:"شرق بحر العرب",lat:14,lon:67},
+  {name:"شرق بحر العرب",lat:16,lon:67},
+  {name:"شمال شرق بحر العرب",lat:18,lon:67}
+];
+
+
+/* =========================================================
+   تحميل شبكة بحر العرب
+   ========================================================= */
+
+async function loadSea(){
+
+  document.getElementById("seaSummary").textContent=
+    "🔄 جاري فحص شبكة واسعة من نقاط الرصد فوق بحر العرب...";
+
+  try{
+
+    const results=[];
+
+    /*
+      تحميل النقاط على دفعات لتخفيف الضغط
+      على اتصال المستخدم وعلى الخدمة.
+    */
+
+    const batchSize=6;
+
+    for(
+      let start=0;
+      start<seaPoints.length;
+      start+=batchSize
+    ){
+
+      const batch=
+        seaPoints.slice(
+          start,
+          start+batchSize
+        );
+
+      const batchResults=
+        await Promise.all(
+
+          batch.map(async point=>{
+
+            const url =
+              `https://api.open-meteo.com/v1/forecast?latitude=${point.lat}&longitude=${point.lon}` +
+              `&hourly=pressure_msl,precipitation,cloud_cover,relative_humidity_2m,wind_speed_10m,wind_direction_10m` +
+              `&timezone=Asia%2FAden` +
+              `&forecast_days=5` +
+              `&cell_selection=sea`;
+
+            const response=
+              await fetch(url);
+
+            if(!response.ok)
+              throw new Error("Sea API error");
+
+            const data=
+              await response.json();
+
+            return analyzeSeaPoint(
+              point,
+              data
+            );
+          })
+        );
+
+      results.push(
+        ...batchResults
+      );
+    }
+
+    if(!results.length)
+      throw new Error("No sea data");
+
+    showSeaAnalysis(results);
+
+    seaLoaded=true;
+
+  }catch(error){
+
+    console.error(error);
+
+    document.getElementById("seaSummary").innerHTML=
+      '<span class="error">تعذر تحميل شبكة بحر العرب حاليًا. حاول فتح القسم مرة أخرى بعد قليل.</span>';
+  }
+}
+
+
+/* =========================================================
+   تحليل النقطة البحرية
+   ========================================================= */
+
+function analyzeSeaPoint(point,data){
+
+  let bestIndex=-1;
+  let bestScore=-Infinity;
+
+  let minPressure=9999;
+  let maxRain=0;
+  let maxCloud=0;
+  let maxHumidity=0;
+  let maxWind=0;
+
+  for(let i=0;i<data.hourly.time.length;i++){
+
+    const p=
+      data.hourly.pressure_msl[i];
+
+    const r=
+      data.hourly.precipitation[i] ?? 0;
+
+    const c=
+      data.hourly.cloud_cover[i] ?? 0;
+
+    const h=
+      data.hourly.relative_humidity_2m[i] ?? 0;
+
+    const w=
+      data.hourly.wind_speed_10m[i] ?? 0;
+
+    if(Number.isFinite(p))
+      minPressure=Math.min(minPressure,p);
+
+    if(Number.isFinite(r))
+      maxRain=Math.max(maxRain,r);
+
+    if(Number.isFinite(c))
+      maxCloud=Math.max(maxCloud,c);
+
+    if(Number.isFinite(h))
+      maxHumidity=Math.max(maxHumidity,h);
+
+    if(Number.isFinite(w))
+      maxWind=Math.max(maxWind,w);
+
+    if(!Number.isFinite(p))
+      continue;
+
+    /*
+      هذا المؤشر لترتيب النشاط داخل الشبكة فقط.
+      لا يستخدم لتسمية إعصار أو منخفض مداري.
+    */
+
+    const pressureSignal=
+      Math.max(0,1012-p);
+
+    const rainSignal=
+      Math.min(r,20);
+
+    const windSignal=
+      Math.min(w,100);
+
+    const score=
+      pressureSignal*2 +
+      rainSignal*6 +
+      windSignal*0.18 +
+      c*0.035 +
+      h*0.02;
+
+    if(score>bestScore){
+
+      bestScore=score;
+      bestIndex=i;
+    }
+  }
+
+  if(bestIndex<0)
+    bestIndex=0;
+
+  return{
+
+    point,
+
+    minPressure,
+    maxRain,
+    maxCloud,
+    maxHumidity,
+    maxWind,
+
+    direction:
+      data.hourly.wind_direction_10m[bestIndex] ?? 0,
+
+    time:
+      data.hourly.time[bestIndex],
+
+    activePressure:
+      data.hourly.pressure_msl[bestIndex],
+
+    activeRain:
+      data.hourly.precipitation[bestIndex] ?? 0,
+
+    activeCloud:
+      data.hourly.cloud_cover[bestIndex] ?? 0,
+
+    activeHumidity:
+      data.hourly.relative_humidity_2m[bestIndex] ?? 0,
+
+    activeWind:
+      data.hourly.wind_speed_10m[bestIndex] ?? 0,
+
+    score:bestScore
+  };
+}
+
+
+/* =========================================================
+   تحليل شبكة بحر العرب كاملة
+   ========================================================= */
+
+function showSeaAnalysis(results){
+
+  /*
+    أقوى إشارة نموذجية
+  */
+
+  const active=
+    results.reduce(
+      (best,item)=>
+        item.score>best.score ?
+          item : best
+    );
+
+
+  /*
+    أقرب نشاط ملحوظ إلى هدى
+  */
+
+  const activityCandidates=
+    results
+
+      .filter(item=>
+
+        item.activeRain>=1 ||
+
+        item.activeWind>=25 ||
+
+        item.activePressure<=1009 ||
+
+        item.activeCloud>=80
+      )
+
+      .map(item=>({
+
+        ...item,
+
+        distance:
+          haversine(
+            latitude,
+            longitude,
+            item.point.lat,
+            item.point.lon
+          )
+      }))
+
+      .sort(
+        (a,b)=>
+          a.distance-b.distance
+      );
+
+
+  const nearestActivity=
+    activityCandidates.length ?
+      activityCandidates[0] :
+      null;
+
+
+  const activeDistance=
+    haversine(
+      latitude,
+      longitude,
+      active.point.lat,
+      active.point.lon
+    );
+
+
+  /*
+    القيم القصوى في كامل الشبكة
+  */
+
+  const minPressure=
+    Math.min(
+      ...results
+        .map(x=>x.minPressure)
+        .filter(Number.isFinite)
+    );
+
+  const maxRain=
+    Math.max(
+      ...results
+        .map(x=>x.maxRain)
+        .filter(Number.isFinite)
+    );
+
+  const maxCloud=
+    Math.max(
+      ...results
+        .map(x=>x.maxCloud)
+        .filter(Number.isFinite)
+    );
+
+  const maxHumidity=
+    Math.max(
+      ...results
+        .map(x=>x.maxHumidity)
+        .filter(Number.isFinite)
+    );
+
+  const maxWind=
+    Math.max(
+      ...results
+        .map(x=>x.maxWind)
+        .filter(Number.isFinite)
+    );
+
+
+  /*
+    وقت أقوى إشارة
+  */
+
+  const activeDate=
+    new Date(active.time);
+
+  const activeTimeText=
+    activeDate.toLocaleString(
+      "ar-YE",
+      {
+        weekday:"long",
+        day:"numeric",
+        month:"numeric",
+        hour:"numeric",
+        minute:"2-digit",
+        hour12:true
+      }
+    );
+
+
+  /*
+    فترة تقريبية للنشاط القوي داخل الشبكة
+  */
+
+  const significant=
+    results
+
+      .filter(
+        item=>
+          item.score>=active.score*0.70
+      )
+
+      .map(
+        item=>
+          new Date(item.time)
+      )
+
+      .sort(
+        (a,b)=>a-b
+      );
+
+
+  let activityPeriod="--";
+
+
+  if(significant.length){
+
+    const start=
+      significant[0];
+
+    const end=
+      significant[
+        significant.length-1
+      ];
+
+    const startText=
+      start.toLocaleString(
+        "ar-YE",
+        {
+          weekday:"long",
+          hour:"numeric",
+          hour12:true
+        }
+      );
+
+    const endText=
+      end.toLocaleString(
+        "ar-YE",
+        {
+          weekday:"long",
+          hour:"numeric",
+          hour12:true
+        }
+      );
+
+    activityPeriod=
+      `${startText} ← ${endText}`;
+  }
+
+
+  /*
+    عرض النتائج
+  */
+
+  document.getElementById("seaArea").innerHTML=
+    `${active.point.name}` +
+    `<br><span class="sea-small">ضمن شبكة الرصد البحرية</span>`;
+
+
+  document.getElementById("seaTime").innerHTML=
+    `${activeTimeText}` +
+    `<br><span class="sea-small">فترة النشاط: ${activityPeriod}</span>`;
+
+
+  document.getElementById("seaCoords").textContent=
+    `${active.point.lat.toFixed(1)}°N ، ${active.point.lon.toFixed(1)}°E`;
+
+
+  document.getElementById("seaDistance").innerHTML=
+    `نحو ${Math.round(activeDistance)} كم` +
+    `<br><span class="sea-small">من هدى إلى أقوى إشارة</span>`;
+
+
+  document.getElementById("seaPressure").textContent=
+    Math.round(minPressure)+" hPa";
+
+
+  document.getElementById("seaRain").textContent=
+    maxRain.toFixed(1)+" ملم/ساعة";
+
+
+  document.getElementById("seaCloud").textContent=
+    Math.round(maxCloud)+"%";
+
+
+  document.getElementById("seaHumidity").textContent=
+    Math.round(maxHumidity)+"%";
+
+
+  document.getElementById("seaWind").textContent=
+    Math.round(maxWind)+" كم/س";
+
+
+  document.getElementById("seaDirection").innerHTML=
+    `${windDirection(active.direction)}` +
+    `<br><span class="sea-small">اتجاه الرياح وليس حركة الحالة</span>`;
+
+
+  /*
+    تقييم قوة المؤشرات
+  */
+
+  const strongSignal=
+
+    minPressure<=1004 ||
+
+    maxWind>=50 ||
+
+    maxRain>=10;
+
+
+  const mediumSignal=
+
+    minPressure<=1009 ||
+
+    maxWind>=30 ||
+
+    maxRain>=3;
+
+
+  let summary="";
+
+
+  if(strongSignal){
+
+    summary=
+      "⚠️ تظهر مؤشرات نموذجية قوية نسبيًا في جزء من بحر العرب ضمن شبكة الرصد. تتم متابعة الضغط والرياح والسحب والأمطار. هذه القراءة لا تعني تلقائيًا وجود منخفض مداري أو عاصفة مصنفة رسميًا.";
+
+  }else if(mediumSignal){
+
+    summary=
+      "🌧️ توجد مؤشرات متوسطة للنشاط الجوي فوق أجزاء من بحر العرب. تستحق المتابعة خلال تحديثات النماذج القادمة لمعرفة تطور الضغط والسحب والأمطار.";
+
+  }else{
+
+    summary=
+      "✅ لا تظهر حاليًا ضمن شبكة الرصد مؤشرات نموذجية قوية على اضطراب واسع في بحر العرب.";
+  }
+
+
+  document.getElementById("seaSummary").textContent=
+    summary;
+
+
+  /*
+    أقرب نشاط لليمن وشبوة
+  */
+
+  let yemenText="";
+
+
+  if(nearestActivity){
+
+    const d=
+      Math.round(
+        nearestActivity.distance
+      );
+
+    yemenText=
+      `أقرب إشارة جوية ملحوظة تقع في ${nearestActivity.point.name}، ` +
+      `على مسافة تقريبية ${d} كم من هدى. `;
+
+
+    if(nearestActivity.point.lon<=55){
+
+      yemenText+=
+        "موقعها في القطاع الغربي من بحر العرب يجعلها أهم للمراقبة بالنسبة لليمن وشبوة.";
+
+    }else if(nearestActivity.point.lon<=60){
+
+      yemenText+=
+        "تقع في القطاع الأوسط إلى الغربي من بحر العرب وتحتاج متابعة تطورها خلال التحديثات القادمة.";
+
+    }else{
+
+      yemenText+=
+        "تقع حاليًا بعيدًا نسبيًا إلى الشرق من سواحل اليمن.";
+    }
+
+  }else{
+
+    yemenText=
+      "لا تظهر حاليًا إشارة بحرية بارزة قريبة من اليمن ضمن نقاط الرصد.";
+  }
+
+
+  document.getElementById("seaYemen").textContent=
+    yemenText;
+
+
+  /*
+    ربط التقرير بتوقع هدى المحلي
+    دون افتراض أن بحر العرب هو سبب المطر
+  */
+
+  let localRain=0;
+  let localRainDay="";
+
+
+  if(
+    weatherData &&
+    weatherData.daily &&
+    weatherData.daily.precipitation_probability_max
+  ){
+
+    const probabilities=
+      weatherData.daily
+        .precipitation_probability_max;
+
+
+    for(
+      let i=0;
+      i<probabilities.length;
+      i++
+    ){
+
+      const value=
+        probabilities[i] ?? 0;
+
+      if(value>localRain){
+
+        localRain=value;
+
+        const d=
+          new Date(
+            weatherData.daily.time[i]+
+            "T12:00:00"
+          );
+
+        localRainDay=
+          d.toLocaleDateString(
+            "ar-YE",
+            {
+              weekday:"long"
+            }
+          );
+      }
+    }
+  }
+
+
+  let impactText="";
+
+
+  if(
+    localRain>=60 &&
+    nearestActivity &&
+    nearestActivity.point.lon<=57
+  ){
+
+    impactText=
+      `🌧️ توقع هدى المحلي يظهر فرصة مطر جيدة تصل إلى ${Math.round(localRain)}% ` +
+      `${localRainDay ? "يوم "+localRainDay : ""}. ` +
+      `وفي الوقت نفسه توجد مؤشرات جوية في القطاع الغربي من بحر العرب. ` +
+      `هذا يستحق المتابعة، لكن لا يمكن الجزم آليًا بأن مطر هدى سببه النشاط البحري.`;
+
+  }else if(localRain>=60){
+
+    impactText=
+      `🌧️ توجد فرصة مطر جيدة على هدى تصل إلى ${Math.round(localRain)}% ` +
+      `${localRainDay ? "يوم "+localRainDay : ""}. ` +
+      `هذه فرصة محلية في توقع هدى ولا تعني بالضرورة وجود حالة مدارية في بحر العرب.`;
+
+  }else if(localRain>=30){
+
+    impactText=
+      `☁️ توجد فرصة مطر على هدى تصل إلى ${Math.round(localRain)}% ` +
+      `${localRainDay ? "يوم "+localRainDay : ""}، ` +
+      `بينما ارتباطها المباشر بنشاط بحر العرب غير مؤكد حاليًا.`;
+
+  }else{
+
+    impactText=
+      "لا تظهر حاليًا إشارة واضحة على تأثير مباشر من نشاط بحر العرب على هدى، مع استمرار متابعة تحديثات التوقع.";
+  }
+
+
+  document.getElementById("seaImpact").textContent=
+    impactText;
+}
+
+
+/* =========================================================
+   حساب المسافة
+   ========================================================= */
+
+function haversine(
+  lat1,
+  lon1,
+  lat2,
+  lon2
+){
+
+  const R=6371;
+
+  const toRad=
+    value=>
+      value*Math.PI/180;
+
+  const dLat=
+    toRad(lat2-lat1);
+
+  const dLon=
+    toRad(lon2-lon1);
+
+  const a=
+    Math.sin(dLat/2)**2 +
+    Math.cos(toRad(lat1)) *
+    Math.cos(toRad(lat2)) *
+    Math.sin(dLon/2)**2;
+
+  const c=
+    2*Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1-a)
+    );
+
+  return R*c;
+}
+
+
+/* =========================================================
+   رموز الطقس
+   ========================================================= */
+
+function weatherText(code){
+
+  if(code===0)
+    return "صحو";
+
+  if(code===1)
+    return "صحو غالبًا";
+
+  if(code===2)
+    return "غائم جزئيًا";
+
+  if(code===3)
+    return "غائم";
+
+  if(code===45 || code===48)
+    return "ضباب";
+
+  if(code>=51 && code<=57)
+    return "رذاذ";
+
+  if(code>=61 && code<=67)
+    return "أمطار";
+
+  if(code>=80 && code<=82)
+    return "زخات مطر";
+
+  if(code>=95)
+    return "عواصف رعدية";
+
+  return "طقس متغير";
+}
+
+
+function weatherIcon(code){
+
+  if(code===0)
+    return "☀️";
+
+  if(code===1)
+    return "🌤️";
+
+  if(code===2)
+    return "⛅";
+
+  if(code===3)
+    return "☁️";
+
+  if(code===45 || code===48)
+    return "🌫️";
+
+  if(code>=51 && code<=67)
+    return "🌧️";
+
+  if(code>=80 && code<=82)
+    return "🌦️";
+
+  if(code>=95)
+    return "⛈️";
+
+  return "🌤️";
+}
+
+
+/* =========================================================
+   اتجاه الرياح
+   ========================================================= */
+
+function windDirection(deg){
+
+  if(!Number.isFinite(deg))
+    return "--";
+
+  const directions=[
+    "شمالية",
+    "شمالية شرقية",
+    "شرقية",
+    "جنوبية شرقية",
+    "جنوبية",
+    "جنوبية غربية",
+    "غربية",
+    "شمالية غربية"
+  ];
+
+  return directions[
+    Math.round(deg/45)%8
+  ];
+}
+
+
+const PRAYER_TABLE={"2026-09-26":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2026-09-27":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2026-09-28":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2026-09-29":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2026-09-30":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2026-10-01":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2026-10-02":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2026-10-03":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2026-10-04":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:47","isha":"18:52"},"2026-10-05":{"fajr":"04:36","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:47","isha":"18:52"},"2026-10-06":{"fajr":"04:36","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:47","isha":"18:52"},"2026-10-07":{"fajr":"04:36","sunrise":"05:41","dhuhr":"11:45","asr":"15:05","maghrib":"17:47","isha":"18:52"},"2026-10-08":{"fajr":"04:36","sunrise":"05:41","dhuhr":"11:45","asr":"15:05","maghrib":"17:47","isha":"18:52"},"2026-10-09":{"fajr":"04:36","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:47","isha":"18:52"},"2026-10-10":{"fajr":"04:36","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:47","isha":"18:52"},"2026-10-11":{"fajr":"04:36","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:47","isha":"18:52"},"2026-10-12":{"fajr":"04:36","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:46","isha":"18:51"},"2026-10-13":{"fajr":"04:36","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:46","isha":"18:51"},"2026-10-14":{"fajr":"04:37","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:46","isha":"18:51"},"2026-10-15":{"fajr":"04:37","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:46","isha":"18:51"},"2026-10-16":{"fajr":"04:37","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:46","isha":"18:51"},"2026-10-17":{"fajr":"04:37","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:46","isha":"18:51"},"2026-10-18":{"fajr":"04:37","sunrise":"05:42","dhuhr":"11:44","asr":"15:04","maghrib":"17:45","isha":"18:50"},"2026-10-19":{"fajr":"04:37","sunrise":"05:42","dhuhr":"11:44","asr":"15:04","maghrib":"17:45","isha":"18:50"},"2026-10-20":{"fajr":"04:37","sunrise":"05:42","dhuhr":"11:44","asr":"15:04","maghrib":"17:45","isha":"18:50"},"2026-10-21":{"fajr":"04:38","sunrise":"05:42","dhuhr":"11:44","asr":"15:03","maghrib":"17:45","isha":"18:50"},"2026-10-22":{"fajr":"04:38","sunrise":"05:42","dhuhr":"11:44","asr":"15:03","maghrib":"17:44","isha":"18:49"},"2026-10-23":{"fajr":"04:38","sunrise":"05:42","dhuhr":"11:44","asr":"15:03","maghrib":"17:44","isha":"18:49"},"2026-10-24":{"fajr":"04:38","sunrise":"05:42","dhuhr":"11:44","asr":"15:03","maghrib":"17:44","isha":"18:49"},"2026-10-25":{"fajr":"04:38","sunrise":"05:43","dhuhr":"11:44","asr":"15:03","maghrib":"17:44","isha":"18:49"},"2026-10-26":{"fajr":"04:39","sunrise":"05:43","dhuhr":"11:44","asr":"15:03","maghrib":"17:44","isha":"18:49"},"2026-10-27":{"fajr":"04:39","sunrise":"05:43","dhuhr":"11:44","asr":"15:03","maghrib":"17:43","isha":"18:48"},"2026-10-28":{"fajr":"04:39","sunrise":"05:43","dhuhr":"11:44","asr":"15:03","maghrib":"17:43","isha":"18:48"},"2026-10-29":{"fajr":"04:39","sunrise":"05:43","dhuhr":"11:44","asr":"15:02","maghrib":"17:43","isha":"18:48"},"2026-10-30":{"fajr":"04:39","sunrise":"05:43","dhuhr":"11:44","asr":"15:02","maghrib":"17:42","isha":"18:47"},"2026-10-31":{"fajr":"04:40","sunrise":"05:43","dhuhr":"11:44","asr":"15:02","maghrib":"17:42","isha":"18:47"},"2026-11-01":{"fajr":"04:40","sunrise":"05:44","dhuhr":"11:44","asr":"15:02","maghrib":"17:42","isha":"18:47"},"2026-11-02":{"fajr":"04:40","sunrise":"05:44","dhuhr":"11:44","asr":"15:02","maghrib":"17:42","isha":"18:47"},"2026-11-03":{"fajr":"04:40","sunrise":"05:44","dhuhr":"11:44","asr":"15:02","maghrib":"17:41","isha":"18:46"},"2026-11-04":{"fajr":"04:41","sunrise":"05:44","dhuhr":"11:44","asr":"15:02","maghrib":"17:41","isha":"18:46"},"2026-11-05":{"fajr":"04:41","sunrise":"05:44","dhuhr":"11:44","asr":"15:02","maghrib":"17:41","isha":"18:46"},"2026-11-06":{"fajr":"04:41","sunrise":"05:45","dhuhr":"11:43","asr":"15:01","maghrib":"17:40","isha":"18:45"},"2026-11-07":{"fajr":"04:41","sunrise":"05:45","dhuhr":"11:43","asr":"15:01","maghrib":"17:40","isha":"18:45"},"2026-11-08":{"fajr":"04:42","sunrise":"05:45","dhuhr":"11:43","asr":"15:01","maghrib":"17:40","isha":"18:45"},"2026-11-09":{"fajr":"04:42","sunrise":"05:45","dhuhr":"11:43","asr":"15:01","maghrib":"17:40","isha":"18:45"},"2026-11-10":{"fajr":"04:42","sunrise":"05:45","dhuhr":"11:43","asr":"15:01","maghrib":"17:39","isha":"18:44"},"2026-11-11":{"fajr":"04:42","sunrise":"05:45","dhuhr":"11:43","asr":"15:01","maghrib":"17:39","isha":"18:44"},"2026-11-12":{"fajr":"04:43","sunrise":"05:46","dhuhr":"11:43","asr":"15:00","maghrib":"17:39","isha":"18:44"},"2026-11-13":{"fajr":"04:43","sunrise":"05:46","dhuhr":"11:43","asr":"15:00","maghrib":"17:38","isha":"18:43"},"2026-11-14":{"fajr":"04:43","sunrise":"05:46","dhuhr":"11:43","asr":"15:00","maghrib":"17:38","isha":"18:43"},"2026-11-15":{"fajr":"04:43","sunrise":"05:46","dhuhr":"11:43","asr":"15:00","maghrib":"17:37","isha":"18:42"},"2026-11-16":{"fajr":"04:44","sunrise":"05:47","dhuhr":"11:43","asr":"15:00","maghrib":"17:37","isha":"18:42"},"2026-11-17":{"fajr":"04:44","sunrise":"05:47","dhuhr":"11:43","asr":"15:00","maghrib":"17:37","isha":"18:42"},"2026-11-18":{"fajr":"04:44","sunrise":"05:47","dhuhr":"11:43","asr":"14:59","maghrib":"17:36","isha":"18:41"},"2026-11-19":{"fajr":"04:45","sunrise":"05:47","dhuhr":"11:43","asr":"14:59","maghrib":"17:36","isha":"18:41"},"2026-11-20":{"fajr":"04:45","sunrise":"05:47","dhuhr":"11:43","asr":"14:59","maghrib":"17:36","isha":"18:41"},"2026-11-21":{"fajr":"04:45","sunrise":"05:48","dhuhr":"11:42","asr":"14:59","maghrib":"17:35","isha":"18:40"},"2026-11-22":{"fajr":"04:45","sunrise":"05:48","dhuhr":"11:42","asr":"14:59","maghrib":"17:35","isha":"18:40"},"2026-11-23":{"fajr":"04:46","sunrise":"05:48","dhuhr":"11:42","asr":"14:59","maghrib":"17:35","isha":"18:40"},"2026-11-24":{"fajr":"04:46","sunrise":"05:48","dhuhr":"11:42","asr":"14:58","maghrib":"17:34","isha":"18:39"},"2026-11-25":{"fajr":"04:46","sunrise":"05:49","dhuhr":"11:42","asr":"14:58","maghrib":"17:34","isha":"18:39"},"2026-11-26":{"fajr":"04:47","sunrise":"05:49","dhuhr":"11:42","asr":"14:58","maghrib":"17:33","isha":"18:38"},"2026-11-27":{"fajr":"04:47","sunrise":"05:49","dhuhr":"11:42","asr":"14:58","maghrib":"17:33","isha":"18:38"},"2026-11-28":{"fajr":"04:47","sunrise":"05:49","dhuhr":"11:42","asr":"14:58","maghrib":"17:33","isha":"18:38"},"2026-11-29":{"fajr":"04:48","sunrise":"05:50","dhuhr":"11:42","asr":"14:57","maghrib":"17:32","isha":"18:37"},"2026-11-30":{"fajr":"04:48","sunrise":"05:50","dhuhr":"11:42","asr":"14:57","maghrib":"17:32","isha":"18:37"},"2026-12-01":{"fajr":"04:48","sunrise":"05:50","dhuhr":"11:42","asr":"14:57","maghrib":"17:31","isha":"18:36"},"2026-12-02":{"fajr":"04:49","sunrise":"05:50","dhuhr":"11:42","asr":"14:57","maghrib":"17:31","isha":"18:36"},"2026-12-03":{"fajr":"04:49","sunrise":"05:50","dhuhr":"11:42","asr":"14:57","maghrib":"17:31","isha":"18:36"},"2026-12-04":{"fajr":"04:49","sunrise":"05:51","dhuhr":"11:41","asr":"14:56","maghrib":"17:30","isha":"18:35"},"2026-12-05":{"fajr":"04:50","sunrise":"05:51","dhuhr":"11:41","asr":"14:56","maghrib":"17:30","isha":"18:35"},"2026-12-06":{"fajr":"04:50","sunrise":"05:51","dhuhr":"11:41","asr":"14:56","maghrib":"17:29","isha":"18:34"},"2026-12-07":{"fajr":"04:50","sunrise":"05:51","dhuhr":"11:41","asr":"14:56","maghrib":"17:29","isha":"18:34"},"2026-12-08":{"fajr":"04:51","sunrise":"05:52","dhuhr":"11:41","asr":"14:56","maghrib":"17:28","isha":"18:33"},"2026-12-09":{"fajr":"04:51","sunrise":"05:52","dhuhr":"11:41","asr":"14:55","maghrib":"17:28","isha":"18:33"},"2026-12-10":{"fajr":"04:51","sunrise":"05:52","dhuhr":"11:41","asr":"14:55","maghrib":"17:28","isha":"18:33"},"2026-12-11":{"fajr":"04:52","sunrise":"05:52","dhuhr":"11:41","asr":"14:55","maghrib":"17:27","isha":"18:32"},"2026-12-12":{"fajr":"04:52","sunrise":"05:53","dhuhr":"11:41","asr":"14:55","maghrib":"17:27","isha":"18:32"},"2026-12-13":{"fajr":"04:52","sunrise":"05:53","dhuhr":"11:41","asr":"14:55","maghrib":"17:26","isha":"18:31"},"2026-12-14":{"fajr":"04:53","sunrise":"05:53","dhuhr":"11:41","asr":"14:54","maghrib":"17:26","isha":"18:31"},"2026-12-15":{"fajr":"04:53","sunrise":"05:54","dhuhr":"11:40","asr":"14:54","maghrib":"17:25","isha":"18:30"},"2026-12-16":{"fajr":"04:53","sunrise":"05:54","dhuhr":"11:40","asr":"14:54","maghrib":"17:25","isha":"18:30"},"2026-12-17":{"fajr":"04:54","sunrise":"05:54","dhuhr":"11:40","asr":"14:54","maghrib":"17:25","isha":"18:30"},"2026-12-18":{"fajr":"04:54","sunrise":"05:54","dhuhr":"11:40","asr":"14:54","maghrib":"17:24","isha":"18:29"},"2026-12-19":{"fajr":"04:54","sunrise":"05:55","dhuhr":"11:40","asr":"14:53","maghrib":"17:24","isha":"18:29"},"2026-12-20":{"fajr":"04:55","sunrise":"05:55","dhuhr":"11:40","asr":"14:53","maghrib":"17:23","isha":"18:28"},"2026-12-21":{"fajr":"04:55","sunrise":"05:55","dhuhr":"11:40","asr":"14:53","maghrib":"17:23","isha":"18:28"},"2026-12-22":{"fajr":"04:55","sunrise":"05:55","dhuhr":"11:40","asr":"14:53","maghrib":"17:22","isha":"18:27"},"2026-12-23":{"fajr":"04:56","sunrise":"05:56","dhuhr":"11:40","asr":"14:53","maghrib":"17:22","isha":"18:27"},"2026-12-24":{"fajr":"04:56","sunrise":"05:56","dhuhr":"11:40","asr":"14:52","maghrib":"17:22","isha":"18:27"},"2026-12-25":{"fajr":"04:56","sunrise":"05:56","dhuhr":"11:40","asr":"14:52","maghrib":"17:21","isha":"18:26"},"2026-12-26":{"fajr":"04:57","sunrise":"05:56","dhuhr":"11:40","asr":"14:52","maghrib":"17:21","isha":"18:26"},"2026-12-27":{"fajr":"04:57","sunrise":"05:57","dhuhr":"11:39","asr":"14:52","maghrib":"17:20","isha":"18:25"},"2026-12-28":{"fajr":"04:57","sunrise":"05:57","dhuhr":"11:39","asr":"14:52","maghrib":"17:20","isha":"18:25"},"2026-12-29":{"fajr":"04:58","sunrise":"05:57","dhuhr":"11:39","asr":"14:51","maghrib":"17:19","isha":"18:24"},"2026-12-30":{"fajr":"04:58","sunrise":"05:57","dhuhr":"11:39","asr":"14:51","maghrib":"17:19","isha":"18:24"},"2026-12-31":{"fajr":"04:58","sunrise":"05:58","dhuhr":"11:39","asr":"14:51","maghrib":"17:19","isha":"18:24"},"2027-01-01":{"fajr":"04:59","sunrise":"05:58","dhuhr":"11:39","asr":"14:51","maghrib":"17:18","isha":"18:23"},"2027-01-02":{"fajr":"04:59","sunrise":"05:58","dhuhr":"11:39","asr":"14:50","maghrib":"17:18","isha":"18:23"},"2027-01-03":{"fajr":"05:00","sunrise":"05:58","dhuhr":"11:39","asr":"14:50","maghrib":"17:17","isha":"18:22"},"2027-01-04":{"fajr":"05:00","sunrise":"05:59","dhuhr":"11:39","asr":"14:50","maghrib":"17:17","isha":"18:22"},"2027-01-05":{"fajr":"05:00","sunrise":"05:59","dhuhr":"11:39","asr":"14:50","maghrib":"17:17","isha":"18:22"},"2027-01-06":{"fajr":"05:01","sunrise":"05:59","dhuhr":"11:39","asr":"14:50","maghrib":"17:16","isha":"18:21"},"2027-01-07":{"fajr":"05:01","sunrise":"05:59","dhuhr":"11:39","asr":"14:49","maghrib":"17:16","isha":"18:21"},"2027-01-08":{"fajr":"05:01","sunrise":"06:00","dhuhr":"11:38","asr":"14:49","maghrib":"17:15","isha":"18:20"},"2027-01-09":{"fajr":"05:01","sunrise":"06:00","dhuhr":"11:38","asr":"14:49","maghrib":"17:15","isha":"18:20"},"2027-01-10":{"fajr":"05:02","sunrise":"06:00","dhuhr":"11:38","asr":"14:49","maghrib":"17:14","isha":"18:19"},"2027-01-11":{"fajr":"05:02","sunrise":"06:00","dhuhr":"11:38","asr":"14:49","maghrib":"17:14","isha":"18:19"},"2027-01-12":{"fajr":"05:02","sunrise":"06:01","dhuhr":"11:38","asr":"14:49","maghrib":"17:14","isha":"18:19"},"2027-01-13":{"fajr":"05:03","sunrise":"06:01","dhuhr":"11:38","asr":"14:48","maghrib":"17:13","isha":"18:18"},"2027-01-14":{"fajr":"05:03","sunrise":"06:01","dhuhr":"11:38","asr":"14:48","maghrib":"17:13","isha":"18:18"},"2027-01-15":{"fajr":"05:03","sunrise":"06:01","dhuhr":"11:38","asr":"14:48","maghrib":"17:12","isha":"18:17"},"2027-01-16":{"fajr":"05:04","sunrise":"06:02","dhuhr":"11:38","asr":"14:48","maghrib":"17:12","isha":"18:17"},"2027-01-17":{"fajr":"05:04","sunrise":"06:02","dhuhr":"11:38","asr":"14:48","maghrib":"17:12","isha":"18:17"},"2027-01-18":{"fajr":"05:04","sunrise":"06:02","dhuhr":"11:38","asr":"14:47","maghrib":"17:11","isha":"18:16"},"2027-01-19":{"fajr":"05:05","sunrise":"06:02","dhuhr":"11:38","asr":"14:47","maghrib":"17:11","isha":"18:16"},"2027-01-20":{"fajr":"05:05","sunrise":"06:02","dhuhr":"11:38","asr":"14:47","maghrib":"17:11","isha":"18:16"},"2027-01-21":{"fajr":"05:05","sunrise":"06:03","dhuhr":"11:37","asr":"14:47","maghrib":"17:10","isha":"18:15"},"2027-01-22":{"fajr":"05:06","sunrise":"06:03","dhuhr":"11:37","asr":"14:47","maghrib":"17:10","isha":"18:15"},"2027-01-23":{"fajr":"05:06","sunrise":"06:03","dhuhr":"11:37","asr":"14:47","maghrib":"17:09","isha":"18:14"},"2027-01-24":{"fajr":"05:06","sunrise":"06:03","dhuhr":"11:37","asr":"14:46","maghrib":"17:09","isha":"18:14"},"2027-01-25":{"fajr":"05:06","sunrise":"06:04","dhuhr":"11:37","asr":"14:46","maghrib":"17:09","isha":"18:14"},"2027-01-26":{"fajr":"05:07","sunrise":"06:04","dhuhr":"11:37","asr":"14:46","maghrib":"17:08","isha":"18:13"},"2027-01-27":{"fajr":"05:07","sunrise":"06:04","dhuhr":"11:37","asr":"14:46","maghrib":"17:08","isha":"18:13"},"2027-01-28":{"fajr":"05:07","sunrise":"06:04","dhuhr":"11:37","asr":"14:46","maghrib":"17:08","isha":"18:13"},"2027-01-29":{"fajr":"05:07","sunrise":"06:04","dhuhr":"11:37","asr":"14:46","maghrib":"17:07","isha":"18:12"},"2027-01-30":{"fajr":"05:08","sunrise":"06:05","dhuhr":"11:37","asr":"14:45","maghrib":"17:07","isha":"18:12"},"2027-01-31":{"fajr":"05:08","sunrise":"06:05","dhuhr":"11:37","asr":"14:45","maghrib":"17:07","isha":"18:12"},"2027-02-01":{"fajr":"05:08","sunrise":"06:05","dhuhr":"11:37","asr":"14:45","maghrib":"17:06","isha":"18:11"},"2027-02-02":{"fajr":"05:09","sunrise":"06:05","dhuhr":"11:37","asr":"14:45","maghrib":"17:06","isha":"18:11"},"2027-02-03":{"fajr":"05:09","sunrise":"06:05","dhuhr":"11:37","asr":"14:45","maghrib":"17:06","isha":"18:11"},"2027-02-04":{"fajr":"05:09","sunrise":"06:06","dhuhr":"11:36","asr":"14:45","maghrib":"17:05","isha":"18:10"},"2027-02-05":{"fajr":"05:09","sunrise":"06:06","dhuhr":"11:36","asr":"14:44","maghrib":"17:05","isha":"18:10"},"2027-02-06":{"fajr":"05:09","sunrise":"06:06","dhuhr":"11:36","asr":"14:44","maghrib":"17:05","isha":"18:10"},"2027-02-07":{"fajr":"05:10","sunrise":"06:06","dhuhr":"11:36","asr":"14:44","maghrib":"17:05","isha":"18:10"},"2027-02-08":{"fajr":"05:10","sunrise":"06:06","dhuhr":"11:36","asr":"14:44","maghrib":"17:04","isha":"18:09"},"2027-02-09":{"fajr":"05:10","sunrise":"06:06","dhuhr":"11:36","asr":"14:44","maghrib":"17:04","isha":"18:09"},"2027-02-10":{"fajr":"05:10","sunrise":"06:07","dhuhr":"11:36","asr":"14:44","maghrib":"17:04","isha":"18:09"},"2027-02-11":{"fajr":"05:11","sunrise":"06:07","dhuhr":"11:36","asr":"14:44","maghrib":"17:03","isha":"18:08"},"2027-02-12":{"fajr":"05:11","sunrise":"06:07","dhuhr":"11:36","asr":"14:44","maghrib":"17:03","isha":"18:08"},"2027-02-13":{"fajr":"05:11","sunrise":"06:07","dhuhr":"11:36","asr":"14:43","maghrib":"17:03","isha":"18:08"},"2027-02-14":{"fajr":"05:11","sunrise":"06:07","dhuhr":"11:36","asr":"14:43","maghrib":"17:03","isha":"18:08"},"2027-02-15":{"fajr":"05:11","sunrise":"06:07","dhuhr":"11:36","asr":"14:43","maghrib":"17:02","isha":"18:07"},"2027-02-16":{"fajr":"05:12","sunrise":"06:07","dhuhr":"11:36","asr":"14:43","maghrib":"17:02","isha":"18:07"},"2027-02-17":{"fajr":"05:12","sunrise":"06:08","dhuhr":"11:36","asr":"14:43","maghrib":"17:02","isha":"18:07"},"2027-02-18":{"fajr":"05:12","sunrise":"06:08","dhuhr":"11:36","asr":"14:43","maghrib":"17:02","isha":"18:07"},"2027-02-19":{"fajr":"05:12","sunrise":"06:08","dhuhr":"11:36","asr":"14:43","maghrib":"17:02","isha":"18:07"},"2027-02-20":{"fajr":"05:12","sunrise":"06:08","dhuhr":"11:36","asr":"14:43","maghrib":"17:01","isha":"18:06"},"2027-02-21":{"fajr":"05:13","sunrise":"06:08","dhuhr":"11:36","asr":"14:42","maghrib":"17:01","isha":"18:06"},"2027-02-22":{"fajr":"05:13","sunrise":"06:08","dhuhr":"11:36","asr":"14:42","maghrib":"17:01","isha":"18:06"},"2027-02-23":{"fajr":"05:13","sunrise":"06:08","dhuhr":"11:36","asr":"14:42","maghrib":"17:01","isha":"18:06"},"2027-02-24":{"fajr":"05:13","sunrise":"06:08","dhuhr":"11:36","asr":"14:42","maghrib":"17:01","isha":"18:06"},"2027-02-25":{"fajr":"05:13","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"17:00","isha":"18:05"},"2027-02-26":{"fajr":"05:13","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"17:00","isha":"18:05"},"2027-02-27":{"fajr":"05:13","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"17:00","isha":"18:05"},"2027-02-28":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"17:00","isha":"18:05"},"2027-03-01":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"17:00","isha":"18:05"},"2027-03-02":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"17:00","isha":"18:05"},"2027-03-03":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"16:59","isha":"18:04"},"2027-03-04":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"16:59","isha":"18:04"},"2027-03-05":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"16:59","isha":"18:04"},"2027-03-06":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:41","maghrib":"16:59","isha":"18:04"},"2027-03-07":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:41","maghrib":"16:59","isha":"18:04"},"2027-03-08":{"fajr":"05:14","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:59","isha":"18:04"},"2027-03-09":{"fajr":"05:14","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:59","isha":"18:04"},"2027-03-10":{"fajr":"05:14","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:59","isha":"18:04"},"2027-03-11":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:59","isha":"18:04"},"2027-03-12":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-13":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-14":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-15":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-16":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-17":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-18":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-19":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-20":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-21":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-22":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-23":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-24":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-25":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-26":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-27":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-28":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-29":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-30":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-03-31":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:58","isha":"18:03"},"2027-04-01":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:59","isha":"18:04"},"2027-04-02":{"fajr":"05:15","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:59","isha":"18:04"},"2027-04-03":{"fajr":"05:14","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:59","isha":"18:04"},"2027-04-04":{"fajr":"05:14","sunrise":"06:10","dhuhr":"11:35","asr":"14:41","maghrib":"16:59","isha":"18:04"},"2027-04-05":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:41","maghrib":"16:59","isha":"18:04"},"2027-04-06":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:41","maghrib":"16:59","isha":"18:04"},"2027-04-07":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"16:59","isha":"18:04"},"2027-04-08":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"16:59","isha":"18:04"},"2027-04-09":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"16:59","isha":"18:04"},"2027-04-10":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"16:59","isha":"18:04"},"2027-04-11":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"17:00","isha":"18:05"},"2027-04-12":{"fajr":"05:14","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"17:00","isha":"18:05"},"2027-04-13":{"fajr":"05:13","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"17:00","isha":"18:05"},"2027-04-14":{"fajr":"05:13","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"17:00","isha":"18:05"},"2027-04-15":{"fajr":"05:13","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"17:00","isha":"18:05"},"2027-04-16":{"fajr":"05:13","sunrise":"06:09","dhuhr":"11:35","asr":"14:42","maghrib":"17:00","isha":"18:05"},"2027-04-17":{"fajr":"05:13","sunrise":"06:08","dhuhr":"11:36","asr":"14:42","maghrib":"17:01","isha":"18:06"},"2027-04-18":{"fajr":"05:13","sunrise":"06:08","dhuhr":"11:36","asr":"14:42","maghrib":"17:01","isha":"18:06"},"2027-04-19":{"fajr":"05:13","sunrise":"06:08","dhuhr":"11:36","asr":"14:42","maghrib":"17:01","isha":"18:06"},"2027-04-20":{"fajr":"05:12","sunrise":"06:08","dhuhr":"11:36","asr":"14:43","maghrib":"17:01","isha":"18:06"},"2027-04-21":{"fajr":"05:12","sunrise":"06:08","dhuhr":"11:36","asr":"14:43","maghrib":"17:01","isha":"18:06"},"2027-04-22":{"fajr":"05:12","sunrise":"06:08","dhuhr":"11:36","asr":"14:43","maghrib":"17:02","isha":"18:07"},"2027-04-23":{"fajr":"05:12","sunrise":"06:08","dhuhr":"11:36","asr":"14:43","maghrib":"17:02","isha":"18:07"},"2027-04-24":{"fajr":"05:12","sunrise":"06:08","dhuhr":"11:36","asr":"14:43","maghrib":"17:02","isha":"18:07"},"2027-04-25":{"fajr":"05:12","sunrise":"06:07","dhuhr":"11:36","asr":"14:43","maghrib":"17:02","isha":"18:07"},"2027-04-26":{"fajr":"05:11","sunrise":"06:07","dhuhr":"11:36","asr":"14:43","maghrib":"17:03","isha":"18:08"},"2027-04-27":{"fajr":"05:11","sunrise":"06:07","dhuhr":"11:36","asr":"14:43","maghrib":"17:03","isha":"18:08"},"2027-04-28":{"fajr":"05:11","sunrise":"06:07","dhuhr":"11:36","asr":"14:43","maghrib":"17:03","isha":"18:08"},"2027-04-29":{"fajr":"05:11","sunrise":"06:07","dhuhr":"11:36","asr":"14:44","maghrib":"17:03","isha":"18:08"},"2027-04-30":{"fajr":"05:11","sunrise":"06:07","dhuhr":"11:36","asr":"14:44","maghrib":"17:04","isha":"18:09"},"2027-05-01":{"fajr":"05:10","sunrise":"06:06","dhuhr":"11:36","asr":"14:44","maghrib":"17:04","isha":"18:09"},"2027-05-02":{"fajr":"05:10","sunrise":"06:06","dhuhr":"11:36","asr":"14:44","maghrib":"17:04","isha":"18:09"},"2027-05-03":{"fajr":"05:10","sunrise":"06:06","dhuhr":"11:36","asr":"14:44","maghrib":"17:04","isha":"18:09"},"2027-05-04":{"fajr":"05:10","sunrise":"06:06","dhuhr":"11:36","asr":"14:44","maghrib":"17:05","isha":"18:10"},"2027-05-05":{"fajr":"05:09","sunrise":"06:06","dhuhr":"11:36","asr":"14:44","maghrib":"17:05","isha":"18:10"},"2027-05-06":{"fajr":"05:09","sunrise":"06:06","dhuhr":"11:36","asr":"14:45","maghrib":"17:05","isha":"18:10"},"2027-05-07":{"fajr":"05:09","sunrise":"06:05","dhuhr":"11:37","asr":"14:45","maghrib":"17:06","isha":"18:11"},"2027-05-08":{"fajr":"05:09","sunrise":"06:05","dhuhr":"11:37","asr":"14:45","maghrib":"17:06","isha":"18:11"},"2027-05-09":{"fajr":"05:08","sunrise":"06:05","dhuhr":"11:37","asr":"14:45","maghrib":"17:06","isha":"18:11"},"2027-05-10":{"fajr":"05:08","sunrise":"06:05","dhuhr":"11:37","asr":"14:45","maghrib":"17:07","isha":"18:12"},"2027-05-11":{"fajr":"05:08","sunrise":"06:05","dhuhr":"11:37","asr":"14:45","maghrib":"17:07","isha":"18:12"},"2027-05-12":{"fajr":"05:08","sunrise":"06:04","dhuhr":"11:37","asr":"14:45","maghrib":"17:07","isha":"18:12"},"2027-05-13":{"fajr":"05:07","sunrise":"06:04","dhuhr":"11:37","asr":"14:46","maghrib":"17:08","isha":"18:13"},"2027-05-14":{"fajr":"05:07","sunrise":"06:04","dhuhr":"11:37","asr":"14:46","maghrib":"17:08","isha":"18:13"},"2027-05-15":{"fajr":"05:07","sunrise":"06:04","dhuhr":"11:37","asr":"14:46","maghrib":"17:08","isha":"18:13"},"2027-05-16":{"fajr":"05:07","sunrise":"06:04","dhuhr":"11:37","asr":"14:46","maghrib":"17:09","isha":"18:14"},"2027-05-17":{"fajr":"05:06","sunrise":"06:03","dhuhr":"11:37","asr":"14:46","maghrib":"17:09","isha":"18:14"},"2027-05-18":{"fajr":"05:06","sunrise":"06:03","dhuhr":"11:37","asr":"14:46","maghrib":"17:09","isha":"18:14"},"2027-05-19":{"fajr":"05:06","sunrise":"06:03","dhuhr":"11:37","asr":"14:47","maghrib":"17:10","isha":"18:15"},"2027-05-20":{"fajr":"05:05","sunrise":"06:03","dhuhr":"11:37","asr":"14:47","maghrib":"17:10","isha":"18:15"},"2027-05-21":{"fajr":"05:05","sunrise":"06:03","dhuhr":"11:37","asr":"14:47","maghrib":"17:10","isha":"18:15"},"2027-05-22":{"fajr":"05:05","sunrise":"06:02","dhuhr":"11:38","asr":"14:47","maghrib":"17:11","isha":"18:16"},"2027-05-23":{"fajr":"05:04","sunrise":"06:02","dhuhr":"11:38","asr":"14:47","maghrib":"17:11","isha":"18:16"},"2027-05-24":{"fajr":"05:04","sunrise":"06:02","dhuhr":"11:38","asr":"14:47","maghrib":"17:12","isha":"18:17"},"2027-05-25":{"fajr":"05:04","sunrise":"06:02","dhuhr":"11:38","asr":"14:48","maghrib":"17:12","isha":"18:17"},"2027-05-26":{"fajr":"05:04","sunrise":"06:01","dhuhr":"11:38","asr":"14:48","maghrib":"17:12","isha":"18:17"},"2027-05-27":{"fajr":"05:03","sunrise":"06:01","dhuhr":"11:38","asr":"14:48","maghrib":"17:13","isha":"18:18"},"2027-05-28":{"fajr":"05:03","sunrise":"06:01","dhuhr":"11:38","asr":"14:48","maghrib":"17:13","isha":"18:18"},"2027-05-29":{"fajr":"05:03","sunrise":"06:01","dhuhr":"11:38","asr":"14:48","maghrib":"17:13","isha":"18:18"},"2027-05-30":{"fajr":"05:02","sunrise":"06:00","dhuhr":"11:38","asr":"14:49","maghrib":"17:14","isha":"18:19"},"2027-05-31":{"fajr":"05:02","sunrise":"06:00","dhuhr":"11:38","asr":"14:49","maghrib":"17:14","isha":"18:19"},"2027-06-01":{"fajr":"05:02","sunrise":"06:00","dhuhr":"11:38","asr":"14:49","maghrib":"17:15","isha":"18:20"},"2027-06-02":{"fajr":"05:01","sunrise":"06:00","dhuhr":"11:38","asr":"14:49","maghrib":"17:15","isha":"18:20"},"2027-06-03":{"fajr":"05:01","sunrise":"06:00","dhuhr":"11:38","asr":"14:49","maghrib":"17:15","isha":"18:20"},"2027-06-04":{"fajr":"05:01","sunrise":"05:59","dhuhr":"11:39","asr":"14:50","maghrib":"17:16","isha":"18:21"},"2027-06-05":{"fajr":"05:00","sunrise":"05:59","dhuhr":"11:39","asr":"14:50","maghrib":"17:16","isha":"18:21"},"2027-06-06":{"fajr":"05:00","sunrise":"05:59","dhuhr":"11:39","asr":"14:50","maghrib":"17:17","isha":"18:22"},"2027-06-07":{"fajr":"05:00","sunrise":"05:59","dhuhr":"11:39","asr":"14:50","maghrib":"17:17","isha":"18:22"},"2027-06-08":{"fajr":"04:59","sunrise":"05:58","dhuhr":"11:39","asr":"14:50","maghrib":"17:18","isha":"18:23"},"2027-06-09":{"fajr":"04:59","sunrise":"05:58","dhuhr":"11:39","asr":"14:51","maghrib":"17:18","isha":"18:23"},"2027-06-10":{"fajr":"04:59","sunrise":"05:58","dhuhr":"11:39","asr":"14:51","maghrib":"17:18","isha":"18:23"},"2027-06-11":{"fajr":"04:58","sunrise":"05:57","dhuhr":"11:39","asr":"14:51","maghrib":"17:19","isha":"18:24"},"2027-06-12":{"fajr":"04:58","sunrise":"05:57","dhuhr":"11:39","asr":"14:51","maghrib":"17:19","isha":"18:24"},"2027-06-13":{"fajr":"04:58","sunrise":"05:57","dhuhr":"11:39","asr":"14:51","maghrib":"17:20","isha":"18:25"},"2027-06-14":{"fajr":"04:57","sunrise":"05:57","dhuhr":"11:39","asr":"14:52","maghrib":"17:20","isha":"18:25"},"2027-06-15":{"fajr":"04:57","sunrise":"05:56","dhuhr":"11:40","asr":"14:52","maghrib":"17:21","isha":"18:26"},"2027-06-16":{"fajr":"04:57","sunrise":"05:56","dhuhr":"11:40","asr":"14:52","maghrib":"17:21","isha":"18:26"},"2027-06-17":{"fajr":"04:56","sunrise":"05:56","dhuhr":"11:40","asr":"14:52","maghrib":"17:21","isha":"18:26"},"2027-06-18":{"fajr":"04:56","sunrise":"05:56","dhuhr":"11:40","asr":"14:52","maghrib":"17:22","isha":"18:27"},"2027-06-19":{"fajr":"04:56","sunrise":"05:55","dhuhr":"11:40","asr":"14:53","maghrib":"17:22","isha":"18:27"},"2027-06-20":{"fajr":"04:55","sunrise":"05:55","dhuhr":"11:40","asr":"14:53","maghrib":"17:23","isha":"18:28"},"2027-06-21":{"fajr":"04:55","sunrise":"05:55","dhuhr":"11:40","asr":"14:53","maghrib":"17:23","isha":"18:28"},"2027-06-22":{"fajr":"04:55","sunrise":"05:55","dhuhr":"11:40","asr":"14:53","maghrib":"17:24","isha":"18:29"},"2027-06-23":{"fajr":"04:54","sunrise":"05:54","dhuhr":"11:40","asr":"14:53","maghrib":"17:24","isha":"18:29"},"2027-06-24":{"fajr":"04:54","sunrise":"05:54","dhuhr":"11:40","asr":"14:54","maghrib":"17:24","isha":"18:29"},"2027-06-25":{"fajr":"04:54","sunrise":"05:54","dhuhr":"11:40","asr":"14:54","maghrib":"17:25","isha":"18:30"},"2027-06-26":{"fajr":"04:53","sunrise":"05:54","dhuhr":"11:40","asr":"14:54","maghrib":"17:25","isha":"18:30"},"2027-06-27":{"fajr":"04:53","sunrise":"05:53","dhuhr":"11:41","asr":"14:54","maghrib":"17:26","isha":"18:31"},"2027-06-28":{"fajr":"04:52","sunrise":"05:53","dhuhr":"11:41","asr":"14:55","maghrib":"17:26","isha":"18:31"},"2027-06-29":{"fajr":"04:52","sunrise":"05:53","dhuhr":"11:41","asr":"14:55","maghrib":"17:27","isha":"18:32"},"2027-06-30":{"fajr":"04:52","sunrise":"05:53","dhuhr":"11:41","asr":"14:55","maghrib":"17:27","isha":"18:32"},"2027-07-01":{"fajr":"04:51","sunrise":"05:52","dhuhr":"11:41","asr":"14:55","maghrib":"17:27","isha":"18:32"},"2027-07-02":{"fajr":"04:51","sunrise":"05:52","dhuhr":"11:41","asr":"14:55","maghrib":"17:28","isha":"18:33"},"2027-07-03":{"fajr":"04:51","sunrise":"05:52","dhuhr":"11:41","asr":"14:56","maghrib":"17:28","isha":"18:33"},"2027-07-04":{"fajr":"04:50","sunrise":"05:52","dhuhr":"11:41","asr":"14:56","maghrib":"17:29","isha":"18:34"},"2027-07-05":{"fajr":"04:50","sunrise":"05:51","dhuhr":"11:41","asr":"14:56","maghrib":"17:29","isha":"18:34"},"2027-07-06":{"fajr":"04:50","sunrise":"05:51","dhuhr":"11:41","asr":"14:56","maghrib":"17:30","isha":"18:35"},"2027-07-07":{"fajr":"04:49","sunrise":"05:51","dhuhr":"11:41","asr":"14:56","maghrib":"17:30","isha":"18:35"},"2027-07-08":{"fajr":"04:49","sunrise":"05:51","dhuhr":"11:41","asr":"14:57","maghrib":"17:30","isha":"18:35"},"2027-07-09":{"fajr":"04:49","sunrise":"05:50","dhuhr":"11:42","asr":"14:57","maghrib":"17:31","isha":"18:36"},"2027-07-10":{"fajr":"04:48","sunrise":"05:50","dhuhr":"11:42","asr":"14:57","maghrib":"17:31","isha":"18:36"},"2027-07-11":{"fajr":"04:48","sunrise":"05:50","dhuhr":"11:42","asr":"14:57","maghrib":"17:32","isha":"18:37"},"2027-07-12":{"fajr":"04:48","sunrise":"05:50","dhuhr":"11:42","asr":"14:57","maghrib":"17:32","isha":"18:37"},"2027-07-13":{"fajr":"04:48","sunrise":"05:49","dhuhr":"11:42","asr":"14:57","maghrib":"17:32","isha":"18:37"},"2027-07-14":{"fajr":"04:47","sunrise":"05:49","dhuhr":"11:42","asr":"14:58","maghrib":"17:33","isha":"18:38"},"2027-07-15":{"fajr":"04:47","sunrise":"05:49","dhuhr":"11:42","asr":"14:58","maghrib":"17:33","isha":"18:38"},"2027-07-16":{"fajr":"04:47","sunrise":"05:49","dhuhr":"11:42","asr":"14:58","maghrib":"17:34","isha":"18:39"},"2027-07-17":{"fajr":"04:46","sunrise":"05:48","dhuhr":"11:42","asr":"14:58","maghrib":"17:34","isha":"18:39"},"2027-07-18":{"fajr":"04:46","sunrise":"05:48","dhuhr":"11:42","asr":"14:58","maghrib":"17:34","isha":"18:39"},"2027-07-19":{"fajr":"04:46","sunrise":"05:48","dhuhr":"11:42","asr":"14:59","maghrib":"17:35","isha":"18:40"},"2027-07-20":{"fajr":"04:45","sunrise":"05:48","dhuhr":"11:42","asr":"14:59","maghrib":"17:35","isha":"18:40"},"2027-07-21":{"fajr":"04:45","sunrise":"05:48","dhuhr":"11:42","asr":"14:59","maghrib":"17:35","isha":"18:40"},"2027-07-22":{"fajr":"04:45","sunrise":"05:47","dhuhr":"11:43","asr":"14:59","maghrib":"17:36","isha":"18:41"},"2027-07-23":{"fajr":"04:44","sunrise":"05:47","dhuhr":"11:43","asr":"14:59","maghrib":"17:36","isha":"18:41"},"2027-07-24":{"fajr":"04:44","sunrise":"05:47","dhuhr":"11:43","asr":"15:00","maghrib":"17:37","isha":"18:42"},"2027-07-25":{"fajr":"04:44","sunrise":"05:47","dhuhr":"11:43","asr":"15:00","maghrib":"17:37","isha":"18:42"},"2027-07-26":{"fajr":"04:44","sunrise":"05:46","dhuhr":"11:43","asr":"15:00","maghrib":"17:37","isha":"18:42"},"2027-07-27":{"fajr":"04:43","sunrise":"05:46","dhuhr":"11:43","asr":"15:00","maghrib":"17:38","isha":"18:43"},"2027-07-28":{"fajr":"04:43","sunrise":"05:46","dhuhr":"11:43","asr":"15:00","maghrib":"17:38","isha":"18:43"},"2027-07-29":{"fajr":"04:43","sunrise":"05:46","dhuhr":"11:43","asr":"15:00","maghrib":"17:38","isha":"18:43"},"2027-07-30":{"fajr":"04:42","sunrise":"05:46","dhuhr":"11:43","asr":"15:01","maghrib":"17:39","isha":"18:44"},"2027-07-31":{"fajr":"04:42","sunrise":"05:45","dhuhr":"11:43","asr":"15:01","maghrib":"17:39","isha":"18:44"},"2027-08-01":{"fajr":"04:42","sunrise":"05:45","dhuhr":"11:43","asr":"15:01","maghrib":"17:39","isha":"18:44"},"2027-08-02":{"fajr":"04:42","sunrise":"05:45","dhuhr":"11:43","asr":"15:01","maghrib":"17:40","isha":"18:45"},"2027-08-03":{"fajr":"04:41","sunrise":"05:45","dhuhr":"11:43","asr":"15:01","maghrib":"17:40","isha":"18:45"},"2027-08-04":{"fajr":"04:41","sunrise":"05:45","dhuhr":"11:43","asr":"15:01","maghrib":"17:40","isha":"18:45"},"2027-08-05":{"fajr":"04:41","sunrise":"05:44","dhuhr":"11:44","asr":"15:01","maghrib":"17:41","isha":"18:46"},"2027-08-06":{"fajr":"04:41","sunrise":"05:44","dhuhr":"11:44","asr":"15:02","maghrib":"17:41","isha":"18:46"},"2027-08-07":{"fajr":"04:40","sunrise":"05:44","dhuhr":"11:44","asr":"15:02","maghrib":"17:41","isha":"18:46"},"2027-08-08":{"fajr":"04:40","sunrise":"05:44","dhuhr":"11:44","asr":"15:02","maghrib":"17:42","isha":"18:47"},"2027-08-09":{"fajr":"04:40","sunrise":"05:44","dhuhr":"11:44","asr":"15:02","maghrib":"17:42","isha":"18:47"},"2027-08-10":{"fajr":"04:40","sunrise":"05:44","dhuhr":"11:44","asr":"15:02","maghrib":"17:42","isha":"18:47"},"2027-08-11":{"fajr":"04:40","sunrise":"05:43","dhuhr":"11:44","asr":"15:02","maghrib":"17:42","isha":"18:47"},"2027-08-12":{"fajr":"04:39","sunrise":"05:43","dhuhr":"11:44","asr":"15:02","maghrib":"17:43","isha":"18:48"},"2027-08-13":{"fajr":"04:39","sunrise":"05:43","dhuhr":"11:44","asr":"15:03","maghrib":"17:43","isha":"18:48"},"2027-08-14":{"fajr":"04:39","sunrise":"05:43","dhuhr":"11:44","asr":"15:03","maghrib":"17:43","isha":"18:48"},"2027-08-15":{"fajr":"04:39","sunrise":"05:43","dhuhr":"11:44","asr":"15:03","maghrib":"17:43","isha":"18:48"},"2027-08-16":{"fajr":"04:38","sunrise":"05:43","dhuhr":"11:44","asr":"15:03","maghrib":"17:44","isha":"18:49"},"2027-08-17":{"fajr":"04:38","sunrise":"05:42","dhuhr":"11:44","asr":"15:03","maghrib":"17:44","isha":"18:49"},"2027-08-18":{"fajr":"04:38","sunrise":"05:42","dhuhr":"11:44","asr":"15:03","maghrib":"17:44","isha":"18:49"},"2027-08-19":{"fajr":"04:38","sunrise":"05:42","dhuhr":"11:44","asr":"15:03","maghrib":"17:44","isha":"18:49"},"2027-08-20":{"fajr":"04:38","sunrise":"05:42","dhuhr":"11:44","asr":"15:03","maghrib":"17:45","isha":"18:50"},"2027-08-21":{"fajr":"04:38","sunrise":"05:42","dhuhr":"11:44","asr":"15:03","maghrib":"17:45","isha":"18:50"},"2027-08-22":{"fajr":"04:37","sunrise":"05:42","dhuhr":"11:44","asr":"15:04","maghrib":"17:45","isha":"18:50"},"2027-08-23":{"fajr":"04:37","sunrise":"05:42","dhuhr":"11:44","asr":"15:04","maghrib":"17:45","isha":"18:50"},"2027-08-24":{"fajr":"04:37","sunrise":"05:42","dhuhr":"11:44","asr":"15:04","maghrib":"17:45","isha":"18:50"},"2027-08-25":{"fajr":"04:37","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:46","isha":"18:51"},"2027-08-26":{"fajr":"04:37","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:46","isha":"18:51"},"2027-08-27":{"fajr":"04:37","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:46","isha":"18:51"},"2027-08-28":{"fajr":"04:36","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:46","isha":"18:51"},"2027-08-29":{"fajr":"04:36","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:46","isha":"18:51"},"2027-08-30":{"fajr":"04:36","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:46","isha":"18:51"},"2027-08-31":{"fajr":"04:36","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:47","isha":"18:52"},"2027-09-01":{"fajr":"04:36","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:47","isha":"18:52"},"2027-09-02":{"fajr":"04:36","sunrise":"05:41","dhuhr":"11:45","asr":"15:04","maghrib":"17:47","isha":"18:52"},"2027-09-03":{"fajr":"04:36","sunrise":"05:41","dhuhr":"11:45","asr":"15:05","maghrib":"17:47","isha":"18:52"},"2027-09-04":{"fajr":"04:36","sunrise":"05:41","dhuhr":"11:45","asr":"15:05","maghrib":"17:47","isha":"18:52"},"2027-09-05":{"fajr":"04:36","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:47","isha":"18:52"},"2027-09-06":{"fajr":"04:36","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:47","isha":"18:52"},"2027-09-07":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:47","isha":"18:52"},"2027-09-08":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-09":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-10":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-11":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-12":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-13":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-14":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-15":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-16":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-17":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-18":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-19":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-20":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-21":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-22":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-23":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-24":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"},"2027-09-25":{"fajr":"04:35","sunrise":"05:40","dhuhr":"11:45","asr":"15:05","maghrib":"17:48","isha":"18:53"}};
+
+/* =========================================================
+   مواقيت الصلاة
+   ========================================================= */
+
+async function loadPrayers(){
+  const now=new Date();
+  const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Aden",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(now);
+  const p={}; parts.forEach(x=>p[x.type]=x.value);
+  const key=`${p.year}-${p.month}-${p.day}`;
+  const t=PRAYER_TABLE[key];
+  if(t){
+    document.getElementById("fajr").textContent=prayerTime(t.fajr);
+    document.getElementById("sunrise").textContent=prayerTime(t.sunrise);
+    document.getElementById("dhuhr").textContent=prayerTime(t.dhuhr);
+    document.getElementById("asr").textContent=prayerTime(t.asr);
+    document.getElementById("maghrib").textContent=prayerTime(t.maghrib);
+    document.getElementById("isha").textContent=prayerTime(t.isha);
+    document.getElementById("prayerSource").textContent="تقويم حبان المعتمد • وقت الجمعة غير مستخدم";
+  }else{
+    ["fajr","sunrise","dhuhr","asr","maghrib","isha"].forEach(id=>document.getElementById(id).textContent="--");
+    document.getElementById("prayerSource").textContent="جدول حبان المتوفر يغطي 26 سبتمبر 2026 – 25 سبتمبر 2027";
+  }
+  // التاريخ الهجري للعرض فقط، ولا يستخدم لحساب مواقيت الصلاة.
+  try{
+    const r=await fetch(`https://api.aladhan.com/v1/gToH/${p.day}-${p.month}-${p.year}`);
+    if(r.ok){const j=await r.json(); const h=j.data?.hijri; if(h) document.getElementById("hijriDate").textContent=`${h.day} ${h.month.ar} ${h.year} هـ`;}
+  }catch(e){console.error(e);}
+}
+
+function prayerTime(value){
+
+  if(!value)
+    return "--";
+
+  const clean=
+    value.split(" ")[0];
+
+  const parts=
+    clean.split(":");
+
+  let hour=
+    parseInt(
+      parts[0],
+      10
+    );
+
+  const minute=
+    parts[1];
+
+  const period=
+    hour>=12 ?
+      "م" :
+      "ص";
+
+  hour=
+    hour%12;
+
+  if(hour===0)
+    hour=12;
+
+  return `${hour}:${minute} ${period}`;
+}
+
+
+
+
+/* =========================================================
+   حساب النجوم – هدى 2026 / 2027
+   ========================================================= */
+const starsData=[
+  {season:"الربيع",stars:[
+    ["الجبهة","30 يناير 2026"],
+    ["الزبرة","12 فبراير 2026"],
+    ["الصرفة","25 فبراير 2026"],
+    ["العواء","10 مارس 2026"],
+    ["السماك","23 مارس 2026"],
+    ["الغفر","5 أبريل 2026"],
+    ["الزبان","18 أبريل 2026"]]},
+  {season:"الصيف",stars:[
+    ["لكليل","1 مايو 2026"],
+    ["القلب","14 مايو 2026"],
+    ["الشول","27 مايو 2026"],
+    ["النعيم","9 يونيو 2026"],
+    ["البلدة","22 يونيو 2026"],
+    ["القويدم","5 يوليو 2026"],
+    ["المرزم","18 يوليو 2026"]]},
+  {season:"الخريف",stars:[
+    ["سهيل","31 يوليو 2026"],
+    ["سعد","13 أغسطس 2026"],
+    ["ناهز","26 أغسطس 2026"],
+    ["عُرج","8 سبتمبر 2026"],
+    ["خامس","21 سبتمبر 2026"],
+    ["سادس","4 أكتوبر 2026"],
+    ["سابع","17 أكتوبر 2026"]]},
+  {season:"الشتاء",stars:[
+    ["ثريا","30 أكتوبر 2026"],
+    ["بركان","12 نوفمبر 2026"],
+    ["هقاع","25 نوفمبر 2026"],
+    ["هناع","8 ديسمبر 2026"],
+    ["ذراع","21 ديسمبر 2026"],
+    ["نثرة","3 يناير 2027"],
+    ["طرف","16 يناير 2027"]]}
+];
+
+function parseStarEntryDate(text){
+  const months={"يناير":0,"فبراير":1,"مارس":2,"أبريل":3,"مايو":4,"يونيو":5,"يوليو":6,"أغسطس":7,"سبتمبر":8,"أكتوبر":9,"نوفمبر":10,"ديسمبر":11};
+  const match=text.trim().match(/(\d+)\s+([^\s]+)\s+(\d{4})/);
+  if(!match || months[match[2]]===undefined) return null;
+  return new Date(Number(match[3]),months[match[2]],Number(match[1]));
+}
+
+function showCurrentStar(){
+  const box=document.getElementById("currentStarGrid");
+  if(!box) return;
+  const now=new Date();
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  let current=null;
+  for(const group of starsData){
+    for(const star of group.stars){
+      const start=parseStarEntryDate(star[1]);
+      if(start){
+        const end=new Date(start);
+        end.setDate(end.getDate()+12);
+        if(today>=start && today<=end){
+          current={name:star[0],season:group.season,date:star[1],start,end};
+          break;
+        }
+      }
+    }
+    if(current) break;
+  }
+  if(!current){
+    box.innerHTML='<div class="current-star-item" style="grid-column:1/-1"><strong>التاريخ الحالي خارج نطاق جدول هدى 2026–2027.</strong></div>';
+    return;
+  }
+  const dayMs=86400000;
+  const currentDay=Math.floor((today-current.start)/dayMs)+1;
+  const remaining=Math.max(0,13-currentDay);
+  box.innerHTML=`
+    <div class="current-star-item"><span>اسم النجم</span><strong>⭐ ${current.name}</strong></div>
+    <div class="current-star-item"><span>الفصل</span><strong>${current.season}</strong></div>
+    <div class="current-star-item"><span>تاريخ الدخول</span><strong>${current.date}</strong></div>
+    <div class="current-star-item"><span>اليوم الحالي</span><strong>اليوم ${currentDay} من النجم</strong></div>
+    <div class="current-star-item"><span>الأيام المتبقية</span><strong>${remaining} يوم</strong></div>`;
+}
+
+function renderStars(){
+  const root=document.getElementById("starsList");
+  if(!root) return;
+  const seasonIcons={"الربيع":"🌱","الصيف":"☀️","الخريف":"🍂","الشتاء":"❄️"};
+  root.innerHTML=starsData.map(group=>`
+    <section class="season">
+      <div class="season-title">${seasonIcons[group.season] || "⭐"} ${group.season}</div>
+      <div class="stars-grid">
+        ${group.stars.map(star=>`
+          <button class="star-item" onclick="openStarDetail('${star[0]}','${star[1]}')">
+            <span class="star-name">${star[0]}</span>
+            <span class="star-date">${star[1]}</span>
+          </button>`).join("")}
+      </div>
+    </section>`).join("");
+}
+function openWhatsNew(){
+  document.getElementById("whatsNewModal").style.display="block";
+  document.body.style.overflow="hidden";
+}
+function closeWhatsNew(){
+  document.getElementById("whatsNewModal").style.display="none";
+  document.body.style.overflow="";
+}
+function openStars(){
+  renderStars();
+  showCurrentStar();
+  document.getElementById("starsModal").style.display="block";
+  document.body.style.overflow="hidden";
+}
+function closeStars(){
+  document.getElementById("starsModal").style.display="none";
+  document.body.style.overflow="";
+}
+function openStarDetail(name,date){
+  document.getElementById("starDetailName").textContent=name;
+  document.getElementById("starDetailDate").textContent=date;
+  document.getElementById("starDetailModal").style.display="block";
+}
+function closeStarDetail(){
+  document.getElementById("starDetailModal").style.display="none";
+}
+
+
+
+/* =========================================================
+   مقارنة الموديلات
+   ========================================================= */
+let modelsLoaded=false, quakesLoaded=false, deferredInstallPrompt=null;
+const MODEL_LIST=[
+  ["ECMWF","ecmwf_ifs025"],["GFS","gfs_global"],["ICON","icon_global"],["GEM / CMC","gem_global"],["AIFS","ecmwf_aifs025_single"]
+];
+async function loadModels(){
+  const grid=document.getElementById("modelsGrid");
+  const summary=document.getElementById("modelsSummary");
+  grid.innerHTML='<div class="loading">جاري التحميل...</div>';
+  try{
+    const models=MODEL_LIST.map(x=>x[1]).join(',');
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max&models=${models}&timezone=Asia%2FAden&forecast_days=7`;
+    const r=await fetch(url); if(!r.ok) throw new Error('models');
+    const d=await r.json();
+    const daily=d.daily||{};
+    const get=(base,model)=>daily[`${base}_${model}`]||[];
+    const cards=[]; const rainSignals=[];
+    for(const [label,model] of MODEL_LIST){
+      const probs=get('precipitation_probability_max',model);
+      const sums=get('precipitation_sum',model);
+      const maxs=get('temperature_2m_max',model); const mins=get('temperature_2m_min',model);
+      const winds=get('wind_speed_10m_max',model);
+      let bi=0,bp=-1; probs.forEach((v,i)=>{if(Number(v)>bp){bp=Number(v);bi=i}});
+      const rain=Number(sums[bi]||0); const day=daily.time?.[bi]||'--';
+      rainSignals.push(bp);
+      cards.push(`<div class="model-item"><span>${label}</span><strong>أفضل فرصة: ${Math.max(0,Math.round(bp))}%</strong><br>المطر: ${rain.toFixed(1)} ملم<br>اليوم: ${day}<br>الحرارة: ${Math.round(Number(maxs[0]||0))}° / ${Math.round(Number(mins[0]||0))}°<br>الرياح: ${Math.round(Number(winds[0]||0))} كم/س</div>`);
+    }
+    grid.innerHTML=cards.join('');
+    const valid=rainSignals.filter(Number.isFinite); const high=valid.filter(v=>v>=50).length;
+    summary.textContent=high>=3?`🌧️ اتفاق جيد: ${high} من ${valid.length} نماذج تظهر إشارة مطر 50% أو أكثر خلال 7 أيام.`:high>0?`☁️ اتفاق محدود: ${high} من ${valid.length} نماذج تظهر إشارة مطر 50% أو أكثر.`:'☀️ لا يوجد حاليًا اتفاق قوي بين النماذج على فرصة مطر مرتفعة.';
+    modelsLoaded=true;
+  }catch(e){console.error(e); summary.textContent='تعذر تحميل مقارنة الموديلات حاليًا.'; grid.innerHTML='';}
+}
+function openModels(){document.getElementById('modelsModal').style.display='block';document.body.style.overflow='hidden';if(!modelsLoaded)loadModels()}
+function closeModels(){document.getElementById('modelsModal').style.display='none';document.body.style.overflow=''}
+
+/* الزلازل: أحدث 30 يومًا ضمن 1500 كم من هدى */
+async function loadQuakes(){
+  const grid=document.getElementById('quakeGrid'), summary=document.getElementById('quakeSummary');
+  try{
+    const end=new Date(), start=new Date(Date.now()-30*86400000);
+    const iso=x=>x.toISOString().slice(0,10);
+    const url=`https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=${iso(start)}&endtime=${iso(end)}&latitude=${latitude}&longitude=${longitude}&maxradiuskm=1500&minmagnitude=3&orderby=time&limit=8`;
+    const r=await fetch(url); if(!r.ok) throw new Error('usgs'); const d=await r.json();
+    const f=d.features||[];
+    summary.textContent=f.length?`آخر 30 يومًا: ${f.length} من أحدث الزلازل بقوة 3.0 فأعلى ضمن نطاق 1500 كم.`:'لم يسجل الاستعلام زلازل بقوة 3.0 فأعلى ضمن النطاق المحدد خلال 30 يومًا.';
+    grid.innerHTML=f.map(q=>{const c=q.geometry?.coordinates||[];const dist=haversine(latitude,longitude,c[1],c[0]);const dt=new Date(q.properties.time).toLocaleString('ar-YE',{timeZone:'Asia/Aden',day:'numeric',month:'numeric',hour:'numeric',minute:'2-digit',hour12:true});return `<div class="quake-item"><span>${dt}</span><strong>قوة ${Number(q.properties.mag).toFixed(1)}</strong><br>${q.properties.place||'--'}<br>يبعد نحو ${Math.round(dist)} كم • العمق ${Math.round(Number(c[2]||0))} كم</div>`}).join('');
+    quakesLoaded=true;
+  }catch(e){console.error(e);summary.textContent='تعذر تحميل رصد الزلازل حاليًا.';grid.innerHTML=''}
+}
+function openQuakes(){document.getElementById('quakesModal').style.display='block';document.body.style.overflow='hidden';if(!quakesLoaded)loadQuakes()}
+function closeQuakes(){document.getElementById('quakesModal').style.display='none';document.body.style.overflow=''}
+
+/* أمواج بحر العرب قرب ساحل شبوة */
+async function loadSeaWaves(){
+  try{
+    const r=await fetch('https://marine-api.open-meteo.com/v1/marine?latitude=13.8&longitude=48.3&current=wave_height,wave_direction&timezone=Asia%2FAden');
+    if(!r.ok) throw new Error('marine'); const d=await r.json(); const c=d.current||{};
+    document.getElementById('seaWave').textContent=Number.isFinite(c.wave_height)?`${Number(c.wave_height).toFixed(1)} م`:'--';
+    document.getElementById('seaWaveDirection').textContent=Number.isFinite(c.wave_direction)?`${windDirection(Number(c.wave_direction))} • ${Math.round(c.wave_direction)}°`:'--';
+  }catch(e){console.error(e);document.getElementById('seaWave').textContent='تعذر التحديث';document.getElementById('seaWaveDirection').textContent='--'}
+}
+
+/* تثبيت الموقع كتطبيق */
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e});
+async function installApp(){
+  if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;return;}
+  alert('من قائمة المتصفح ⋮ اختر «إضافة إلى الشاشة الرئيسية» أو «تثبيت التطبيق».');
+}
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.error));}
+
+/* =========================================================
+   النوافذ
+   ========================================================= */
+
+function openMap(){
+
+  document.getElementById("mapModal").style.display=
+    "block";
+
+  document.body.style.overflow=
+    "hidden";
+}
+
+
+function closeMap(){
+
+  document.getElementById("mapModal").style.display=
+    "none";
+
+  document.body.style.overflow=
+    "";
+}
+
+
+function openSea(){
+
+  document.getElementById("seaModal").style.display=
+    "block";
+
+  document.body.style.overflow=
+    "hidden";
+
+  if(!seaLoaded){
+    loadSea();
+    loadSeaWaves();
+  }
+}
+
+
+function closeSea(){
+
+  document.getElementById("seaModal").style.display=
+    "none";
+
+  document.body.style.overflow=
+    "";
+}
+
+
+window.addEventListener(
+  "click",
+  function(event){
+
+    const map=
+      document.getElementById("mapModal");
+
+    const sea=
+      document.getElementById("seaModal");
+    const stars=
+      document.getElementById("starsModal");
+    const starDetail=
+      document.getElementById("starDetailModal");
+    const models=document.getElementById("modelsModal");
+    const quakes=document.getElementById("quakesModal");
+    const whatsNew=document.getElementById("whatsNewModal");
+
+    if(event.target===map)
+      closeMap();
+
+    if(event.target===sea)
+      closeSea();
+    if(event.target===stars)
+      closeStars();
+    if(event.target===starDetail) closeStarDetail();
+    if(event.target===models) closeModels();
+    if(event.target===quakes) closeQuakes();
+    if(event.target===whatsNew) closeWhatsNew();
+  }
+);
+
+
+/* =========================================================
+   تشغيل الموقع
+   ========================================================= */
+
+loadDate();
+loadWeather();
+loadPrayers();
+
+</script>
+
+</body>
+</html>
