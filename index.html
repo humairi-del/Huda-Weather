@@ -17,7 +17,7 @@
     const r=await fetch('./base-2.1.1.html?v=2.2.0',{cache:'no-store'});
     if(!r.ok) throw new Error('base');
     let html=await r.text();
-    const patch='<script src="./patch-2.2.js?v=2.2.0"><\\/script>';
+    const patch='<script src="./patch-2.2.js?v=2.2.0"><\/script>';
     if(!html.includes('patch-2.2.js')) html=html.replace('</body>',patch+'</body>');
     document.open();
     document.write(html);
