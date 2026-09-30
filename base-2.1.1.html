@@ -465,80 +465,49 @@ footer{
   --text:#f4fbff;--muted:#9cc3ce;--cyan:#35c6d0;--blue:#287fa5;
   --gold:#d6aa45;--sea:#168c91;--alert:#b86d3b;--violet:#6556a8;
 }
-body{background:linear-gradient(180deg,#06151d 0%,#081b24 52%,#06131a 100%);color:var(--text)}
-.card{background:linear-gradient(145deg,#0e2a35,#0b202a);border-color:#205160;box-shadow:0 10px 28px rgba(0,0,0,.16)}
-header h1{color:#f5fcff}.location{color:#87cbd1}.date{color:#c8e1e6}
-.detail,.prayer,.hour,.update-item,.model-item,.quake-item,.star-item,.stars-note,.star-coming,.forecast-detail,.sea-item,.route,.status-box{background:#091d26;border-color:#245463}
-.card-title{color:#eafcff}.rain-highlight{background:linear-gradient(135deg,#0d3b46,#102b3b);border-color:#267989}
-.action-btn{background:#247da0}.sea-btn{background:#16878c}.stars-btn{background:#9a7427}.models-btn{background:#326d91}.quake-btn{background:#87563d}.install-btn{background:#6256a0}
-.hour-rain,.day-rain{color:#62d7e4}.season-title,.star-detail strong{color:#e3bd61}
-.modal-content{background:#091b24;border-color:#28606d}.modal-header{background:#0e3440}
-.sponsor-card{border-color:#8a7137}.sponsor-label{color:#e3bd61;font-weight:bold}
-.ad-space{border-color:#47717c;color:#a9c9d1;background:#091b24}
-footer{color:#789da7}
+body{background:linear-gradient(180deg,#07131b,#041017);color:var(--text)}
+.card{background:linear-gradient(180deg,#0e2832,#0b2029);border-color:#1c4c58;box-shadow:0 10px 26px rgba(0,0,0,.12)}
+header{background:linear-gradient(180deg,rgba(18,70,77,.38),rgba(7,19,27,0));border-radius:0 0 24px 24px;margin-bottom:8px}
+header h1{letter-spacing:.2px}.location{color:#9ad7dd}.date{color:#dbecef}
+.current{background:linear-gradient(145deg,#0f3640,#0b2730);border-color:#2b6870}
+.rain-highlight{background:linear-gradient(135deg,#0a3a47,#0d2c3c);border-color:#2b7480}
+.detail,.prayer,.hour,.forecast-detail,.observer-item,.update-item,.model-item,.quake-item,.status-box{background:#081c25}
+.card-title{font-size:19px}
+.action-btn{background:linear-gradient(135deg,#237da0,#1b657f);box-shadow:0 7px 18px rgba(0,0,0,.12)}
+.sea-btn{background:linear-gradient(135deg,#14959a,#0e747d)}
+.stars-btn{background:linear-gradient(135deg,#aa7b20,#815b16)}
+.models-btn{background:linear-gradient(135deg,#3d77a2,#295d82)}
+.quake-btn{background:linear-gradient(135deg,#916047,#704634)}
+.install-btn{background:linear-gradient(135deg,#7463b8,#57499a)}
+.whats-new-btn{border-color:#31717a;background:#0c3036;color:#e7ffff}
+.observer-card{background:linear-gradient(145deg,#0f313c,#0a222d);border-color:#2b6674}
+.season{background:#081f27;border-color:#245663}.current-star-card{background:linear-gradient(135deg,#2b2818,#15282d)}
+.modal-content{background:#0a1b23;border-color:#2b5964}.modal-header{background:linear-gradient(135deg,#0f414a,#10323c)}
+.source-note,.small-note{color:#86abb3}
 
 </style>
-
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#07111f">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
 </head>
-
 <body>
 
 <div class="container">
-
 <header>
   <h1>طقس هدى وما جاورها</h1>
   <div class="location">📍 هدى – حبان – شبوة</div>
-
-  <div class="date">
-    <div id="gregorianDate">جاري تحميل التاريخ...</div>
-    <div id="hijriDate"></div>
-  </div>
+  <div class="date"><div id="gregorianDate">--</div><div id="hijriDate">--</div></div>
 </header>
 
-
-<!-- الطقس الحالي -->
-
 <section class="card current">
-
-  <div class="weather-icon" id="currentIcon">⛅</div>
-
-  <div class="temperature">
-    <span id="temperature">--</span>°
-  </div>
-
-  <div class="description" id="weatherDescription">
-    جاري تحميل الطقس...
-  </div>
-
+  <div class="weather-icon" id="currentIcon">☀️</div>
+  <div class="temperature"><span id="temperature">--</span>°</div>
+  <div class="description" id="weatherDescription">جاري التحميل...</div>
   <div class="weather-details">
-
-    <div class="detail">
-      <span>الرطوبة</span>
-      <strong id="humidity">--%</strong>
-    </div>
-
-    <div class="detail">
-      <span>المحسوسة</span>
-      <strong id="feelsLike">--°</strong>
-    </div>
-
-    <div class="detail">
-      <span>الرياح</span>
-      <strong id="windSpeed">--</strong>
-    </div>
-
-    <div class="detail">
-      <span>اتجاه الرياح</span>
-      <strong id="windDirection">--</strong>
-    </div>
-
+    <div class="detail"><span>الرطوبة</span><strong id="humidity">--</strong></div>
+    <div class="detail"><span>المحسوسة</span><strong id="feelsLike">--</strong></div>
+    <div class="detail"><span>الرياح</span><strong id="windSpeed">--</strong></div>
+    <div class="detail"><span>اتجاه الرياح</span><strong id="windDirection">--</strong></div>
   </div>
 </section>
 
-<!-- الراصد المحلي -->
 <section class="card observer-card">
   <div class="card-title">🌤️ الأجواء حاليًا</div>
   <div class="observer-grid">
@@ -549,562 +518,92 @@ footer{color:#789da7}
     <div class="observer-item"><span>❄️ الشتاء والبرد</span><strong class="winter-value" id="observerWinter">--</strong></div>
     <div class="observer-item"><span>💨 هبات الرياح</span><strong id="observerGust">--</strong></div>
   </div>
-  <div class="observer-summary" id="observerSummary">جاري تحديث الراصد...</div>
+  <div class="observer-summary" id="observerSummary">جاري تحليل الأجواء...</div>
   <div class="source-note" id="observerUpdated"></div>
 </section>
 
-
-<!-- أفضل فرصة مطر -->
-
 <section class="card rain-highlight">
-
-  <div class="card-title">
-    🌧️ أفضل فرصة مطر على هدى
-  </div>
-
-  <div class="rain-main" id="bestRain">
-    جاري تحليل توقعات الأيام القادمة...
-  </div>
-
+  <div class="card-title">🌧️ أفضل فرصة مطر على هدى</div>
+  <div class="rain-main" id="bestRain">جاري التحميل...</div>
   <div class="rain-sub" id="bestRainDetails"></div>
-
 </section>
-
-
-<!-- مواقيت الصلاة -->
 
 <section class="card">
-
   <div class="card-title">🕌 مواقيت الصلاة</div>
-
   <div class="prayers">
-
-    <div class="prayer">
-      <div class="prayer-name">الفجر</div>
-      <div class="prayer-time" id="fajr">--</div>
-    </div>
-
-    <div class="prayer">
-      <div class="prayer-name">الشروق</div>
-      <div class="prayer-time" id="sunrise">--</div>
-    </div>
-
-    <div class="prayer">
-      <div class="prayer-name">الظهر</div>
-      <div class="prayer-time" id="dhuhr">--</div>
-    </div>
-
-    <div class="prayer">
-      <div class="prayer-name">العصر</div>
-      <div class="prayer-time" id="asr">--</div>
-    </div>
-
-    <div class="prayer">
-      <div class="prayer-name">المغرب</div>
-      <div class="prayer-time" id="maghrib">--</div>
-    </div>
-
-    <div class="prayer">
-      <div class="prayer-name">العشاء</div>
-      <div class="prayer-time" id="isha">--</div>
-    </div>
-
+    <div class="prayer"><div class="prayer-name">الفجر</div><div class="prayer-time" id="fajr">--</div></div>
+    <div class="prayer"><div class="prayer-name">الشروق</div><div class="prayer-time" id="sunrise">--</div></div>
+    <div class="prayer"><div class="prayer-name">الظهر</div><div class="prayer-time" id="dhuhr">--</div></div>
+    <div class="prayer"><div class="prayer-name">العصر</div><div class="prayer-time" id="asr">--</div></div>
+    <div class="prayer"><div class="prayer-name">المغرب</div><div class="prayer-time" id="maghrib">--</div></div>
+    <div class="prayer"><div class="prayer-name">العشاء</div><div class="prayer-time" id="isha">--</div></div>
   </div>
 </section>
 
-
-<!-- الأزرار -->
 <div class="buttons">
   <button class="action-btn" onclick="openMap()">🗺️ خريطة الطقس</button>
-  <button class="action-btn sea-btn" onclick="openSea()">🌀 بحر العرب</button>
+  <button class="action-btn sea-btn" onclick="openSea()">🌊 بحر العرب</button>
   <button class="action-btn stars-btn" onclick="openStars()">⭐ حساب النجوم</button>
   <button class="action-btn models-btn" onclick="openModels()">🌦️ توقعات الموديلات</button>
   <button class="action-btn quake-btn" onclick="openQuakes()">🌍 الزلازل</button>
-  <button class="action-btn install-btn" id="installButton">📱 تثبيت الموقع</button>
-  <div class="small-note">عند فتح الموقع من الهاتف يمكنك إضافته للشاشة الرئيسية واستخدامه كتطبيق.</div>
+  <button class="action-btn install-btn" id="installButton">📱 تثبيت الموقع كتطبيق</button>
+  <div class="small-note" style="text-align:center">📲 إذا لم تظهر نافذة التثبيت استخدم «إضافة إلى الشاشة الرئيسية».</div>
 </div>
 
-<section class="card">
-  <div class="card-title">⚠️ تنبيهات الطقس</div>
-  <div id="weatherAlerts" class="status-box">جاري فحص التنبيهات...</div>
+<section class="card" id="weatherAlertsCard">
+  <div class="card-title">🔔 تنبيهات الطقس</div>
+  <div class="status-box" id="weatherAlerts">جاري فحص التوقعات القادمة...</div>
 </section>
 
-<!-- الساعات القادمة -->
-<section class="card">
-  <div class="card-title">🕒 فرص الأمطار خلال الساعات القادمة</div>
-  <div class="hourly" id="hourlyForecast"></div>
-</section>
-
-<!-- توقعات 7 أيام -->
-<section class="card">
-  <div class="card-title">📅 توقعات 7 أيام</div>
-  <div id="weeklyForecast"></div>
-</section>
-
-<section class="card">
-  <div class="card-title">📢 مساحة إعلانية</div>
-  <div class="ad-space">يمكن وضع إعلان محلي هنا</div>
-</section>
-
-<section class="card sponsor-card">
-  <div class="sponsor-label">إعلان البقيرة</div>
-  <img class="sponsor-image" src="sponsor-albaqira.jpg" alt="إعلان البقيرة">
-</section>
-
-<div class="whats-new-wrap">
-  <button class="whats-new-btn" onclick="openWhatsNew()">ℹ️ عن الموقع</button>
+<section class="card"><div class="card-title">🕒 فرص الأمطار خلال الساعات القادمة</div><div class="hourly" id="hourlyForecast"></div></section>
+<section class="card"><div class="card-title">📅 توقعات 7 أيام</div><div id="weeklyForecast"></div></section>
+<section class="card"><div class="ad-space">مساحة إعلانية</div></section>
+<section class="card sponsor-card"><div class="sponsor-label">إعلان</div><img class="sponsor-image" src="sponsor-albaqira.jpg" alt="إعلان البقيرة"></section>
+<div class="whats-new-wrap"><button class="whats-new-btn" onclick="openWhatsNew()">ℹ️ عن الموقع</button></div>
+<footer>بيانات الطقس تُحدّث تلقائيًا • الإصدار 2.2.0</footer>
 </div>
 
-<footer>
-  بيانات الطقس تتحدث تلقائيًا • الإصدار 2.1.1
-</footer>
-
-</div>
-
-
-
-
-<!-- عن الموقع -->
-<div class="modal" id="whatsNewModal">
-  <div class="modal-content">
-    <div class="modal-header"><h2>ℹ️ عن الموقع</h2><button class="close" onclick="closeWhatsNew()">×</button></div>
-    <div class="modal-pad">
-      <div class="status-box"><strong>طقس هدى وما جاورها</strong><br>موقع محلي مبسط لخدمة هدى وحبان وما جاورهما في محافظة شبوة، ويجمع حالة الطقس والتوقعات وخرائط الطقس وبحر العرب وحساب النجوم ومواقيت الصلاة في مكان واحد.</div>
-      <div class="small-note" style="font-size:13px;margin-top:12px">بيانات الطقس والتوقعات تعتمد على خدمات ونماذج جوية رقمية، وتُعرض بصورة مبسطة للمتابعة. القيم المتوقعة ليست رصدًا ميدانيًا مؤكدًا.</div>
-      <div class="source-note" style="margin-top:14px">الإصدار 2.1.1</div>
-    </div>
-  </div>
-</div>
-
-<!-- حساب النجوم -->
-<div class="modal" id="starsModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>⭐ حساب النجوم – هدى</h2>
-      <button class="close" onclick="closeStars()">×</button>
-    </div>
-    <div class="stars-content">
-      <div class="current-star-card" id="currentStarCard">
-        <div class="current-star-title">⭐ النجم الحالي</div>
-        <div class="current-star-grid" id="currentStarGrid"><div class="loading">جاري الحساب...</div></div>
-      </div>
-      <div class="stars-note">4 فصول • 7 نجوم لكل فصل • مدة كل نجم 13 يومًا. اضغط على أي نجم لعرض نافذته.<br><strong style="color:#e3bd61">إعداد الراصد محمد شمروخ الطهيبي</strong></div>
-      <div id="starsList"></div>
-    </div>
-  </div>
-</div>
-
-<div class="modal" id="starDetailModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2 id="starDetailTitle">⭐ تفاصيل النجم</h2>
-      <button class="close" onclick="closeStarDetail()">×</button>
-    </div>
-    <div class="star-detail">
-      <strong id="starDetailName">--</strong>
-      <span id="starDetailDate">--</span>
-      <div class="star-coming">تفاصيل النجم — قريبًا<br><span style="font-size:12px;color:#9cc3ce">إعداد حساب النجوم: الراصد محمد شمروخ الطهيبي</span></div>
-    </div>
-  </div>
-</div>
-
-
-<!-- مقارنة الموديلات -->
-<div class="modal" id="modelsModal"><div class="modal-content">
-  <div class="modal-header"><h2>🌦️ توقعات الموديلات – هدى</h2><button class="close" onclick="closeModels()">×</button></div>
-  <div class="modal-pad">
-    <div id="modelsSummary" class="status-box">جاري تحميل مقارنة الموديلات...</div>
-    <div id="modelsGrid" class="models-grid" style="margin-top:10px"></div>
-    <div class="small-note">المقارنة تعرض أحدث تشغيل متاح لكل نموذج. اختلاف النماذج طبيعي، وتتغير النتائج مع كل تحديث.</div>
-  </div>
-</div></div>
-
-<!-- الزلازل -->
-<div class="modal" id="quakesModal"><div class="modal-content">
-  <div class="modal-header"><h2>🌍 الزلازل</h2><button class="close" onclick="closeQuakes()">×</button></div>
-  <div class="modal-pad">
-    <div id="quakeSummary" class="status-box">جاري جلب أحدث الرصد...</div>
-    <div id="quakeGrid" class="quake-grid" style="margin-top:10px"></div>
-    <div class="small-note">المصدر: هيئة المسح الجيولوجي الأمريكية USGS. الرصد لا يعني توقع الزلازل مستقبلًا.</div>
-  </div>
-</div></div>
-
-<!-- خريطة هدى -->
-
-<div class="modal" id="mapModal">
-
-  <div class="modal-content">
-
-    <div class="modal-header">
-      <h2>🗺️ خريطة الطقس – هدى</h2>
-      <button class="close" onclick="closeMap()">×</button>
-    </div>
-
-    <div class="map-wrap">
-
-      <iframe
-        loading="lazy"
-        src="https://embed.windy.com/embed2.html?lat=14.230586&lon=47.199415&detailLat=14.230586&detailLon=47.199415&width=650&height=450&zoom=7&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=true&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1">
-      </iframe>
-
-    </div>
-
-  </div>
-</div>
-
-
-<!-- مركز بحر العرب -->
-
-<div class="modal" id="seaModal">
-
-  <div class="modal-content">
-
-    <div class="modal-header">
-      <h2>🌀 مركز متابعة بحر العرب</h2>
-      <button class="close" onclick="closeSea()">×</button>
-    </div>
-
-    <div class="sea-content">
-
-      <div class="sea-status" id="seaSummary">
-        جاري فحص مؤشرات بحر العرب...
-      </div>
-
-      <div class="sea-grid">
-
-        <div class="sea-item">
-          <span>📍 أقوى إشارة نموذجية</span>
-          <div class="sea-value" id="seaArea">--</div>
-        </div>
-
-        <div class="sea-item">
-          <span>🕒 وقت أقوى إشارة</span>
-          <div class="sea-value" id="seaTime">--</div>
-        </div>
-
-        <div class="sea-item">
-          <span>🗺️ الإحداثيات</span>
-          <div class="sea-value" id="seaCoords">--</div>
-        </div>
-
-        <div class="sea-item">
-          <span>📏 المسافة من هدى</span>
-          <div class="sea-value" id="seaDistance">--</div>
-        </div>
-
-        <div class="sea-item">
-          <span>🌡️ أدنى ضغط جوي</span>
-          <div class="sea-value" id="seaPressure">--</div>
-        </div>
-
-        <div class="sea-item">
-          <span>💨 أقوى رياح</span>
-          <div class="sea-value" id="seaWind">--</div>
-        </div>
-
-        <div class="sea-item">
-          <span>🌧️ أعلى هطول</span>
-          <div class="sea-value" id="seaRain">--</div>
-        </div>
-
-        <div class="sea-item">
-          <span>☁️ أعلى غطاء سحابي</span>
-          <div class="sea-value" id="seaCloud">--</div>
-        </div>
-
-        <div class="sea-item">
-          <span>💧 أعلى رطوبة</span>
-          <div class="sea-value" id="seaHumidity">--</div>
-        </div>
-
-        <div class="sea-item">
-          <span>🧭 اتجاه الرياح عند النشاط</span>
-          <div class="sea-value" id="seaDirection">--</div>
-        </div>
-
-        <div class="sea-item">
-          <span>🇾🇪 الأقرب لليمن وشبوة</span>
-          <div class="sea-value" id="seaYemen">--</div>
-        </div>
-
-        <div class="sea-item">
-          <span>📍 التأثير المحتمل على هدى</span>
-          <div class="sea-value" id="seaImpact">--</div>
-        </div>
-        <div class="sea-item"><span>🌊 ارتفاع الموج</span><div class="sea-value" id="seaWave">--</div></div>
-        <div class="sea-item"><span>🧭 اتجاه الموج</span><div class="sea-value" id="seaWaveDirection">--</div></div>
-
-      </div>
-
-
-      <div class="route">
-        <div class="route-title">مسار المتابعة</div>
-        <div class="route-path">
-          🌊 بحر العرب ← 🇾🇪 اليمن ← شبوة ← حبان ← 📍 هدى
-        </div>
-      </div>
-
-
-      <div class="sea-map">
-
-        <iframe
-          loading="lazy"
-          src="https://embed.windy.com/embed2.html?lat=15&lon=57&detailLat=15&detailLon=57&width=650&height=450&zoom=4&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=false&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1">
-        </iframe>
-
-      </div>
-
-
-      <a
-        class="official-btn"
-        href="https://rsmcnewdelhi.imd.gov.in/"
-        target="_blank"
-        rel="noopener noreferrer">
-        🌀 النشرة الرسمية للحالات المدارية
-      </a>
-
-
-      <div class="sea-note">
-        ⚠️ هذا القسم يحلل مؤشرات نماذج الطقس من شبكة نقاط موزعة
-        فوق بحر العرب. عبارة «أقوى إشارة» لا تعني وجود مركز منخفض
-        أو إعصار. كما أن اتجاه الرياح لا يعني اتجاه حركة النظام الجوي.
-        تسمية وتصنيف الحالات المدارية يعتمد على النشرات الرسمية.
-      </div>
-
-    </div>
-
-  </div>
-</div>
-
+<div class="modal" id="whatsNewModal"><div class="modal-content"><div class="modal-header"><h2>ℹ️ عن الموقع</h2><button class="close" onclick="closeWhatsNew()">×</button></div><div class="modal-pad"><div class="status-box"><strong>طقس هدى وما جاورها</strong><br>موقع محلي مبسط لخدمة هدى وحبان وما جاورهما في محافظة شبوة، ويجمع حالة الطقس والتوقعات وخرائط الطقس وبحر العرب وحساب النجوم ومواقيت الصلاة في مكان واحد.</div><div class="small-note">بيانات الطقس والتوقعات تعتمد على خدمات ونماذج جوية رقمية، وتُعرض بصورة مبسطة للمتابعة.</div></div></div></div>
+<div class="modal" id="starsModal"><div class="modal-content"><div class="modal-header"><h2>⭐ حساب النجوم – هدى</h2><button class="close" onclick="closeStars()">×</button></div><div class="stars-content"><div class="current-star-card" id="currentStarCard"><div class="current-star-title">⭐ النجم الحالي</div><div class="current-star-grid" id="currentStarGrid"><div class="loading">جاري الحساب...</div></div></div><div class="stars-note">4 فصول • 7 نجوم لكل فصل • مدة كل نجم 13 يومًا.<br><strong style="color:#e3bd61">إعداد الراصد محمد شمروخ الطهيبي</strong></div><div id="starsList"></div></div></div></div>
+<div class="modal" id="starDetailModal"><div class="modal-content"><div class="modal-header"><h2>⭐ تفاصيل النجم</h2><button class="close" onclick="closeStarDetail()">×</button></div><div class="star-detail"><strong id="starDetailName">--</strong><span id="starDetailDate">--</span></div></div></div>
+<div class="modal" id="modelsModal"><div class="modal-content"><div class="modal-header"><h2>🌦️ توقعات الموديلات – هدى</h2><button class="close" onclick="closeModels()">×</button></div><div class="modal-pad"><div id="modelsSummary" class="status-box">جاري التحميل...</div><div id="modelsGrid" class="models-grid"></div></div></div></div>
+<div class="modal" id="quakesModal"><div class="modal-content"><div class="modal-header"><h2>🌍 الزلازل</h2><button class="close" onclick="closeQuakes()">×</button></div><div class="modal-pad"><div id="quakeSummary" class="status-box">جاري التحميل...</div><div id="quakeGrid" class="quake-grid"></div></div></div></div>
+<div class="modal" id="mapModal"><div class="modal-content"><div class="modal-header"><h2>🗺️ خريطة الطقس – هدى</h2><button class="close" onclick="closeMap()">×</button></div><div class="map-wrap"><iframe src="https://embed.windy.com/embed2.html?lat=14.230586&lon=47.199415&zoom=7&overlay=rain&product=ecmwf"></iframe></div></div></div>
+<div class="modal" id="seaModal"><div class="modal-content"><div class="modal-header"><h2>🌊 بحر العرب</h2><button class="close" onclick="closeSea()">×</button></div><div class="sea-content"><div id="seaSummary" class="sea-status">قسم بحر العرب متاح من النسخة الأساسية المحفوظة.</div><div class="sea-grid"><div class="sea-item"><span>🌊 ارتفاع الموج</span><div class="sea-value" id="seaWave">--</div></div><div class="sea-item"><span>🧭 اتجاه الموج</span><div class="sea-value" id="seaWaveDirection">--</div></div></div></div></div></div>
 
 <script>
-
-const latitude  = 14.230586;
-const longitude = 47.199415;
-
-let weatherData = null;
-let seaLoaded = false;
-
-
-/* =========================================================
-   التاريخ
-   ========================================================= */
-
-function loadDate(){
-
-  const now=new Date();
-
-  const gregorian=
-    new Intl.DateTimeFormat("ar-YE",{
-      timeZone:"Asia/Aden",
-      weekday:"long",
-      year:"numeric",
-      month:"long",
-      day:"numeric"
-    }).format(now);
-
-  document.getElementById("gregorianDate").textContent=
-    gregorian;
-}
-
-
-/* =========================================================
-   طقس هدى
-   ========================================================= */
-
-async function loadWeather(){
-
-  try{
-
-    const url =
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
-      `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m` +
-      `&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cape,visibility` +
-      `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,precipitation_hours,wind_speed_10m_max,wind_gusts_10m_max` +
-      `&timezone=Asia%2FAden&forecast_days=7`;
-
-    const response=await fetch(url);
-
-    if(!response.ok)
-      throw new Error("Weather API error");
-
-    const data=await response.json();
-
-    weatherData=data;
-
-    showCurrentWeather(data);
-    showHourlyWeather(data);
-    showWeeklyWeather(data);
-    showBestRain(data);
-    showObserverWeather(data);
-    showWeatherAlerts(data);
-
-  }catch(error){
-
-    console.error(error);
-
-    document.getElementById("weatherDescription").innerHTML=
-      '<span class="error">تعذر تحميل بيانات الطقس</span>';
-
-    document.getElementById("hourlyForecast").innerHTML=
-      '<span class="error">تعذر تحميل التوقعات</span>';
-
-    document.getElementById("weeklyForecast").innerHTML=
-      '<span class="error">تعذر تحميل التوقعات</span>';
-
-    document.getElementById("bestRain").innerHTML=
-      '<span class="error">تعذر تحليل فرص المطر</span>';
-  }
-}
-
-
-function showCurrentWeather(data){
-
-  const c=data.current;
-
-  document.getElementById("temperature").textContent=
-    Math.round(c.temperature_2m);
-
-  document.getElementById("humidity").textContent=
-    Math.round(c.relative_humidity_2m)+"%";
-
-  document.getElementById("feelsLike").textContent=
-    Math.round(c.apparent_temperature)+"°";
-
-  document.getElementById("windSpeed").textContent=
-    Math.round(c.wind_speed_10m)+" كم/س";
-
-  document.getElementById("windDirection").textContent=
-    windDirection(c.wind_direction_10m);
-
-  document.getElementById("weatherDescription").textContent=
-    weatherText(c.weather_code);
-
-  document.getElementById("currentIcon").textContent=
-    weatherIcon(c.weather_code);
-}
-
-
-function getCurrentHourIndex(data){
-  const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Aden",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",hourCycle:"h23"}).formatToParts(new Date());
-  const p={};
-  parts.forEach(x=>{p[x.type]=x.value;});
-  const currentHour=`${p.year}-${p.month}-${p.day}T${p.hour}:00`;
-  let index=data.hourly.time.findIndex(t=>t===currentHour);
-  if(index<0) index=0;
-  return index;
-}
-
-/* =========================================================
-   الساعات القادمة
-   ========================================================= */
-function showHourlyWeather(data){
-  const box=document.getElementById("hourlyForecast");
-  box.innerHTML="";
-  const start=getCurrentHourIndex(data);
-  const end=Math.min(start+18,data.hourly.time.length);
-  for(let i=start;i<end;i++){
-    const date=new Date(data.hourly.time[i]);
-    const time=date.toLocaleTimeString("ar-YE",{hour:"numeric",minute:"2-digit",hour12:true});
-    const rain=data.hourly.precipitation_probability[i] ?? 0;
-    const temp=Math.round(data.hourly.temperature_2m[i]);
-    const code=data.hourly.weather_code[i];
-    const item=document.createElement("div");
-    item.className="hour";
-    item.innerHTML=`<div class="hour-time">${time}</div><div class="hour-icon">${weatherIcon(code)}</div><div class="hour-rain">💧 ${rain}%</div><div class="hour-temp">${temp}°</div>`;
-    box.appendChild(item);
-  }
-}
-
-function showBestRain(data){
-  let bestIndex=0,bestChance=-1;
-  for(let i=0;i<data.daily.time.length;i++){
-    const chance=Number(data.daily.precipitation_probability_max[i]??0);
-    if(chance>bestChance){bestChance=chance;bestIndex=i;}
-  }
-  const date=new Date(data.daily.time[bestIndex]);
-  document.getElementById("bestRain").textContent=`${date.toLocaleDateString('ar-YE',{weekday:'long',month:'long',day:'numeric'})} • ${Math.round(bestChance)}%`;
-  document.getElementById("bestRainDetails").textContent=`كمية متوقعة ${Number(data.daily.precipitation_sum[bestIndex]??0).toFixed(1)} ملم`;
-}
-
-function showWeeklyWeather(data){
-  const box=document.getElementById("weeklyForecast");box.innerHTML="";
-  data.daily.time.forEach((dateString,i)=>{
-    const d=new Date(dateString),details=getDayDetails(data,dateString,i),wrap=document.createElement('div');wrap.className='day-wrap';
-    wrap.innerHTML=`<div class="day" onclick="toggleDay(${i})"><div class="day-name">${d.toLocaleDateString('ar-YE',{weekday:'long'})}</div><div class="day-temp">${Math.round(data.daily.temperature_2m_min[i])}° / ${Math.round(data.daily.temperature_2m_max[i])}°</div><div class="day-rain">${Math.round(data.daily.precipitation_probability_max[i]??0)}%</div><div class="day-icon">${weatherIcon(data.daily.weather_code[i])}</div></div><div class="day-details" id="dayDetails${i}"><div class="detail-grid"><div class="forecast-detail"><span>الهطول</span><strong>${details.amount} ملم</strong></div><div class="forecast-detail"><span>ساعات الهطول</span><strong>${details.hours}</strong></div><div class="forecast-detail"><span>أفضل ساعة</span><strong>${details.bestHour}</strong></div><div class="forecast-detail"><span>الرطوبة</span><strong>${details.humidity}%</strong></div><div class="forecast-detail"><span>السحب</span><strong>${details.cloud}%</strong></div><div class="forecast-detail"><span>الرياح</span><strong>${details.wind} كم/س</strong></div><div class="forecast-detail"><span>CAPE</span><strong>${details.cape} J/kg</strong></div><div class="forecast-detail"><span>⛈️ عدم الاستقرار</span><strong>${details.instability}</strong></div></div><div class="day-note">${details.note}</div></div>`;
-    box.appendChild(wrap);
-  });
-}
-function toggleDay(index){document.getElementById("dayDetails"+index).classList.toggle("open");}
-function getDayDetails(data,dateString,dailyIndex){
-  const indexes=[];for(let i=0;i<data.hourly.time.length;i++){if(data.hourly.time[i].startsWith(dateString))indexes.push(i);}
-  if(!indexes.length)return{amount:"0.0",hours:"0",bestHour:"--",humidity:0,cloud:0,wind:0,cape:0,instability:"--",note:"لا توجد بيانات تفصيلية."};
-  const humidity=maxFromIndexes(data.hourly.relative_humidity_2m,indexes),cloud=maxFromIndexes(data.hourly.cloud_cover,indexes),wind=maxFromIndexes(data.hourly.wind_speed_10m,indexes),cape=maxFromIndexes(data.hourly.cape,indexes),amount=Number(data.daily.precipitation_sum[dailyIndex]??0).toFixed(1),hours=Number(data.daily.precipitation_hours[dailyIndex]??0).toFixed(0),bestHour=getBestHourForDay(data,dateString)||"--";
-  let instability="ضعيف";if(cape>=1500)instability="مرتفع";else if(cape>=700)instability="متوسط إلى مرتفع";else if(cape>=300)instability="متوسط";
-  const rainChance=data.daily.precipitation_probability_max[dailyIndex]??0;let note="";
-  if(rainChance>=70)note="🌧️ فرصة المطر مرتفعة نسبيًا وفق التوقع الحالي. راقب تحديث الساعات لأن التوقيت والكمية قد يتغيران.";else if(rainChance>=40)note="☁️ توجد فرصة متوسطة للمطر، والتفاصيل الساعية ستوضح الفترة الأفضل مع اقتراب الموعد.";else if(rainChance>=20)note="🌤️ توجد إشارة محدودة للمطر، لكنها ليست قوية حاليًا.";else note="☀️ لا تظهر حاليًا إشارة قوية للمطر في هذا اليوم.";
-  return{amount,hours,bestHour,humidity:Math.round(humidity),cloud:Math.round(cloud),wind:Math.round(wind),cape:Math.round(cape),instability,note};
-}
-function maxFromIndexes(array,indexes){const values=indexes.map(i=>array[i]).filter(Number.isFinite);return values.length?Math.max(...values):0;}
-function getBestHourForDay(data,dateString){let bestIndex=-1,bestScore=-1;for(let i=0;i<data.hourly.time.length;i++){if(!data.hourly.time[i].startsWith(dateString))continue;const probability=data.hourly.precipitation_probability[i]??0,precipitation=data.hourly.precipitation[i]??0,score=probability+precipitation*10;if(score>bestScore){bestScore=score;bestIndex=i;}}if(bestIndex<0)return null;if((data.hourly.precipitation_probability[bestIndex]??0)===0&&(data.hourly.precipitation[bestIndex]??0)===0)return null;const date=new Date(data.hourly.time[bestIndex]);return date.toLocaleTimeString("ar-YE",{hour:"numeric",minute:"2-digit",hour12:true});}
-
-/* =========================================================
-   الراصد المحلي: مطر + سحب + غبار + مدى الرؤية
-   ========================================================= */
-function showObserverWeather(data){
-  const i=getCurrentHourIndex(data),rain=Number(data.hourly.precipitation[i]??0),chance=Number(data.hourly.precipitation_probability[i]??0),cloud=Number(data.hourly.cloud_cover[i]??0),visibility=Number(data.hourly.visibility?.[i]??0);
-  document.getElementById("observerRain").textContent=`${rain.toFixed(1)} ملم • ${Math.round(chance)}%`;
-  document.getElementById("observerCloud").textContent=`${Math.round(cloud)}%`;
-  document.getElementById("observerVisibility").textContent=visibility>0?`${(visibility/1000).toFixed(1)} كم`:"--";
-  const gust=Number(data.hourly.wind_gusts_10m?.[i]??0);document.getElementById("observerGust").textContent=`${Math.round(gust)} كم/س`;
-  const min7=Math.min(...(data.daily.temperature_2m_min||[]).filter(Number.isFinite));let winter="معتدل";
-  if(Number.isFinite(min7)&&min7<=8)winter=`برد قوي • أدنى ${Math.round(min7)}°`;else if(Number.isFinite(min7)&&min7<=13)winter=`بارد • أدنى ${Math.round(min7)}°`;else if(Number.isFinite(min7)&&min7<=18)winter=`مائل للبرودة • أدنى ${Math.round(min7)}°`;else if(Number.isFinite(min7))winter=`لا برد قوي • أدنى ${Math.round(min7)}°`;
-  document.getElementById("observerWinter").textContent=winter;
-  let summary="";if(rain>=1)summary="🕒 هطول متوقع في الساعة الحالية حسب بيانات التوقع، وليس رصدًا ميدانيًا.";else if(chance>=50)summary="🕒 فرصة مطر متوقعة مرتفعة نسبيًا خلال الفترة الحالية.";else if(cloud>=75)summary="🕒 غطاء سحابي كثيف متوقع نسبيًا فوق المنطقة.";else summary="🕒 لا تظهر في التوقع الحالي إشارة قوية لهطول على هدى.";
-  document.getElementById("observerSummary").textContent=summary;
-  document.getElementById("observerUpdated").textContent="آخر تحديث: "+new Date().toLocaleTimeString("ar-YE",{timeZone:"Asia/Aden",hour:"numeric",minute:"2-digit",hour12:true});
-  if(typeof window.loadDust==='function') window.loadDust();
-}
-
-function showWeatherAlerts(data){
-  const box=document.getElementById("weatherAlerts"); if(!box||!data?.hourly)return;
-  const start=getCurrentHourIndex(data),end=Math.min(start+24,data.hourly.time.length),alerts=[];
-  let maxRain=0,maxGust=0,minTemp=Infinity,maxTemp=-Infinity,minVis=Infinity,thunder=false,northWind=false;
-  for(let i=start;i<end;i++){
-    const rain=Number(data.hourly.precipitation_probability?.[i]??0),gust=Number(data.hourly.wind_gusts_10m?.[i]??0),temp=Number(data.hourly.temperature_2m?.[i]),vis=Number(data.hourly.visibility?.[i]),code=Number(data.hourly.weather_code?.[i]??0),dir=Number(data.hourly.wind_direction_10m?.[i]);
-    maxRain=Math.max(maxRain,rain);maxGust=Math.max(maxGust,gust);if(Number.isFinite(temp)){minTemp=Math.min(minTemp,temp);maxTemp=Math.max(maxTemp,temp)}if(Number.isFinite(vis)&&vis>0)minVis=Math.min(minVis,vis);if(code>=95)thunder=true;if(gust>=35&&Number.isFinite(dir)&&(dir>=315||dir<=45))northWind=true;
-  }
-  if(maxRain>=40)alerts.push(`🕒 🌧️ مطر متوقع: أعلى احتمال خلال 24 ساعة ${Math.round(maxRain)}%`);
-  if(maxGust>=40)alerts.push(`🕒 💨 رياح قوية متوقعة: هبات قد تصل إلى ${Math.round(maxGust)} كم/س${northWind?' • بينها رياح شمالية':''}`);
-  if(Number.isFinite(minTemp)&&minTemp<=15)alerts.push(`🕒 🥶 برودة متوقعة: قد تنخفض الحرارة إلى ${Math.round(minTemp)}°`);
-  if(thunder)alerts.push('🕒 ⛈️ عواصف رعدية أو برق متوقع خلال الساعات القادمة');
-  if(Number.isFinite(maxTemp)&&maxTemp>=40)alerts.push(`🕒 🌡️ حرارة شديدة متوقعة: قد تصل إلى ${Math.round(maxTemp)}°`);
-  if(Number.isFinite(minVis)&&minVis<=5000)alerts.push(`🕒 🌫️ تدنٍ في مدى الرؤية متوقع: قد يصل إلى ${(minVis/1000).toFixed(1)} كم`);
-  box.innerHTML=alerts.length?alerts.map(x=>`<div style="margin:7px 0">${x}</div>`).join(''):'✅ لا تظهر خلال الساعات الـ24 القادمة تنبيهات جوية بارزة وفق التوقع الحالي.';
-}
-
-function windDirection(deg){const dirs=['شمالية','شمالية شرقية','شرقية','جنوبية شرقية','جنوبية','جنوبية غربية','غربية','شمالية غربية'];return dirs[Math.round(Number(deg||0)/45)%8];}
-function weatherText(code){if(code===0)return'صحو';if(code<=3)return'غائم جزئيًا';if(code<=48)return'ضباب';if(code<=67)return'أمطار';if(code<=77)return'ثلوج';if(code<=82)return'زخات مطر';if(code<=86)return'زخات ثلج';if(code>=95)return'عواصف رعدية';return'طقس متغير';}
-function weatherIcon(code){if(code===0)return'☀️';if(code<=3)return'⛅';if(code<=48)return'🌫️';if(code<=67)return'🌧️';if(code<=77)return'❄️';if(code<=82)return'🌦️';if(code<=86)return'🌨️';if(code>=95)return'⛈️';return'🌤️';}
-
+const latitude=14.230586,longitude=47.199415;let weatherData=null;
+function loadDate(){document.getElementById("gregorianDate").textContent=new Intl.DateTimeFormat("ar-YE",{timeZone:"Asia/Aden",weekday:"long",year:"numeric",month:"long",day:"numeric"}).format(new Date());}
+async function loadWeather(){try{const url=`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cape,visibility&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,precipitation_hours,wind_speed_10m_max,wind_gusts_10m_max&timezone=Asia%2FAden&forecast_days=7`;const r=await fetch(url);if(!r.ok)throw new Error("weather");const data=await r.json();weatherData=data;showCurrentWeather(data);showHourlyWeather(data);showWeeklyWeather(data);showBestRain(data);showObserverWeather(data);showWeatherAlerts(data);}catch(e){console.error(e)}}
+function showCurrentWeather(data){const c=data.current;document.getElementById("temperature").textContent=Math.round(c.temperature_2m);document.getElementById("humidity").textContent=Math.round(c.relative_humidity_2m)+"%";document.getElementById("feelsLike").textContent=Math.round(c.apparent_temperature)+"°";document.getElementById("windSpeed").textContent=Math.round(c.wind_speed_10m)+" كم/س";document.getElementById("windDirection").textContent=windDirection(c.wind_direction_10m);document.getElementById("weatherDescription").textContent=weatherText(c.weather_code);document.getElementById("currentIcon").textContent=weatherIcon(c.weather_code)}
+function getCurrentHourIndex(data){const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Aden",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",hourCycle:"h23"}).formatToParts(new Date()),p={};parts.forEach(x=>p[x.type]=x.value);const key=`${p.year}-${p.month}-${p.day}T${p.hour}:00`;const i=data.hourly.time.indexOf(key);return i<0?0:i;}
+function showHourlyWeather(data){const box=document.getElementById("hourlyForecast");box.innerHTML="";const start=getCurrentHourIndex(data),end=Math.min(start+18,data.hourly.time.length);for(let i=start;i<end;i++){const date=new Date(data.hourly.time[i]),item=document.createElement("div");item.className="hour";item.innerHTML=`<div class="hour-time">${date.toLocaleTimeString("ar-YE",{hour:"numeric",minute:"2-digit",hour12:true})}</div><div class="hour-icon">${weatherIcon(data.hourly.weather_code[i])}</div><div class="hour-rain">💧 ${data.hourly.precipitation_probability[i]??0}%</div><div class="hour-temp">${Math.round(data.hourly.temperature_2m[i])}°</div>`;box.appendChild(item)}}
+function showBestRain(data){let bi=0,b=-1;for(let i=0;i<data.daily.time.length;i++){const c=Number(data.daily.precipitation_probability_max[i]??0);if(c>b){b=c;bi=i}}const d=new Date(data.daily.time[bi]);document.getElementById("bestRain").textContent=`${d.toLocaleDateString('ar-YE',{weekday:'long',month:'long',day:'numeric'})} • ${Math.round(b)}%`;document.getElementById("bestRainDetails").textContent=`كمية متوقعة ${Number(data.daily.precipitation_sum[bi]??0).toFixed(1)} ملم`}
+function showWeeklyWeather(data){const box=document.getElementById("weeklyForecast");box.innerHTML="";data.daily.time.forEach((dateString,i)=>{const d=new Date(dateString),details=getDayDetails(data,dateString,i),wrap=document.createElement('div');wrap.className='day-wrap';wrap.innerHTML=`<div class="day" onclick="toggleDay(${i})"><div class="day-name">${d.toLocaleDateString('ar-YE',{weekday:'long'})}</div><div class="day-temp">${Math.round(data.daily.temperature_2m_min[i])}° / ${Math.round(data.daily.temperature_2m_max[i])}°</div><div class="day-rain">${Math.round(data.daily.precipitation_probability_max[i]??0)}%</div><div class="day-icon">${weatherIcon(data.daily.weather_code[i])}</div></div><div class="day-details" id="dayDetails${i}"><div class="detail-grid"><div class="forecast-detail"><span>الهطول</span><strong>${details.amount} ملم</strong></div><div class="forecast-detail"><span>ساعات الهطول</span><strong>${details.hours}</strong></div><div class="forecast-detail"><span>أفضل ساعة</span><strong>${details.bestHour}</strong></div><div class="forecast-detail"><span>الرطوبة</span><strong>${details.humidity}%</strong></div><div class="forecast-detail"><span>السحب</span><strong>${details.cloud}%</strong></div><div class="forecast-detail"><span>الرياح</span><strong>${details.wind} كم/س</strong></div><div class="forecast-detail"><span>CAPE</span><strong>${details.cape} J/kg</strong></div><div class="forecast-detail"><span>⛈️ عدم الاستقرار</span><strong>${details.instability}</strong></div></div><div class="day-note">${details.note}</div></div>`;box.appendChild(wrap)})}
+function toggleDay(index){document.getElementById("dayDetails"+index).classList.toggle("open")}
+function getDayDetails(data,dateString,dailyIndex){const indexes=[];for(let i=0;i<data.hourly.time.length;i++)if(data.hourly.time[i].startsWith(dateString))indexes.push(i);if(!indexes.length)return{amount:"0.0",hours:"0",bestHour:"--",humidity:0,cloud:0,wind:0,cape:0,instability:"--",note:"لا توجد بيانات تفصيلية."};const humidity=maxFromIndexes(data.hourly.relative_humidity_2m,indexes),cloud=maxFromIndexes(data.hourly.cloud_cover,indexes),wind=maxFromIndexes(data.hourly.wind_speed_10m,indexes),cape=maxFromIndexes(data.hourly.cape,indexes),amount=Number(data.daily.precipitation_sum[dailyIndex]??0).toFixed(1),hours=Number(data.daily.precipitation_hours[dailyIndex]??0).toFixed(0),bestHour=getBestHourForDay(data,dateString)||"--";let instability="ضعيف";if(cape>=1500)instability="مرتفع";else if(cape>=700)instability="متوسط إلى مرتفع";else if(cape>=300)instability="متوسط";const rainChance=data.daily.precipitation_probability_max[dailyIndex]??0;let note="";if(rainChance>=70)note="🌧️ فرصة المطر مرتفعة نسبيًا وفق التوقع الحالي.";else if(rainChance>=40)note="☁️ توجد فرصة متوسطة للمطر.";else if(rainChance>=20)note="🌤️ توجد إشارة محدودة للمطر.";else note="☀️ لا تظهر حاليًا إشارة قوية للمطر في هذا اليوم.";return{amount,hours,bestHour,humidity:Math.round(humidity),cloud:Math.round(cloud),wind:Math.round(wind),cape:Math.round(cape),instability,note}}
+function maxFromIndexes(array,indexes){const values=indexes.map(i=>array[i]).filter(Number.isFinite);return values.length?Math.max(...values):0}
+function getBestHourForDay(data,dateString){let bestIndex=-1,bestScore=-1;for(let i=0;i<data.hourly.time.length;i++){if(!data.hourly.time[i].startsWith(dateString))continue;const probability=data.hourly.precipitation_probability[i]??0,precipitation=data.hourly.precipitation[i]??0,score=probability+precipitation*10;if(score>bestScore){bestScore=score;bestIndex=i}}if(bestIndex<0)return null;if((data.hourly.precipitation_probability[bestIndex]??0)===0&&(data.hourly.precipitation[bestIndex]??0)===0)return null;return new Date(data.hourly.time[bestIndex]).toLocaleTimeString("ar-YE",{hour:"numeric",minute:"2-digit",hour12:true})}
+function showObserverWeather(data){const i=getCurrentHourIndex(data),rain=Number(data.hourly.precipitation[i]??0),chance=Number(data.hourly.precipitation_probability[i]??0),cloud=Number(data.hourly.cloud_cover[i]??0),visibility=Number(data.hourly.visibility?.[i]??0);document.getElementById("observerRain").textContent=`${rain.toFixed(1)} ملم • ${Math.round(chance)}%`;document.getElementById("observerCloud").textContent=`${Math.round(cloud)}%`;document.getElementById("observerVisibility").textContent=visibility>0?`${(visibility/1000).toFixed(1)} كم`:"--";const gust=Number(data.hourly.wind_gusts_10m?.[i]??0);document.getElementById("observerGust").textContent=`${Math.round(gust)} كم/س`;const min7=Math.min(...(data.daily.temperature_2m_min||[]).filter(Number.isFinite));let winter="معتدل";if(Number.isFinite(min7)&&min7<=8)winter=`برد قوي • أدنى ${Math.round(min7)}°`;else if(Number.isFinite(min7)&&min7<=13)winter=`بارد • أدنى ${Math.round(min7)}°`;else if(Number.isFinite(min7)&&min7<=18)winter=`مائل للبرودة • أدنى ${Math.round(min7)}°`;else if(Number.isFinite(min7))winter=`لا برد قوي • أدنى ${Math.round(min7)}°`;document.getElementById("observerWinter").textContent=winter;document.getElementById("observerSummary").textContent=rain>=1?"🕒 هطول متوقع في الساعة الحالية حسب بيانات التوقع، وليس رصدًا ميدانيًا.":chance>=50?"🕒 فرصة مطر متوقعة مرتفعة نسبيًا خلال الفترة الحالية.":cloud>=75?"🕒 غطاء سحابي كثيف متوقع نسبيًا فوق المنطقة.":"🕒 لا تظهر في التوقع الحالي إشارة قوية لهطول على هدى.";document.getElementById("observerUpdated").textContent="آخر تحديث: "+new Date().toLocaleTimeString("ar-YE",{timeZone:"Asia/Aden",hour:"numeric",minute:"2-digit",hour12:true});if(typeof window.loadDust==='function')window.loadDust()}
+function showWeatherAlerts(data){const box=document.getElementById("weatherAlerts");if(!box||!data?.hourly)return;const start=getCurrentHourIndex(data),end=Math.min(start+24,data.hourly.time.length),alerts=[];let maxRain=0,maxGust=0,minTemp=Infinity,maxTemp=-Infinity,minVis=Infinity,thunder=false,northWind=false;for(let i=start;i<end;i++){const rain=Number(data.hourly.precipitation_probability?.[i]??0),gust=Number(data.hourly.wind_gusts_10m?.[i]??0),temp=Number(data.hourly.temperature_2m?.[i]),vis=Number(data.hourly.visibility?.[i]),code=Number(data.hourly.weather_code?.[i]??0),dir=Number(data.hourly.wind_direction_10m?.[i]);maxRain=Math.max(maxRain,rain);maxGust=Math.max(maxGust,gust);if(Number.isFinite(temp)){minTemp=Math.min(minTemp,temp);maxTemp=Math.max(maxTemp,temp)}if(Number.isFinite(vis)&&vis>0)minVis=Math.min(minVis,vis);if(code>=95)thunder=true;if(gust>=35&&Number.isFinite(dir)&&(dir>=315||dir<=45))northWind=true}if(maxRain>=40)alerts.push(`🕒 🌧️ مطر متوقع: أعلى احتمال خلال 24 ساعة ${Math.round(maxRain)}%`);if(maxGust>=40)alerts.push(`🕒 💨 رياح قوية متوقعة: هبات قد تصل إلى ${Math.round(maxGust)} كم/س${northWind?' • بينها رياح شمالية':''}`);if(Number.isFinite(minTemp)&&minTemp<=15)alerts.push(`🕒 🥶 برودة متوقعة: قد تنخفض الحرارة إلى ${Math.round(minTemp)}°`);if(thunder)alerts.push('🕒 ⛈️ عواصف رعدية أو برق متوقع خلال الساعات القادمة');if(Number.isFinite(maxTemp)&&maxTemp>=40)alerts.push(`🕒 🌡️ حرارة شديدة متوقعة: قد تصل إلى ${Math.round(maxTemp)}°`);if(Number.isFinite(minVis)&&minVis<=5000)alerts.push(`🕒 🌫️ تدنٍ في مدى الرؤية متوقع: قد يصل إلى ${(minVis/1000).toFixed(1)} كم`);box.innerHTML=alerts.length?alerts.map(x=>`<div style="margin:7px 0">${x}</div>`).join(''):'✅ لا تظهر خلال الساعات الـ24 القادمة تنبيهات جوية بارزة وفق التوقع الحالي.'}
+function windDirection(deg){const dirs=['شمالية','شمالية شرقية','شرقية','جنوبية شرقية','جنوبية','جنوبية غربية','غربية','شمالية غربية'];return dirs[Math.round(Number(deg||0)/45)%8]}
+function weatherText(code){if(code===0)return'صحو';if(code<=3)return'غائم جزئيًا';if(code<=48)return'ضباب';if(code<=67)return'أمطار';if(code<=77)return'ثلوج';if(code<=82)return'زخات مطر';if(code<=86)return'زخات ثلج';if(code>=95)return'عواصف رعدية';return'طقس متغير'}
+function weatherIcon(code){if(code===0)return'☀️';if(code<=3)return'⛅';if(code<=48)return'🌫️';if(code<=67)return'🌧️';if(code<=77)return'❄️';if(code<=82)return'🌦️';if(code<=86)return'🌨️';if(code>=95)return'⛈️';return'🌤️'}
 function openMap(){document.getElementById('mapModal').style.display='block';document.body.style.overflow='hidden'}function closeMap(){document.getElementById('mapModal').style.display='none';document.body.style.overflow=''}
 function openSea(){document.getElementById('seaModal').style.display='block';document.body.style.overflow='hidden'}function closeSea(){document.getElementById('seaModal').style.display='none';document.body.style.overflow=''}
-function openStars(){document.getElementById('starsModal').style.display='block';document.body.style.overflow='hidden'}function closeStars(){document.getElementById('starsModal').style.display='none';document.body.style.overflow=''}
-function closeStarDetail(){document.getElementById('starDetailModal').style.display='none'}
-function openModels(){document.getElementById('modelsModal').style.display='block';document.body.style.overflow='hidden'}function closeModels(){document.getElementById('modelsModal').style.display='none';document.body.style.overflow=''}
-function openQuakes(){document.getElementById('quakesModal').style.display='block';document.body.style.overflow='hidden'}function closeQuakes(){document.getElementById('quakesModal').style.display='none';document.body.style.overflow=''}
-function openWhatsNew(){document.getElementById('whatsNewModal').style.display='block';document.body.style.overflow='hidden'}function closeWhatsNew(){document.getElementById('whatsNewModal').style.display='none';document.body.style.overflow=''}
+function closeStars(){document.getElementById('starsModal').style.display='none';document.body.style.overflow=''}function closeStarDetail(){document.getElementById('starDetailModal').style.display='none'}
+function openModels(){document.getElementById('modelsModal').style.display='block';document.body.style.overflow='hidden'}function closeModels(){document.getElementById('modelsModal').style.display='none';document.body.style.overflow=''}function openQuakes(){document.getElementById('quakesModal').style.display='block';document.body.style.overflow='hidden'}function closeQuakes(){document.getElementById('quakesModal').style.display='none';document.body.style.overflow=''}function openWhatsNew(){document.getElementById('whatsNewModal').style.display='block';document.body.style.overflow='hidden'}function closeWhatsNew(){document.getElementById('whatsNewModal').style.display='none';document.body.style.overflow=''}
 
-const starsData=[];
-function parseStarEntryDate(){return null;}
-function loadHijriDate(){document.getElementById('hijriDate').textContent='';}
-function loadPrayers(){const times={fajr:'4:35 ص',sunrise:'5:40 ص',dhuhr:'11:45 ص',asr:'3:05 م',maghrib:'5:48 م',isha:'6:53 م'};for(const [id,v] of Object.entries(times)){const el=document.getElementById(id);if(el)el.textContent=v;}}
-
-let deferredPrompt=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;});document.getElementById('installButton').addEventListener('click',async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;}else{alert('من قائمة المتصفح اختر إضافة إلى الشاشة الرئيسية.');}});
-
+const starsData=[{season:"الربيع",stars:[["الجبهة","30 يناير 2026"],["الزبرة","12 فبراير 2026"],["الصرفة","25 فبراير 2026"],["العواء","10 مارس 2026"],["السماك","23 مارس 2026"],["الغفر","5 أبريل 2026"],["الزبان","18 أبريل 2026"]]},{season:"الصيف",stars:[["لكليل","1 مايو 2026"],["القلب","14 مايو 2026"],["الشول","27 مايو 2026"],["النعيم","9 يونيو 2026"],["البلدة","22 يونيو 2026"],["القويدم","5 يوليو 2026"],["المرزم","18 يوليو 2026"]]},{season:"الخريف",stars:[["سهيل","31 يوليو 2026"],["سعد","13 أغسطس 2026"],["ناهز","26 أغسطس 2026"],["عُرج","8 سبتمبر 2026"],["خامس","21 سبتمبر 2026"],["سادس","4 أكتوبر 2026"],["سابع","17 أكتوبر 2026"]]},{season:"الشتاء",stars:[["ثريا","30 أكتوبر 2026"],["بركان","12 نوفمبر 2026"],["هقاع","25 نوفمبر 2026"],["هناع","8 ديسمبر 2026"],["ذراع","21 ديسمبر 2026"],["نثرة","3 يناير 2027"],["طرف","16 يناير 2027"]]}];
+function parseStarEntryDate(text){const months={"يناير":0,"فبراير":1,"مارس":2,"أبريل":3,"مايو":4,"يونيو":5,"يوليو":6,"أغسطس":7,"سبتمبر":8,"أكتوبر":9,"نوفمبر":10,"ديسمبر":11};const match=text.trim().match(/(\d+)\s+([^\s]+)\s+(\d{4})/);if(!match||months[match[2]]===undefined)return null;return new Date(Number(match[3]),months[match[2]],Number(match[1]))}
+function showCurrentStar(){const box=document.getElementById("currentStarGrid");if(!box)return;const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());let current=null;for(const group of starsData){for(const star of group.stars){const start=parseStarEntryDate(star[1]);if(start){const end=new Date(start);end.setDate(end.getDate()+12);if(today>=start&&today<=end){current={name:star[0],season:group.season,date:star[1],start,end};break}}}if(current)break}if(!current){box.innerHTML='<div class="current-star-item" style="grid-column:1/-1"><strong>التاريخ الحالي خارج نطاق جدول هدى 2026–2027.</strong></div>';return}const currentDay=Math.floor((today-current.start)/86400000)+1,remaining=Math.max(0,13-currentDay);box.innerHTML=`<div class="current-star-item"><span>اسم النجم</span><strong>⭐ ${current.name}</strong></div><div class="current-star-item"><span>الفصل</span><strong>${current.season}</strong></div><div class="current-star-item"><span>تاريخ الدخول</span><strong>${current.date}</strong></div><div class="current-star-item"><span>اليوم الحالي</span><strong>اليوم ${currentDay} من النجم</strong></div><div class="current-star-item"><span>الأيام المتبقية</span><strong>${remaining} يوم</strong></div>`}
+function renderStars(){const root=document.getElementById("starsList");if(!root)return;const seasonIcons={"الربيع":"🌱","الصيف":"☀️","الخريف":"🍂","الشتاء":"❄️"};root.innerHTML=starsData.map(group=>`<section class="season"><div class="season-title">${seasonIcons[group.season]||"⭐"} ${group.season}</div><div class="stars-grid">${group.stars.map(star=>`<button class="star-item" onclick="openStarDetail('${star[0]}','${star[1]}')"><span class="star-name">${star[0]}</span><span class="star-date">${star[1]}</span></button>`).join("")}</div></section>`).join("")}
+function openStars(){renderStars();showCurrentStar();document.getElementById("starsModal").style.display="block";document.body.style.overflow="hidden"}
+function openStarDetail(name,date){document.getElementById("starDetailName").textContent=name;document.getElementById("starDetailDate").textContent=date;document.getElementById("starDetailModal").style.display="block"}
+function loadHijriDate(){document.getElementById('hijriDate').textContent=''}
+function loadPrayers(){const times={fajr:'4:35 ص',sunrise:'5:40 ص',dhuhr:'11:45 ص',asr:'3:05 م',maghrib:'5:48 م',isha:'6:53 م'};for(const [id,v] of Object.entries(times)){const el=document.getElementById(id);if(el)el.textContent=v}}
+let deferredPrompt=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e});document.getElementById('installButton').addEventListener('click',async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null}else alert('من قائمة المتصفح اختر إضافة إلى الشاشة الرئيسية.')});
 loadDate();loadHijriDate();loadPrayers();loadWeather();
-
 </script>
-
 </body>
 </html>
