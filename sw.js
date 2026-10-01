@@ -1,6 +1,6 @@
 importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
 
-const CACHE="hada-weather-v2-2-1-r1";
+const CACHE="hada-weather-v2-2-2-r1";
 const CORE=[
   "./",
   "./index.html",
