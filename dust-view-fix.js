@@ -1,96 +1,105 @@
 (()=>{
 'use strict';
 
-function dustLevel(v){
-  v=Number(v||0);
-  if(v<15)return 'لا يوجد غبار مؤثر';
-  if(v<40)return 'خفيف';
-  if(v<80)return 'متوسط';
-  if(v<150)return 'كثيف';
-  return 'شديد';
-}
-function adenDay(iso){return String(iso||'').slice(0,10)}
-function dayLabel(day,index){return index===0?'اليوم':'غدًا'}
-function fmtHour(iso){return new Date(iso).toLocaleTimeString('ar-YE',{timeZone:'Asia/Aden',hour:'numeric',minute:'2-digit',hour12:true})}
-function hourDiff(a,b){return Math.max(0,Math.round((new Date(b)-new Date(a))/36e5))}
+const LAT=14.230586,LON=47.199415;
+let sandstormAlert='';
+let lastResult=null;
 
-const directions=[
-  {name:'شمال هدى',short:'الشمال',dlat:.8,dlon:0},
-  {name:'شمال شرق هدى',short:'الشمال الشرقي',dlat:.57,dlon:.57},
-  {name:'شرق هدى',short:'الشرق',dlat:0,dlon:.8},
-  {name:'جنوب شرق هدى',short:'الجنوب الشرقي',dlat:-.57,dlon:.57},
-  {name:'جنوب هدى',short:'الجنوب',dlat:-.8,dlon:0},
-  {name:'جنوب غرب هدى',short:'الجنوب الغربي',dlat:-.57,dlon:-.57},
-  {name:'غرب هدى',short:'الغرب',dlat:0,dlon:-.8},
-  {name:'شمال غرب هدى',short:'الشمال الغربي',dlat:.57,dlon:-.57}
-];
-async function getDust(lat,lon){
-  const u=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat.toFixed(5)}&longitude=${lon.toFixed(5)}&current=dust&hourly=dust&forecast_days=2&timezone=Asia%2FAden&domains=cams_global`;
-  const r=await fetch(u);if(!r.ok)throw new Error('dust');return r.json();
+function dayKey(t){return String(t||'').slice(0,10)}
+function fmtTime(t){return new Date(t).toLocaleTimeString('ar-YE',{timeZone:'Asia/Aden',hour:'numeric',minute:'2-digit',hour12:true})}
+function todayKey(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Aden',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
+function tomorrowKey(){const d=new Date();d.setDate(d.getDate()+1);return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Aden',year:'numeric',month:'2-digit',day:'2-digit'}).format(d)}
+
+async function getData(lat,lon){
+  const dustUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=dust&forecast_days=2&timezone=Asia%2FAden&domains=cams_global`;
+  const weatherUrl=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m,visibility&forecast_days=2&timezone=Asia%2FAden&wind_speed_unit=kmh`;
+  const [dr,wr]=await Promise.all([fetch(dustUrl),fetch(weatherUrl)]);
+  if(!dr.ok||!wr.ok)throw new Error('sandstorm-data');
+  return {dust:await dr.json(),weather:await wr.json()};
 }
-function series(data,fromTime){
-  const t=data.hourly?.time||[],v=data.hourly?.dust||[];
-  let s=t.findIndex(x=>x>=fromTime);if(s<0)s=0;
-  return t.map((x,i)=>({t:x,v:Number(v[i]||0)})).slice(s);
+
+function classify(dust,gust,wind,visibility){
+  // Conservative local guidance: never call dust concentration alone a sandstorm.
+  // A signal requires elevated desert dust together with sufficiently strong surface wind.
+  // Visibility is used only as supporting model evidence, not as proof of an observed storm.
+  if(dust>=300&&gust>=40) return 2;
+  if(dust>=200&&gust>=35&&visibility>0&&visibility<=5000) return 2;
+  if(dust>=150&&gust>=35&&visibility>0&&visibility<=8000) return 1;
+  if(dust>=200&&wind>=30&&gust>=35) return 1;
+  return 0;
 }
-async function detectApproach(lat,lon,local,fromTime){
-  const nearby=await Promise.all(directions.map(async dir=>({dir,data:await getDust(lat+dir.dlat,lon+dir.dlon)})));
-  const localMap=new Map(local.map(x=>[x.t,x.v]));
-  let best=null;
-  for(const item of nearby){
-    const arr=series(item.data,fromTime);
-    for(const x of arr){
-      const lv=localMap.get(x.t);if(!Number.isFinite(lv))continue;
-      const lead=x.v-lv;
-      if(x.v<40||lead<20)continue;
-      const score=lead+(x.v*.15);
-      if(!best||score>best.score)best={dir:item.dir,t:x.t,v:x.v,local:lv,score};
-    }
+
+async function evaluate(){
+  const {dust,weather}=await getData(LAT,LON);
+  const dt=dust.hourly?.time||[],dv=dust.hourly?.dust||[];
+  const wt=weather.hourly?.time||[];
+  const wm=new Map(wt.map((t,i)=>[t,i]));
+  const allowed=new Set([todayKey(),tomorrowKey()]);
+  const rows=[];
+  for(let i=0;i<dt.length;i++){
+    if(!allowed.has(dayKey(dt[i])))continue;
+    const j=wm.get(dt[i]);if(j===undefined)continue;
+    const d=Number(dv[i]||0),wind=Number(weather.hourly.wind_speed_10m?.[j]||0),gust=Number(weather.hourly.wind_gusts_10m?.[j]||0),vis=Number(weather.hourly.visibility?.[j]||0),dir=Number(weather.hourly.wind_direction_10m?.[j]||0);
+    rows.push({t:dt[i],dust:d,wind,gust,vis,dir,rank:classify(d,gust,wind,vis)});
   }
-  return best;
+  const peak=rows.reduce((a,b)=>!a||b.rank>a.rank||(b.rank===a.rank&&b.dust>a.dust)?b:a,null);
+  const result={rank:peak?.rank||0,peak,rows};
+  lastResult=result;
+  return result;
 }
-async function renderSimpleDust(){
-  const summary=document.getElementById('dustSummary'),grid=document.getElementById('dustForecast');
-  if(!summary||!grid)return;
-  try{
-    const lat=Number(window.latitude??14.230586),lon=Number(window.longitude??47.199415);
-    const d=await getDust(lat,lon);
-    const times=d.hourly?.time||[],vals=d.hourly?.dust||[];
-    const nowKey=d.current?.time||times[0];
-    let start=times.findIndex(t=>t>=nowKey);if(start<0)start=0;
-    const future=times.map((t,i)=>({t,v:Number(vals[i]||0)})).slice(start);
-    const days=[...new Set(future.map(x=>adenDay(x.t)))].slice(0,2);
-    grid.innerHTML=days.map((day,di)=>{
-      const a=future.filter(x=>adenDay(x.t)===day);if(!a.length)return '';
-      const peak=a.reduce((p,x)=>x.v>p.v?x:p,a[0]);
-      return `<div class="dust-item"><span>${dayLabel(day,di)}</span><strong>${dustLevel(peak.v)}</strong><br>الذروة ${Math.round(peak.v)} µg/m³ • ${fmtHour(peak.t)}</div>`;
-    }).join('');
 
-    const current=Number(d.current?.dust||0);
-    const significant=future.filter(x=>x.v>=40);
-    let wave='لا تظهر موجة غبار صحراوي مؤثرة خلال اليوم وغدًا.';
-    if(significant.length){
-      const first=significant[0],last=significant[significant.length-1],peak=significant.reduce((p,x)=>x.v>p.v?x:p,significant[0]);
-      let approach=null;
-      try{approach=await detectApproach(lat,lon,future,nowKey)}catch(e){console.warn('dust direction unavailable',e)}
-      const eta=hourDiff(nowKey,first.t);
-      const when=eta<=1?'قريبًا':`خلال نحو ${eta} ساعة`;
-      if(approach){
-        wave=`🌫️ موجة غبار صحراوي متوقعة ${when}. تشير بيانات الغبار المحيطة إلى كتلة أعلى تركيزًا في ${approach.dir.name}، مع ذروة متوقعة على هدى ${fmtHour(peak.t)} (${dustLevel(peak.v)} ${Math.round(peak.v)} µg/m³)، ثم تبدأ بالتراجع قرابة ${fmtHour(last.t)}.`;
-      }else{
-        wave=`🌫️ متوقع ارتفاع تركيز الغبار الصحراوي ${when}، مع ذروة ${fmtHour(peak.t)} (${dustLevel(peak.v)} ${Math.round(peak.v)} µg/m³)، ثم يبدأ بالتراجع قرابة ${fmtHour(last.t)}. لا تتوفر إشارة مكانية كافية لتحديد جهة قدوم الموجة بثقة.`;
-      }
-    }
-    summary.innerHTML=`الحالة الحالية: <strong>${dustLevel(current)}</strong> • ${Math.round(current)} µg/m³<br>${wave}`;
-    const frame=document.querySelector('#dustModal .dust-map iframe');
-    if(frame){frame.src=`https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&width=650&height=450&zoom=6&level=surface&overlay=dustsm&product=cams-global&menu=&message=true&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=false&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1`;frame.title='خريطة الغبار الصحراوي';}
-  }catch(e){console.error(e);}
+function statusText(result){
+  if(!result||result.rank===0)return {icon:'🟢',title:'لا توجد عاصفة رملية متوقعة',body:'لا تظهر حاليًا مؤشرات مشتركة كافية على عاصفة رملية مؤثرة على هدى خلال اليوم أو غدًا.'};
+  const p=result.peak,when=dayKey(p.t)===todayKey()?'اليوم':'غدًا';
+  if(result.rank===1)return {icon:'🟠',title:'مؤشرات تستحق المتابعة',body:`توجد إشارة محتملة لموجة غبار صحراوي مع رياح نشطة ${when} قرب ${fmtTime(p.t)}. التوقع غير مؤكد ويُعاد تقييمه مع التحديثات.`};
+  return {icon:'🔴',title:'تنبيه عاصفة رملية محتملة',body:`تتوافق مؤشرات الغبار الصحراوي والرياح على احتمال عاصفة رملية مؤثرة ${when} قرب ${fmtTime(p.t)}. يُنصح بمتابعة التحديثات مع اقتراب الوقت.`};
 }
-function install(){
-  const original=window.openDust;
-  window.openDust=function(){if(typeof original==='function')original();setTimeout(renderSimpleDust,0)};
-  const frame=document.querySelector('#dustModal .dust-map iframe');
-  if(frame){frame.src=frame.src.replace('overlay=dust&','overlay=dustsm&').replace('product=ecmwf','product=cams-global');frame.title='خريطة الغبار الصحراوي';}
+
+function paint(result){
+  const s=statusText(result),summary=document.getElementById('dustSummary'),grid=document.getElementById('dustForecast'),card=document.getElementById('observerDust');
+  if(card)card.textContent=result.rank===0?'لا توجد عاصفة رملية':result.rank===1?'احتمال قيد المتابعة':'تنبيه محتمل';
+  if(summary)summary.innerHTML=`${s.icon} <strong>${s.title}</strong><br><span style="display:block;margin-top:8px">${s.body}</span>`;
+  if(grid){
+    const days=[todayKey(),tomorrowKey()];
+    grid.innerHTML=days.map((day,i)=>{
+      const arr=result.rows.filter(x=>dayKey(x.t)===day),best=arr.reduce((a,b)=>!a||b.rank>a.rank||(b.rank===a.rank&&b.dust>a.dust)?b:a,null);
+      const st=statusText({rank:best?.rank||0,peak:best});
+      return `<div class="dust-item"><span>${i===0?'اليوم':'غدًا'}</span><strong>${st.icon} ${st.title}</strong></div>`;
+    }).join('');
+  }
+  const modal=document.getElementById('dustModal');
+  const h=modal?.querySelector('.modal-header h2');if(h)h.textContent='🌫️ مراقبة العواصف الرملية – هدى';
+  const note=modal?.querySelector('.modal-pad > .small-note');if(note)note.textContent='المتابعة لليوم وغدًا فقط. لا يُصدر تنبيه من تركيز الغبار وحده؛ تُقارن بيانات الغبار الصحراوي مع الرياح والرؤية النموذجية. المصدر: CAMS عبر Open‑Meteo وبيانات الطقس عبر Open‑Meteo.';
+  const frame=modal?.querySelector('.dust-map iframe');if(frame){frame.src=`https://embed.windy.com/embed2.html?lat=${LAT}&lon=${LON}&detailLat=${LAT}&detailLon=${LON}&width=650&height=450&zoom=6&level=surface&overlay=dustsm&product=cams-global&menu=&message=true&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=false&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1`;frame.title='خريطة الغبار الصحراوي';}
+  sandstormAlert=result.rank===2?`${s.icon} ${s.title}: ${s.body}`:'';
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+
+window.loadDust=async function(){
+  try{paint(await evaluate());}
+  catch(e){console.error(e);const card=document.getElementById('observerDust');if(card)card.textContent='تعذر التحديث';}
+};
+
+const oldOpen=window.openDust;
+window.openDust=function(){
+  if(typeof oldOpen==='function')oldOpen();
+  const m=document.getElementById('dustModal');if(m){m.style.display='block';document.body.style.overflow='hidden';}
+  if(lastResult)paint(lastResult);else window.loadDust();
+};
+
+const oldRender=window.renderWeatherAlerts;
+window.renderWeatherAlerts=function(){
+  if(typeof oldRender==='function')oldRender();
+  const box=document.getElementById('weatherAlerts');if(!box)return;
+  [...box.children].forEach(el=>{if(/الغبار|غبار|CAMS/.test(el.textContent||''))el.remove();});
+  if(sandstormAlert){const d=document.createElement('div');d.style.margin='7px 0';d.textContent=sandstormAlert;box.appendChild(d);}
+  if(!box.textContent.trim())box.textContent='✅ لا توجد تنبيهات جوية بارزة خلال الـ24 ساعة القادمة.';
+};
+
+// Install immediately so the main weather refresh uses the conservative monitor.
+const relabel=()=>{
+  const dust=document.getElementById('observerDust'),item=dust?.closest('.observer-item');
+  const label=item?.querySelector('span');if(label)label.textContent='🌫️ العواصف الرملية';
+  const note=item?.querySelector('.small-note');if(note)note.textContent='مراقبة اليوم وغدًا';
+};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{relabel();setTimeout(relabel,0)});else relabel();
 })();
