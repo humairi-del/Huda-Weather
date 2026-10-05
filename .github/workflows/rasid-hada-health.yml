@@ -1,0 +1,18 @@
+name: Rasid Hada Health Check
+on:
+  push:
+    branches: [rasid-hada-private]
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check service health
+        run: |
+          set -e
+          echo "HEALTH:"
+          curl --fail-with-body --silent --show-error https://rasid.hada-weather.com/health
+          echo
+          echo "DB_HEALTH:"
+          curl --fail-with-body --silent --show-error https://rasid.hada-weather.com/health/db
+          echo
