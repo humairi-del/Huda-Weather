@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rasid-hada",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-05",
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "0660ccb011304c91a95de74af36f7917"
+    }
+  ]
+}
