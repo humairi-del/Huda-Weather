@@ -54,10 +54,17 @@ export default {async fetch(request,env){
    const d=await body(request),email=String(d?.email||"").trim().toLowerCase(),password=String(d?.password||"");
    if(!email||email.length>320||!email.includes("@")||password.length<14)return json({detail:"استخدم بريدًا صحيحًا وكلمة مرور من 14 حرفًا على الأقل"},400);
    const exists=await sql`SELECT 1 FROM users WHERE lower(email)=lower(${email})`;if(exists.length)return json({detail:"الحساب موجود"},409);
-   const id=uuid(),ph=await passwordHash(password);
-   await sql`INSERT INTO users(id,email,password_hash,role,active) VALUES(${id},${email},${ph},'owner',TRUE)`;
-   await sql`INSERT INTO audit_log(id,actor_id,action,entity_type,entity_id,details) VALUES(${uuid()},${id},'bootstrap_owner','user',${id},'initial owner created')`;
-   return json({status:"ok",owner_created:true},201);
+   try{
+    const id=uuid(),ph=await passwordHash(password);
+    await sql.begin(async tx=>{
+     await tx`INSERT INTO users(id,email,password_hash,role,active) VALUES(${id},${email},${ph},'owner',TRUE)`;
+     await tx`INSERT INTO audit_log(id,actor_id,action,entity_type,entity_id,details) VALUES(${uuid()},${id},'bootstrap_owner','user',${id},'initial owner created')`;
+    });
+    return json({status:"ok",owner_created:true},201);
+   }catch(e){
+    console.error("bootstrap_owner_failed",e?.name,e?.message);
+    return json({detail:"تعذر إنشاء حساب المالك"},500);
+   }
   }
   if(url.pathname==="/auth/login"&&request.method==="POST"){
    const d=await body(request); if(!d?.email||typeof d.password!=="string")return json({detail:"بيانات الدخول غير صحيحة"},401);
