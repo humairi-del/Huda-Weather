@@ -51,4 +51,8 @@ jobs:
           REFRESH="$REFRESH" node -e 'const d=JSON.parse(process.env.REFRESH); if(d.status!=="ok"||!Array.isArray(d.models)||d.models.filter(x=>x.status==="ok").length<4) process.exit(1); console.log("Weather model refresh verified.")'
           ANALYZE="$(curl --fail --silent --show-error -X POST https://rasid.hada-weather.com/admin/weather/analyze -H "Authorization: Bearer $TOKEN")"
           ANALYZE="$ANALYZE" node -e 'const d=JSON.parse(process.env.ANALYZE); if(d.status!=="ok"||!d.analysis||!d.analysis.confidence) process.exit(1); console.log("Weather consensus analysis verified.")'
+          DUST="$(curl --fail --silent --show-error https://rasid.hada-weather.com/weather/dust)"
+          DUST="$DUST" node -e 'const d=JSON.parse(process.env.DUST); if(d.status!=="ok") process.exit(1); console.log("Dust monitoring verified.")'
+          SEA="$(curl --fail --silent --show-error https://rasid.hada-weather.com/weather/arabian-sea)"
+          SEA="$SEA" node -e 'const d=JSON.parse(process.env.SEA); if(d.status!=="ok"||d.points_checked<8) process.exit(1); console.log("Arabian Sea monitoring verified.")'
           curl --fail --silent --show-error -X POST https://rasid.hada-weather.com/auth/logout -H "Authorization: Bearer $TOKEN" >/dev/null
