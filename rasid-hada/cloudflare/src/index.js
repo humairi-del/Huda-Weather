@@ -39,6 +39,35 @@ export default {async fetch(request,env){
    const ready=r?.[0]?.version==="002_auth_sessions";
    return json({status:ready?"ok":"error",database:ready?"connected":"unavailable",schema:ready?"ready":"unavailable"},ready?200:503);
   }
+  if(url.pathname==="/admin/weather/refresh"&&request.method==="POST"){
+   const u=await auth(request,sql,"owner");if(!u)return json({detail:"غير مصرح"},403);
+   const configs=[
+    ["ECMWF","ecmwf_ifs025"],["AIFS","ecmwf_aifs025_single"],["GFS","gfs_global"],["ICON","icon_global"],["CMC","gem_global"]
+   ];
+   const vars="temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,wind_direction_10m,cape";
+   const saved=[];
+   for(const [model,apiModel] of configs){
+    const api=new URL("https://api.open-meteo.com/v1/forecast");
+    api.search=new URLSearchParams({latitude:"14.212599",longitude:"47.161149",hourly:vars,forecast_days:"2",timezone:"Asia/Aden",models:apiModel}).toString();
+    const res=await fetch(api,{headers:{"User-Agent":"Rasid-Hada/1.0"}});
+    if(!res.ok){saved.push({model,status:"source_error",http:res.status});continue}
+    const d=await res.json(),h=d.hourly;if(!h?.time?.length){saved.push({model,status:"empty"});continue}
+    const runId=uuid(),runTime=new Date().toISOString();
+    await sql`INSERT INTO weather_model_runs(id,model,run_time,source) VALUES(${runId},${model},${runTime},${"Open-Meteo/"+apiModel})`;
+    let n=0;
+    for(let i=0;i<h.time.length;i++){
+     const target=new Date(h.time[i]+"+03:00").toISOString();
+     const rain=Number.isFinite(h.precipitation?.[i])?h.precipitation[i]:null;
+     const cape=Number.isFinite(h.cape?.[i])?h.cape[i]:null;
+     const risk=cape>=2000?"high":cape>=1000?"moderate":cape>=300?"low":"none";
+     await sql`INSERT INTO weather_forecast_points(id,run_id,target_time,latitude,longitude,rain_mm,temperature_c,humidity_pct,wind_kph,wind_direction_deg,severe_risk,raw_summary) VALUES(${uuid()},${runId},${target},14.212599,47.161149,${rain},${h.temperature_2m?.[i]??null},${h.relative_humidity_2m?.[i]??null},${h.wind_speed_10m?.[i]??null},${h.wind_direction_10m?.[i]??null},${risk},${cape==null?null:"CAPE="+cape})`;
+     n++;
+    }
+    saved.push({model,status:"ok",points:n});
+   }
+   await sql`INSERT INTO audit_log(id,actor_id,action,entity_type,entity_id,details) VALUES(${uuid()},${u.id},'refresh_weather','weather','hada',${JSON.stringify(saved)})`;
+   return json({status:"ok",location:"هدى - حبان - شبوة",horizon_hours:48,models:saved});
+  }
   if(url.pathname==="/weather/analysis/latest"&&request.method==="GET"){
    const a=await sql`SELECT id,created_at,horizon_start,horizon_end,latitude,longitude,summary,best_model,confidence,material_change FROM analysis_runs ORDER BY created_at DESC LIMIT 1`;
    if(!a.length)return json({status:"empty",detail:"لا يوجد تحليل جوي محفوظ بعد"});
