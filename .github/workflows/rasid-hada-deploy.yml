@@ -1,0 +1,35 @@
+name: Deploy Rasid Hada Worker
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rasid-hada/cloudflare
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rasid-hada-private
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: rasid-hada/cloudflare/package-lock.json
+      - run: npm install
+      - name: Deploy Worker
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 1a16d4f178bae474099aa23095030294
+      - name: Verify production
+        run: |
+          curl --fail --silent --show-error https://rasid.hada-weather.com/health
+          echo
+          curl --fail --silent --show-error https://rasid.hada-weather.com/health/db
+          echo
