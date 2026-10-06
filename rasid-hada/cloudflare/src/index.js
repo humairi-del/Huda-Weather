@@ -118,6 +118,18 @@ export default {async fetch(request,env){
    const rows=await sql`SELECT r.model,r.run_time,r.fetched_at,r.source,p.target_time,p.rain_mm,p.rain_probability,p.temperature_c,p.humidity_pct,p.wind_kph,p.wind_direction_deg,p.thunder_probability,p.severe_risk FROM weather_model_runs r JOIN weather_forecast_points p ON p.run_id=r.id WHERE r.id IN (SELECT DISTINCT ON (model) id FROM weather_model_runs ORDER BY model,run_time DESC) AND p.target_time>=NOW() AND p.target_time<NOW()+INTERVAL '48 hours' ORDER BY p.target_time,r.model`;
    return json({status:"ok",horizon_hours:48,location:{name:"هدى - حبان - شبوة",latitude:14.212599,longitude:47.161149},points:rows});
   }
+  if(url.pathname==="/ai/status"&&request.method==="GET"){
+   const s=await sql`SELECT key,value FROM system_settings WHERE key IN ('ai_enabled','visitor_ai_daily_limit')`;
+   const m=Object.fromEntries(s.map(x=>[x.key,x.value]));
+   return json({enabled:m.ai_enabled==="true",visitor_daily_limit:Number(m.visitor_ai_daily_limit||10)});
+  }
+  if(url.pathname==="/admin/ai/settings"&&request.method==="PATCH"){
+   const u=await auth(request,sql,"owner");if(!u)return json({detail:"غير مصرح"},403);
+   const d=await body(request);if(typeof d?.enabled!=="boolean")return json({detail:"بيانات غير صالحة"},400);
+   await sql`INSERT INTO system_settings(key,value,updated_at) VALUES('ai_enabled',${d.enabled?'true':'false'},NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()`;
+   await sql`INSERT INTO audit_log(id,actor_id,action,entity_type,entity_id,details) VALUES(${uuid()},${u.id},'set_ai_enabled','system','ai',${d.enabled?'enabled':'disabled'})`;
+   return json({status:"ok",enabled:d.enabled});
+  }
   if(url.pathname==="/auth/login"&&request.method==="POST"){
    const d=await body(request); if(!d?.email||typeof d.password!=="string")return json({detail:"بيانات الدخول غير صحيحة"},401);
    const rows=await sql`SELECT id,email,password_hash,role,active FROM users WHERE lower(email)=lower(${String(d.email)}) LIMIT 1`; const u=rows[0];
