@@ -35,8 +35,8 @@ export default {async fetch(request,env){
  const sql=postgres(env.HYPERDRIVE.connectionString,{max:1,fetch_types:false,prepare:true});
  try{
   if(url.pathname==="/health/db"){
-   const r=await sql`SELECT version FROM schema_migrations WHERE version='002_auth_sessions'`;
-   const ready=r?.[0]?.version==="002_auth_sessions";
+   const r=await sql`SELECT version FROM schema_migrations WHERE version='003_weather_intelligence'`;
+   const ready=r?.[0]?.version==="003_weather_intelligence";
    return json({status:ready?"ok":"error",database:ready?"connected":"unavailable",schema:ready?"ready":"unavailable"},ready?200:503);
   }
   if(url.pathname==="/admin/weather/refresh"&&request.method==="POST"){
