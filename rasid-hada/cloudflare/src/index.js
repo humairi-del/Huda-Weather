@@ -96,7 +96,9 @@ export default {async fetch(request,env){
    const thunderText=best.weightedThunderProbability==null?"":`، واحتمال الرعد المتاح ${Math.round(best.weightedThunderProbability)}%`;
    const summary=agree?(`أفضل فرصة خلال 48 ساعة قرب ${best.time}: اتفاق مرجح ${Math.round(ratio*100)}% (${agree} من ${best.xs.length} موديلات)، ومتوسط مطر مرجح ${best.weightedRain.toFixed(2)} مم${probabilityText}${thunderText}.`):"لا يظهر اتفاق معتبر على هطول خلال 48 ساعة.";
    const previous=await sql`SELECT summary,best_model,confidence FROM analysis_runs ORDER BY created_at DESC LIMIT 1`;
-   const material=!previous.length||previous[0].confidence!==confidence||previous[0].summary!==summary;
+   const parseSummary=s=>{const t=String(s||"");const agreement=Number(t.match(/اتفاق مرجح (\\d+)%/)?.[1]);const rain=Number(t.match(/مطر مرجح ([\\d.]+) مم/)?.[1]);const probability=Number(t.match(/احتمال المطر المتاح (\\d+)%/)?.[1]);const time=t.match(/قرب ([^:]+T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z)/)?.[1];return {agreement:Number.isFinite(agreement)?agreement:null,rain:Number.isFinite(rain)?rain:null,probability:Number.isFinite(probability)?probability:null,time:time?Date.parse(time):null}};
+   const prev=previous[0],pv=parseSummary(prev?.summary),cv={agreement:Math.round(ratio*100),rain:best.weightedRain,probability:best.weightedProbability,time:Date.parse(best.time)};
+   const material=!prev||prev.confidence!==confidence||(pv.agreement!=null&&Math.abs(cv.agreement-pv.agreement)>=15)||(pv.rain!=null&&Math.abs(cv.rain-pv.rain)>=0.5)||(pv.probability!=null&&cv.probability!=null&&Math.abs(cv.probability-pv.probability)>=20)||(pv.time!=null&&Number.isFinite(cv.time)&&Math.abs(cv.time-pv.time)>=3*3600000);
    const id=uuid(),startTime=new Date().toISOString(),endTime=new Date(Date.now()+48*3600000).toISOString();
    const ranked=Object.entries(skill).filter(([,v])=>v.samples>=5).sort((a,b)=>b[1].weight-a[1].weight);
    const bestModel=ranked[0]?.[0]||null;
