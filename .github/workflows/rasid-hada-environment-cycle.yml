@@ -1,0 +1,24 @@
+name: Rasid Hada Environment Cycle
+
+on:
+  schedule:
+    - cron: '27 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify sandstorm monitor
+        run: |
+          set -e
+          curl --fail --silent --show-error https://rasid.hada-weather.com/weather/dust > /tmp/dust.json
+          node -e 'const d=require("/tmp/dust.json"); if(d.status!=="ok") process.exit(1); console.log("Sandstorm monitor verified.")'
+      - name: Verify Arabian Sea monitor
+        run: |
+          set -e
+          curl --fail --silent --show-error https://rasid.hada-weather.com/weather/arabian-sea > /tmp/sea.json
+          node -e 'const d=require("/tmp/sea.json"); if(d.status!=="ok"||!Array.isArray(d.points)) process.exit(1); console.log("Arabian Sea monitor verified.")'
