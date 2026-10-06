@@ -1,4 +1,4 @@
-import { Client } from "pg";
+import postgres from "postgres";
 
 const json = (body, status = 200) =>
   Response.json(body, {
@@ -14,44 +14,35 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/health") {
-      return json({
-        status: "ok",
-        service: "rasid-hada",
-        environment: "production"
-      });
+      return json({ status: "ok", service: "rasid-hada", environment: "production" });
     }
 
     if (url.pathname === "/health/db") {
-      const client = new Client({
-        connectionString: env.HYPERDRIVE.connectionString
+      const sql = postgres(env.HYPERDRIVE.connectionString, {
+        max: 1,
+        fetch_types: false,
+        prepare: true
       });
 
       try {
-        await client.connect();
-        const result = await client.query("SELECT 1 AS ok");
-        const connected = result.rows?.[0]?.ok === 1;
-
+        const result = await sql`
+          SELECT version
+          FROM schema_migrations
+          WHERE version = '001_initial_governance'
+        `;
+        const ready = result?.[0]?.version === "001_initial_governance";
         return json(
           {
-            status: connected ? "ok" : "error",
-            database: connected ? "connected" : "unavailable"
+            status: ready ? "ok" : "error",
+            database: ready ? "connected" : "unavailable",
+            schema: ready ? "ready" : "unavailable"
           },
-          connected ? 200 : 503
+          ready ? 200 : 503
         );
       } catch {
-        return json(
-          {
-            status: "error",
-            database: "unavailable"
-          },
-          503
-        );
+        return json({ status: "error", database: "unavailable", schema: "unavailable" }, 503);
       } finally {
-        try {
-          await client.end();
-        } catch {
-          // Never expose connection details or credentials.
-        }
+        try { await sql.end({ timeout: 1 }); } catch {}
       }
     }
 
