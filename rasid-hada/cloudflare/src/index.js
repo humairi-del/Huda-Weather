@@ -25,6 +25,9 @@ async function auth(request,sql,role){
  const rows=await sql`SELECT u.id,u.email,u.role,u.active FROM auth_sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=${hash} AND s.expires_at>NOW() AND u.active=TRUE`;
  const u=rows[0]; if(!u||(role&&u.role!==role))return null; return u;
 }
+async function authAny(request,sql,roles){
+ const u=await auth(request,sql); return u&&roles.includes(u.role)?u:null;
+}
 function uuid(){return crypto.randomUUID()}
 export default {async fetch(request,env){
  const url=new URL(request.url);
@@ -64,6 +67,39 @@ export default {async fetch(request,env){
    await sql`INSERT INTO users(id,email,password_hash,role,active) VALUES(${id},${String(d.email)},${ph},'teacher',TRUE)`;
    await sql`INSERT INTO audit_log(id,actor_id,action,entity_type,entity_id,details) VALUES(${uuid()},${u.id},'create_teacher','user',${id},'')`;
    return json({id,email:String(d.email),role:"teacher"},201);
+  }
+  if(url.pathname==="/knowledge"&&request.method==="GET"){
+   const rows=await sql`SELECT id,subject,statement,source_note,created_at,reviewed_at FROM knowledge_items WHERE status='approved' ORDER BY reviewed_at DESC NULLS LAST,created_at DESC LIMIT 200`;
+   return json({items:rows});
+  }
+  if(url.pathname==="/knowledge/submissions"&&request.method==="POST"){
+   const u=await authAny(request,sql,["owner","teacher"]);if(!u)return json({detail:"غير مصرح"},403);
+   const d=await body(request);
+   const subject=String(d?.subject||"").trim(),statement=String(d?.statement||"").trim(),source=String(d?.source_note||"").trim();
+   if(!subject||subject.length>200||!statement||statement.length>10000||source.length>1000)return json({detail:"بيانات غير صالحة"},400);
+   const id=uuid();
+   await sql`INSERT INTO knowledge_items(id,subject,statement,source_note,status,submitted_by) VALUES(${id},${subject},${statement},${source||null},'pending',${u.id})`;
+   await sql`INSERT INTO audit_log(id,actor_id,action,entity_type,entity_id,details) VALUES(${uuid()},${u.id},'submit_knowledge','knowledge_item',${id},'pending')`;
+   return json({id,status:"pending"},201);
+  }
+  if(url.pathname==="/admin/knowledge/pending"&&request.method==="GET"){
+   const u=await auth(request,sql,"owner");if(!u)return json({detail:"غير مصرح"},403);
+   const rows=await sql`SELECT k.id,k.subject,k.statement,k.source_note,k.created_at,u.email AS submitted_by_email FROM knowledge_items k JOIN users u ON u.id=k.submitted_by WHERE k.status='pending' ORDER BY k.created_at`;
+   return json({items:rows});
+  }
+  const review=url.pathname.match(/^\/admin\/knowledge\/([0-9a-f-]+)\/review$/i);
+  if(review&&request.method==="PATCH"){
+   const u=await auth(request,sql,"owner");if(!u)return json({detail:"غير مصرح"},403);
+   const d=await body(request);if(!["approved","rejected"].includes(d?.status))return json({detail:"الحالة غير صالحة"},400);
+   const rows=await sql`UPDATE knowledge_items SET status=${d.status},reviewed_by=${u.id},reviewed_at=NOW() WHERE id=${review[1]} AND status='pending' RETURNING id,status`;
+   if(!rows.length)return json({detail:"العنصر غير موجود أو تمت مراجعته سابقًا"},409);
+   await sql`INSERT INTO audit_log(id,actor_id,action,entity_type,entity_id,details) VALUES(${uuid()},${u.id},'review_knowledge','knowledge_item',${review[1]},${d.status})`;
+   return json(rows[0]);
+  }
+  if(url.pathname==="/admin/audit"&&request.method==="GET"){
+   const u=await auth(request,sql,"owner");if(!u)return json({detail:"غير مصرح"},403);
+   const rows=await sql`SELECT a.id,a.action,a.entity_type,a.entity_id,a.details,a.created_at,u.email AS actor_email FROM audit_log a JOIN users u ON u.id=a.actor_id ORDER BY a.created_at DESC LIMIT 200`;
+   return json({events:rows});
   }
   const m=url.pathname.match(/^\/admin\/teachers\/([0-9a-f-]+)\/active$/i);
   if(m&&request.method==="PATCH"){
