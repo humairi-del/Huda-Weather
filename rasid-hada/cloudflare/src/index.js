@@ -44,7 +44,7 @@ export default {async fetch(request,env){
    const configs=[
     ["ECMWF","ecmwf_ifs025"],["AIFS","ecmwf_aifs025_single"],["GFS","gfs_global"],["ICON","icon_global"],["CMC","gem_global"]
    ];
-   const vars="temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,wind_direction_10m,cape";
+   const vars="temperature_2m,relative_humidity_2m,precipitation,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cape";
    const saved=[];
    for(const [model,apiModel] of configs){
     const api=new URL("https://api.open-meteo.com/v1/forecast");
@@ -60,7 +60,7 @@ export default {async fetch(request,env){
      const rain=Number.isFinite(h.precipitation?.[i])?h.precipitation[i]:null;
      const cape=Number.isFinite(h.cape?.[i])?h.cape[i]:null;
      const risk=cape>=2000?"high":cape>=1000?"moderate":cape>=300?"low":"none";
-     await sql`INSERT INTO weather_forecast_points(id,run_id,target_time,latitude,longitude,rain_mm,temperature_c,humidity_pct,wind_kph,wind_direction_deg,severe_risk,raw_summary) VALUES(${uuid()},${runId},${target},14.212599,47.161149,${rain},${h.temperature_2m?.[i]??null},${h.relative_humidity_2m?.[i]??null},${h.wind_speed_10m?.[i]??null},${h.wind_direction_10m?.[i]??null},${risk},${cape==null?null:"CAPE="+cape})`;
+     await sql`INSERT INTO weather_forecast_points(id,run_id,target_time,latitude,longitude,rain_mm,temperature_c,humidity_pct,wind_kph,wind_direction_deg,cloud_cover_pct,wind_gust_kph,severe_risk,raw_summary) VALUES(${uuid()},${runId},${target},14.212599,47.161149,${rain},${h.temperature_2m?.[i]??null},${h.relative_humidity_2m?.[i]??null},${h.wind_speed_10m?.[i]??null},${h.wind_direction_10m?.[i]??null},${h.cloud_cover?.[i]??null},${h.wind_gusts_10m?.[i]??null},${risk},${cape==null?null:"CAPE="+cape})`;
      n++;
     }
     saved.push({model,status:"ok",points:n});
@@ -70,7 +70,7 @@ export default {async fetch(request,env){
   }
   if(url.pathname==="/admin/weather/analyze"&&request.method==="POST"){
    const u=await auth(request,sql,"owner");if(!u)return json({detail:"غير مصرح"},403);
-   const rows=await sql`SELECT r.model,p.target_time,p.rain_mm,p.wind_kph,p.severe_risk FROM weather_model_runs r JOIN weather_forecast_points p ON p.run_id=r.id WHERE r.id IN (SELECT DISTINCT ON (model) id FROM weather_model_runs ORDER BY model,run_time DESC) AND p.target_time>=NOW() AND p.target_time<NOW()+INTERVAL '48 hours' ORDER BY p.target_time,r.model`;
+   const rows=await sql`SELECT r.model,p.target_time,p.rain_mm,p.wind_kph,p.wind_gust_kph,p.cloud_cover_pct,p.severe_risk FROM weather_model_runs r JOIN weather_forecast_points p ON p.run_id=r.id WHERE r.id IN (SELECT DISTINCT ON (model) id FROM weather_model_runs ORDER BY model,run_time DESC) AND p.target_time>=NOW() AND p.target_time<NOW()+INTERVAL '48 hours' ORDER BY p.target_time,r.model`;
    if(!rows.length)return json({detail:"لا توجد بيانات موديلات"},409);
    const skillRows=await sql`SELECT model,COUNT(*)::int AS samples,AVG(absolute_error)::float AS mae FROM weather_verifications WHERE verified_at>=NOW()-INTERVAL '90 days' AND absolute_error IS NOT NULL GROUP BY model`;
    const skill={};for(const s of skillRows){const n=Number(s.samples),mae=Number(s.mae);skill[s.model]={samples:n,mae,weight:n>=5?Math.max(.35,Math.min(1.65,1.35/(1+mae))):1}}
@@ -115,7 +115,7 @@ export default {async fetch(request,env){
    return json({status:"ok",location:{name:"هدى - حبان - شبوة",latitude:14.212599,longitude:47.161149,timezone:"Asia/Aden"},analysis:a[0],models,alerts});
   }
   if(url.pathname==="/weather/models/latest"&&request.method==="GET"){
-   const rows=await sql`SELECT r.model,r.run_time,r.fetched_at,r.source,p.target_time,p.rain_mm,p.rain_probability,p.temperature_c,p.humidity_pct,p.wind_kph,p.wind_direction_deg,p.thunder_probability,p.severe_risk FROM weather_model_runs r JOIN weather_forecast_points p ON p.run_id=r.id WHERE r.id IN (SELECT DISTINCT ON (model) id FROM weather_model_runs ORDER BY model,run_time DESC) AND p.target_time>=NOW() AND p.target_time<NOW()+INTERVAL '48 hours' ORDER BY p.target_time,r.model`;
+   const rows=await sql`SELECT r.model,r.run_time,r.fetched_at,r.source,p.target_time,p.rain_mm,p.rain_probability,p.temperature_c,p.humidity_pct,p.wind_kph,p.wind_direction_deg,p.wind_gust_kph,p.cloud_cover_pct,p.thunder_probability,p.severe_risk FROM weather_model_runs r JOIN weather_forecast_points p ON p.run_id=r.id WHERE r.id IN (SELECT DISTINCT ON (model) id FROM weather_model_runs ORDER BY model,run_time DESC) AND p.target_time>=NOW() AND p.target_time<NOW()+INTERVAL '48 hours' ORDER BY p.target_time,r.model`;
    return json({status:"ok",horizon_hours:48,location:{name:"هدى - حبان - شبوة",latitude:14.212599,longitude:47.161149},points:rows});
   }
   if(url.pathname==="/ai/status"&&request.method==="GET"){
