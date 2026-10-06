@@ -3,6 +3,9 @@
   "name": "rasid-hada",
   "main": "src/entry.js",
   "compatibility_date": "2026-10-05",
+  "rules": [
+    { "type": "Text", "globs": ["**/*.html", "**/*.js"], "fallthrough": true }
+  ],
   "ai": {
     "binding": "AI"
   },
