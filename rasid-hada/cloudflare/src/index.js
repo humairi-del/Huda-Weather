@@ -31,10 +31,6 @@ export default {async fetch(request,env){
  if(url.pathname==="/health")return json({status:"ok",service:"rasid-hada",environment:"production"});
  const sql=postgres(env.HYPERDRIVE.connectionString,{max:1,fetch_types:false,prepare:true});
  try{
-  await sql.unsafe("CREATE TABLE IF NOT EXISTS auth_sessions (token_hash CHAR(64) PRIMARY KEY, user_id VARCHAR(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE, expires_at TIMESTAMPTZ NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
-  await sql.unsafe("CREATE INDEX IF NOT EXISTS ix_auth_sessions_user_id ON auth_sessions(user_id)");
-  await sql.unsafe("CREATE INDEX IF NOT EXISTS ix_auth_sessions_expires_at ON auth_sessions(expires_at)");
-  await sql.unsafe("INSERT INTO schema_migrations(version) VALUES ('002_auth_sessions') ON CONFLICT (version) DO NOTHING");
   if(url.pathname==="/health/db"){
    const r=await sql`SELECT version FROM schema_migrations WHERE version='002_auth_sessions'`;
    const ready=r?.[0]?.version==="002_auth_sessions";
