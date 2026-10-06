@@ -39,6 +39,26 @@ export default {async fetch(request,env){
    const ready=r?.[0]?.version==="002_auth_sessions";
    return json({status:ready?"ok":"error",database:ready?"connected":"unavailable",schema:ready?"ready":"unavailable"},ready?200:503);
   }
+  if(url.pathname==="/auth/setup-status"&&request.method==="GET"){
+   const r=await sql`SELECT COUNT(*)::int AS n FROM users WHERE role='owner'`;
+   return json({setup_required:r[0].n===0});
+  }
+  if(url.pathname==="/auth/bootstrap-owner"&&request.method==="POST"){
+   if(!env.OWNER_BOOTSTRAP_SECRET)return json({detail:"إعداد المالك مغلق"},503);
+   const supplied=request.headers.get("X-Bootstrap-Secret")||"";
+   const a=enc.encode(await sha256(supplied)),b=enc.encode(await sha256(env.OWNER_BOOTSTRAP_SECRET));
+   let diff=a.length^b.length;for(let i=0;i<Math.min(a.length,b.length);i++)diff|=a[i]^b[i];
+   if(diff!==0)return json({detail:"غير مصرح"},403);
+   const owners=await sql`SELECT COUNT(*)::int AS n FROM users WHERE role='owner'`;
+   if(owners[0].n!==0)return json({detail:"تم إنشاء المالك مسبقًا"},409);
+   const d=await body(request),email=String(d?.email||"").trim().toLowerCase(),password=String(d?.password||"");
+   if(!email||email.length>320||!email.includes("@")||password.length<14)return json({detail:"استخدم بريدًا صحيحًا وكلمة مرور من 14 حرفًا على الأقل"},400);
+   const exists=await sql`SELECT 1 FROM users WHERE lower(email)=lower(${email})`;if(exists.length)return json({detail:"الحساب موجود"},409);
+   const id=uuid(),ph=await passwordHash(password);
+   await sql`INSERT INTO users(id,email,password_hash,role,active) VALUES(${id},${email},${ph},'owner',TRUE)`;
+   await sql`INSERT INTO audit_log(id,actor_id,action,entity_type,entity_id,details) VALUES(${uuid()},${id},'bootstrap_owner','user',${id},'initial owner created')`;
+   return json({status:"ok",owner_created:true},201);
+  }
   if(url.pathname==="/auth/login"&&request.method==="POST"){
    const d=await body(request); if(!d?.email||typeof d.password!=="string")return json({detail:"بيانات الدخول غير صحيحة"},401);
    const rows=await sql`SELECT id,email,password_hash,role,active FROM users WHERE lower(email)=lower(${String(d.email)}) LIMIT 1`; const u=rows[0];
