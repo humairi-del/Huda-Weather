@@ -50,6 +50,8 @@ jobs:
           STATUS="$(curl --fail --silent --show-error https://rasid.hada-weather.com/auth/setup-status)"
           if echo "$STATUS" | grep -q '"setup_required":true'; then
             BOOTSTRAP_SECRET="$(openssl rand -hex 32)"
+            AUTH_PEPPER="$(openssl rand -hex 32)"
+            printf '%s' "$AUTH_PEPPER" | npx wrangler secret put AUTH_PEPPER
             printf '%s' "$BOOTSTRAP_SECRET" | npx wrangler secret put OWNER_BOOTSTRAP_SECRET
             cleanup() { npx wrangler secret delete OWNER_BOOTSTRAP_SECRET --force >/dev/null 2>&1 || true; }
             trap cleanup EXIT
