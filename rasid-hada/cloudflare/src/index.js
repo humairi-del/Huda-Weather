@@ -39,6 +39,17 @@ export default {async fetch(request,env){
    const ready=r?.[0]?.version==="002_auth_sessions";
    return json({status:ready?"ok":"error",database:ready?"connected":"unavailable",schema:ready?"ready":"unavailable"},ready?200:503);
   }
+  if(url.pathname==="/weather/analysis/latest"&&request.method==="GET"){
+   const a=await sql`SELECT id,created_at,horizon_start,horizon_end,latitude,longitude,summary,best_model,confidence,material_change FROM analysis_runs ORDER BY created_at DESC LIMIT 1`;
+   if(!a.length)return json({status:"empty",detail:"لا يوجد تحليل جوي محفوظ بعد"});
+   const models=await sql`SELECT DISTINCT ON (r.model) r.model,r.run_time,r.fetched_at,r.source FROM weather_model_runs r ORDER BY r.model,r.run_time DESC`;
+   const alerts=await sql`SELECT id,alert_type,severity,title,message,starts_at,ends_at,created_at FROM weather_alerts WHERE active=TRUE ORDER BY created_at DESC LIMIT 20`;
+   return json({status:"ok",location:{name:"هدى - حبان - شبوة",latitude:14.212599,longitude:47.161149,timezone:"Asia/Aden"},analysis:a[0],models,alerts});
+  }
+  if(url.pathname==="/weather/models/latest"&&request.method==="GET"){
+   const rows=await sql`SELECT r.model,r.run_time,r.fetched_at,r.source,p.target_time,p.rain_mm,p.rain_probability,p.temperature_c,p.humidity_pct,p.wind_kph,p.wind_direction_deg,p.thunder_probability,p.severe_risk FROM weather_model_runs r JOIN weather_forecast_points p ON p.run_id=r.id WHERE r.id IN (SELECT DISTINCT ON (model) id FROM weather_model_runs ORDER BY model,run_time DESC) AND p.target_time>=NOW() AND p.target_time<NOW()+INTERVAL '48 hours' ORDER BY p.target_time,r.model`;
+   return json({status:"ok",horizon_hours:48,location:{name:"هدى - حبان - شبوة",latitude:14.212599,longitude:47.161149},points:rows});
+  }
   if(url.pathname==="/auth/login"&&request.method==="POST"){
    const d=await body(request); if(!d?.email||typeof d.password!=="string")return json({detail:"بيانات الدخول غير صحيحة"},401);
    const rows=await sql`SELECT id,email,password_hash,role,active FROM users WHERE lower(email)=lower(${String(d.email)}) LIMIT 1`; const u=rows[0];
