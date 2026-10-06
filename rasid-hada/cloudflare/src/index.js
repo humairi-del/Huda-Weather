@@ -60,7 +60,7 @@ export default {async fetch(request,env){
      const rain=Number.isFinite(h.precipitation?.[i])?h.precipitation[i]:null;
      const cape=Number.isFinite(h.cape?.[i])?h.cape[i]:null;
      const risk=cape>=2000?"high":cape>=1000?"moderate":cape>=300?"low":"none";
-     await sql`INSERT INTO weather_forecast_points(id,run_id,target_time,latitude,longitude,rain_mm,temperature_c,humidity_pct,wind_kph,wind_direction_deg,cloud_cover_pct,wind_gust_kph,severe_risk,raw_summary) VALUES(${uuid()},${runId},${target},14.212599,47.161149,${rain},${h.temperature_2m?.[i]??null},${h.relative_humidity_2m?.[i]??null},${h.wind_speed_10m?.[i]??null},${h.wind_direction_10m?.[i]??null},${h.cloud_cover?.[i]??null},${h.wind_gusts_10m?.[i]??null},${risk},${cape==null?null:"CAPE="+cape})`;
+     await sql`INSERT INTO weather_forecast_points(id,run_id,target_time,latitude,longitude,rain_mm,rain_probability,temperature_c,humidity_pct,wind_kph,wind_direction_deg,cloud_cover_pct,wind_gust_kph,thunder_probability,severe_risk,raw_summary) VALUES(${uuid()},${runId},${target},14.212599,47.161149,${rain},${h.precipitation_probability?.[i]??null},${h.temperature_2m?.[i]??null},${h.relative_humidity_2m?.[i]??null},${h.wind_speed_10m?.[i]??null},${h.wind_direction_10m?.[i]??null},${h.cloud_cover?.[i]??null},${h.wind_gusts_10m?.[i]??null},${h.thunderstorm_probability?.[i]??null},${risk},${cape==null?null:"CAPE="+cape})`;
      n++;
     }
     saved.push({model,status:"ok",points:n});
