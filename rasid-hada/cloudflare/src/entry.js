@@ -70,9 +70,11 @@ export default {
    const used=Number(usedRows[0]?.n||0);
    if(used>=limit)return json({detail:"تم الوصول إلى الحد اليومي",limit,remaining:0},429);
    const latest=await sql`SELECT summary,confidence,created_at FROM analysis_runs ORDER BY created_at DESC LIMIT 1`;
+   const rainStats=await sql`SELECT MAX(p.rain_probability)::float AS max_probability FROM weather_forecast_points p JOIN weather_model_runs r ON r.id=p.run_id WHERE p.target_time>=NOW() AND p.target_time<NOW()+INTERVAL '48 hours' AND r.run_time=(SELECT MAX(r2.run_time) FROM weather_model_runs r2 WHERE r2.model=r.model)`;
    const knowledge=await sql`SELECT subject,statement FROM knowledge_items WHERE status='approved' ORDER BY reviewed_at DESC NULLS LAST,created_at DESC LIMIT 20`;
-   const context=[latest[0]?.summary?("آخر تحليل آلي: "+latest[0].summary+" الثقة: "+latest[0].confidence):"لا يوجد تحليل محفوظ.",...knowledge.map(x=>x.subject+": "+x.statement)].join("\n");
-   const system="أنت مساعد راصد هدى للطقس في هدى وحبان بشبوة. أجب بالعربية البسيطة وباختصار. اعتمد فقط على بيانات الراصد والمعرفة المعتمدة التالية. لا تخترع توقعات أو نسبًا أو رصدًا غير موجود. إذا لم تكف البيانات فقل ذلك بوضوح. لا تعتبر مؤشرات بحر العرب إعصارًا مؤكدًا. البيانات:\n"+context;
+   const maxRainProb=rainStats[0]?.max_probability==null?null:Number(rainStats[0].max_probability);
+   const context=[latest[0]?.summary?("آخر تحليل آلي: "+latest[0].summary+" الثقة: "+latest[0].confidence):"لا يوجد تحليل محفوظ.",maxRainProb==null?"نسبة احتمال المطر خلال 48 ساعة غير متاحة.":"أعلى نسبة احتمال مطر من أحدث تشغيلات الموديلات خلال 48 ساعة: "+maxRainProb+"%.",...knowledge.map(x=>x.subject+": "+x.statement)].join("\n");
+   const system="أنت مساعد راصد هدى للطقس في هدى وحبان بشبوة. أجب بالعربية البسيطة وباختصار. عند السؤال عن المطر ابدأ بتقييم قوة الفرصة ثم اذكر أعلى نسبة احتمال مطر المتاحة؛ أقل من 30% قل لا توجد توقعات قوية وفرص المطر ضعيفة، من 30% إلى أقل من 50% فرصة محدودة، من 50% إلى أقل من 70% فرصة متوسطة، و70% فأكثر فرصة قوية. لا تجعل كمية المليمترات هي الجواب الأساسي ولا تحوّل المليمترات إلى نسبة. اعتمد فقط على بيانات الراصد والمعرفة المعتمدة التالية. لا تخترع توقعات أو نسبًا أو رصدًا غير موجود. إذا لم تكف البيانات فقل ذلك بوضوح. لا تعتبر مؤشرات بحر العرب إعصارًا مؤكدًا. البيانات:\n"+context;
    const out=await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fast",{messages:[{role:"system",content:system},{role:"user",content:message}],max_tokens:500,temperature:0.2});
    const answer=String(out?.response||"").trim();
    if(!answer)return json({detail:"لم تُنتج الخدمة إجابة"},502);
