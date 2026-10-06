@@ -1,3 +1,5 @@
+import ownerPage from "./owner.html";
+import ownerApp from "./owner-app.js";
 import postgres from "postgres";
 import base from "./index.js";
 
@@ -47,7 +49,7 @@ if(token)load();
 export default {
  async fetch(request,env,ctx){
   const url=new URL(request.url);
-  if(url.pathname==="/"||url.pathname==="/owner")return new Response(ownerHtml,{headers:{"Content-Type":"text/html; charset=UTF-8","Cache-Control":"no-store","X-Frame-Options":"DENY","Referrer-Policy":"no-referrer"}});
+  if(url.pathname==="/owner")return new Response(ownerPage,{headers:{"Content-Type":"text/html; charset=UTF-8","Cache-Control":"no-store","X-Frame-Options":"DENY","Referrer-Policy":"no-referrer"}});\n  if(url.pathname==="/owner-app.js")return new Response(ownerApp,{headers:{"Content-Type":"application/javascript; charset=UTF-8","Cache-Control":"no-store"}});\n  if(url.pathname==="/")return new Response("Rasid Hada",{headers:{"Content-Type":"text/plain; charset=UTF-8"}});
   if(url.pathname!=="/ai/chat")return base.fetch(request,env,ctx);
   if(request.method!=="POST")return json({detail:"الطريقة غير مسموحة"},405);
   const sql=postgres(env.HYPERDRIVE.connectionString,{max:1,fetch_types:false,prepare:true});
