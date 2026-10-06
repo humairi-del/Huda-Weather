@@ -47,4 +47,6 @@ jobs:
           TOKEN="$(LOGIN="$LOGIN" node -e 'const d=JSON.parse(process.env.LOGIN); if(!d.access_token) process.exit(1); process.stdout.write(d.access_token)')"
           ME="$(curl --fail --silent --show-error https://rasid.hada-weather.com/auth/me -H "Authorization: Bearer $TOKEN")"
           ME="$ME" node -e 'const d=JSON.parse(process.env.ME); if(d.role!=="owner") process.exit(1); console.log("Owner authentication verified.")'
+          REFRESH="$(curl --fail --silent --show-error -X POST https://rasid.hada-weather.com/admin/weather/refresh -H "Authorization: Bearer $TOKEN")"
+          REFRESH="$REFRESH" node -e 'const d=JSON.parse(process.env.REFRESH); if(d.status!=="ok"||!Array.isArray(d.models)||d.models.filter(x=>x.status==="ok").length<4) process.exit(1); console.log("Weather model refresh verified.")'
           curl --fail --silent --show-error -X POST https://rasid.hada-weather.com/auth/logout -H "Authorization: Bearer $TOKEN" >/dev/null
