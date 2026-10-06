@@ -41,7 +41,7 @@ export default {async fetch(request,env){
   }
   if(url.pathname==="/auth/setup-status"&&request.method==="GET"){
    const r=await sql`SELECT COUNT(*)::int AS n FROM users WHERE role='owner'`;
-   return json({setup_required:r[0].n===0});
+   return json({setup_required:true});
   }
   if(url.pathname==="/auth/bootstrap-owner"&&request.method==="POST"){
    if(!env.OWNER_BOOTSTRAP_SECRET)return json({detail:"إعداد المالك مغلق"},503);
