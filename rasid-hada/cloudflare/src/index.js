@@ -44,7 +44,7 @@ export default {async fetch(request,env){
    const configs=[
     ["ECMWF","ecmwf_ifs025"],["AIFS","ecmwf_aifs025_single"],["GFS","gfs_global"],["ICON","icon_global"],["CMC","gem_global"]
    ];
-   const vars="temperature_2m,relative_humidity_2m,precipitation,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cape";
+   const vars="temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,thunderstorm_probability,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cape";
    const saved=[];
    for(const [model,apiModel] of configs){
     const api=new URL("https://api.open-meteo.com/v1/forecast");
