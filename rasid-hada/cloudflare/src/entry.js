@@ -73,7 +73,7 @@ export default {
    const knowledge=await sql`SELECT subject,statement FROM knowledge_items WHERE status='approved' ORDER BY reviewed_at DESC NULLS LAST,created_at DESC LIMIT 20`;
    const context=[latest[0]?.summary?("آخر تحليل آلي: "+latest[0].summary+" الثقة: "+latest[0].confidence):"لا يوجد تحليل محفوظ.",...knowledge.map(x=>x.subject+": "+x.statement)].join("\n");
    const system="أنت مساعد راصد هدى للطقس في هدى وحبان بشبوة. أجب بالعربية البسيطة وباختصار. اعتمد فقط على بيانات الراصد والمعرفة المعتمدة التالية. لا تخترع توقعات أو نسبًا أو رصدًا غير موجود. إذا لم تكف البيانات فقل ذلك بوضوح. لا تعتبر مؤشرات بحر العرب إعصارًا مؤكدًا. البيانات:\n"+context;
-   const out=await env.AI.run("@cf/meta/llama-3.1-8b-instruct",{messages:[{role:"system",content:system},{role:"user",content:message}],max_tokens:500,temperature:0.2});
+   const out=await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fast",{messages:[{role:"system",content:system},{role:"user",content:message}],max_tokens:500,temperature:0.2});
    const answer=String(out?.response||"").trim();
    if(!answer)return json({detail:"لم تُنتج الخدمة إجابة"},502);
    await sql`INSERT INTO ai_usage(id,visitor_hash,created_at) VALUES(${crypto.randomUUID()},${visitorHash},NOW())`;
