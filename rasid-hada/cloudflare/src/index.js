@@ -92,7 +92,9 @@ export default {async fetch(request,env){
    const agree=best.wet.length,ratio=best.weightedAgree/Math.max(best.totalWeight,.01);
    const confidence=ratio>=.72?"high":ratio>=.52?"medium":ratio>=.32?"low":"unknown";
    const wetModels=best.wet.map(x=>x.model);
-   const probabilityText=best.weightedProbability==null?"":`، ومتوسط احتمال المطر المتاح ${Math.round(best.weightedProbability)}%`;\n   const thunderText=best.weightedThunderProbability==null?"":`، واحتمال الرعد المتاح ${Math.round(best.weightedThunderProbability)}%`;\n   const summary=agree?(`أفضل فرصة خلال 48 ساعة قرب ${best.time}: اتفاق مرجح ${Math.round(ratio*100)}% (${agree} من ${best.xs.length} موديلات)، ومتوسط مطر مرجح ${best.weightedRain.toFixed(2)} مم${probabilityText}${thunderText}.`):"لا يظهر اتفاق معتبر على هطول خلال 48 ساعة.";
+   const probabilityText=best.weightedProbability==null?"":`، ومتوسط احتمال المطر المتاح ${Math.round(best.weightedProbability)}%`;
+   const thunderText=best.weightedThunderProbability==null?"":`، واحتمال الرعد المتاح ${Math.round(best.weightedThunderProbability)}%`;
+   const summary=agree?(`أفضل فرصة خلال 48 ساعة قرب ${best.time}: اتفاق مرجح ${Math.round(ratio*100)}% (${agree} من ${best.xs.length} موديلات)، ومتوسط مطر مرجح ${best.weightedRain.toFixed(2)} مم${probabilityText}${thunderText}.`):"لا يظهر اتفاق معتبر على هطول خلال 48 ساعة.";
    const previous=await sql`SELECT summary,best_model,confidence FROM analysis_runs ORDER BY created_at DESC LIMIT 1`;
    const material=!previous.length||previous[0].confidence!==confidence||previous[0].summary!==summary;
    const id=uuid(),startTime=new Date().toISOString(),endTime=new Date(Date.now()+48*3600000).toISOString();
