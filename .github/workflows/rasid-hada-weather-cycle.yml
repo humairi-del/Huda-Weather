@@ -1,0 +1,28 @@
+name: Rasid Hada Weather Cycle
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  refresh-analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refresh and analyze Hada weather
+        env:
+          OWNER_EMAIL: ${{ secrets.OWNER_EMAIL }}
+          OWNER_PASSWORD: ${{ secrets.OWNER_PASSWORD }}
+        run: |
+          set -euo pipefail
+          PAYLOAD="$(node -e 'process.stdout.write(JSON.stringify({email:process.env.OWNER_EMAIL,password:process.env.OWNER_PASSWORD}))')"
+          LOGIN="$(curl --fail --silent --show-error -X POST https://rasid.hada-weather.com/auth/login -H "Content-Type: application/json" --data "$PAYLOAD")"
+          TOKEN="$(LOGIN="$LOGIN" node -e 'const d=JSON.parse(process.env.LOGIN); if(!d.access_token) process.exit(1); process.stdout.write(d.access_token)')"
+          REFRESH="$(curl --fail --silent --show-error -X POST https://rasid.hada-weather.com/admin/weather/refresh -H "Authorization: Bearer $TOKEN")"
+          REFRESH="$REFRESH" node -e 'const d=JSON.parse(process.env.REFRESH); if(d.status!=="ok"||d.models.filter(x=>x.status==="ok").length<4) process.exit(1); console.log("Weather refresh verified.")'
+          ANALYZE="$(curl --fail --silent --show-error -X POST https://rasid.hada-weather.com/admin/weather/analyze -H "Authorization: Bearer $TOKEN")"
+          ANALYZE="$ANALYZE" node -e 'const d=JSON.parse(process.env.ANALYZE); if(d.status!=="ok"||!d.analysis) process.exit(1); console.log("Weather analysis verified.")'
+          curl --fail --silent --show-error -X POST https://rasid.hada-weather.com/auth/logout -H "Authorization: Bearer $TOKEN" >/dev/null
