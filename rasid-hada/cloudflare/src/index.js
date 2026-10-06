@@ -6,16 +6,16 @@ const enc=new TextEncoder();
 const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
 const randomHex=n=>{const b=new Uint8Array(n);crypto.getRandomValues(b);return [...b].map(x=>x.toString(16).padStart(2,"0")).join("")};
 async function sha256(v){return hex(await crypto.subtle.digest("SHA-256",enc.encode(v)))}
-async function passwordHash(password,salt=randomHex(16)){
- const key=await crypto.subtle.importKey("raw",enc.encode(password),"PBKDF2",false,["deriveBits"]);
- const bits=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:enc.encode(salt),iterations:310000},key,256);
- return `pbkdf2_sha256$310000$${salt}$${hex(bits)}`;
+async function passwordHash(password,pepper,salt=randomHex(16)){
+ if(!pepper)throw new Error("AUTH_PEPPER missing");
+ const key=await crypto.subtle.importKey("raw",enc.encode(pepper),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+ const mac=await crypto.subtle.sign("HMAC",key,enc.encode(salt+"\0"+password));
+ return `hmac_sha256$${salt}$${hex(mac)}`;
 }
-async function passwordOk(password,stored){
- const p=stored.split("$"); if(p.length!==4||p[0]!=="pbkdf2_sha256") return false;
- const key=await crypto.subtle.importKey("raw",enc.encode(password),"PBKDF2",false,["deriveBits"]);
- const bits=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:enc.encode(p[2]),iterations:Number(p[1])},key,256);
- const a=enc.encode(hex(bits)),b=enc.encode(p[3]); if(a.length!==b.length)return false;
+async function passwordOk(password,stored,pepper){
+ const p=stored.split("$");if(p.length!==3||p[0]!=="hmac_sha256"||!pepper)return false;
+ const expected=await passwordHash(password,pepper,p[1]);
+ const a=enc.encode(expected),b=enc.encode(stored);if(a.length!==b.length)return false;
  let d=0;for(let i=0;i<a.length;i++)d|=a[i]^b[i];return d===0;
 }
 async function body(request){try{return await request.json()}catch{return null}}
@@ -55,7 +55,7 @@ export default {async fetch(request,env){
    if(!email||email.length>320||!email.includes("@")||password.length<14)return json({detail:"استخدم بريدًا صحيحًا وكلمة مرور من 14 حرفًا على الأقل"},400);
    const exists=await sql`SELECT 1 FROM users WHERE lower(email)=lower(${email})`;if(exists.length)return json({detail:"الحساب موجود"},409);
    try{
-    const id=uuid(),ph=await passwordHash(password);
+    const id=uuid(),ph=await passwordHash(password,env.AUTH_PEPPER);
     await sql.begin(async tx=>{
      await tx`INSERT INTO users(id,email,password_hash,role,active) VALUES(${id},${email},${ph},'owner',TRUE)`;
      await tx`INSERT INTO audit_log(id,actor_id,action,entity_type,entity_id,details) VALUES(${uuid()},${id},'bootstrap_owner','user',${id},'initial owner created')`;
@@ -69,7 +69,7 @@ export default {async fetch(request,env){
   if(url.pathname==="/auth/login"&&request.method==="POST"){
    const d=await body(request); if(!d?.email||typeof d.password!=="string")return json({detail:"بيانات الدخول غير صحيحة"},401);
    const rows=await sql`SELECT id,email,password_hash,role,active FROM users WHERE lower(email)=lower(${String(d.email)}) LIMIT 1`; const u=rows[0];
-   if(!u||!u.active||!(await passwordOk(d.password,u.password_hash)))return json({detail:"بيانات الدخول غير صحيحة"},401);
+   if(!u||!u.active||!(await passwordOk(d.password,u.password_hash,env.AUTH_PEPPER)))return json({detail:"بيانات الدخول غير صحيحة"},401);
    const token=randomHex(32),hash=await sha256(token);
    await sql`INSERT INTO auth_sessions(token_hash,user_id,expires_at) VALUES(${hash},${u.id},NOW()+INTERVAL '12 hours')`;
    await sql`INSERT INTO audit_log(id,actor_id,action,entity_type,entity_id,details) VALUES(${uuid()},${u.id},'login','user',${u.id},'')`;
@@ -90,7 +90,7 @@ export default {async fetch(request,env){
    const d=await body(request);if(!d?.email||typeof d.password!=="string"||d.password.length<12)return json({detail:"بيانات غير صالحة"},400);
    const c=await sql`SELECT COUNT(*)::int AS n FROM users WHERE role='teacher'`;if(c[0].n>=5)return json({detail:"تم الوصول إلى الحد الأقصى: خمسة معلّمين"},409);
    const exists=await sql`SELECT 1 FROM users WHERE lower(email)=lower(${String(d.email)})`;if(exists.length)return json({detail:"الحساب موجود"},409);
-   const id=uuid(),ph=await passwordHash(d.password);
+   const id=uuid(),ph=await passwordHash(d.password,env.AUTH_PEPPER);
    await sql`INSERT INTO users(id,email,password_hash,role,active) VALUES(${id},${String(d.email)},${ph},'teacher',TRUE)`;
    await sql`INSERT INTO audit_log(id,actor_id,action,entity_type,entity_id,details) VALUES(${uuid()},${u.id},'create_teacher','user',${id},'')`;
    return json({id,email:String(d.email),role:"teacher"},201);
