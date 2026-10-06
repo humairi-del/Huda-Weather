@@ -53,6 +53,7 @@ jobs:
             printf '%s' "$BOOTSTRAP_SECRET" | npx wrangler secret put OWNER_BOOTSTRAP_SECRET
             cleanup() { npx wrangler secret delete OWNER_BOOTSTRAP_SECRET --force >/dev/null 2>&1 || true; }
             trap cleanup EXIT
+            sleep 5
             PAYLOAD="$(node -e 'process.stdout.write(JSON.stringify({email:process.env.OWNER_EMAIL,password:process.env.OWNER_PASSWORD}))')"
             curl --fail --silent --show-error -X POST https://rasid.hada-weather.com/auth/bootstrap-owner \
               -H "Content-Type: application/json" \
