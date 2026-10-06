@@ -2,6 +2,12 @@ name: Deploy Rasid Hada Worker
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - rasid-hada-private
+    paths:
+      - 'rasid-hada/cloudflare/**'
+      - '.github/workflows/rasid-hada-deploy.yml'
 
 permissions:
   contents: read
