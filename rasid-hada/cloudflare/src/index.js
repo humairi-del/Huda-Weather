@@ -68,6 +68,33 @@ export default {async fetch(request,env){
    await sql`INSERT INTO audit_log(id,actor_id,action,entity_type,entity_id,details) VALUES(${uuid()},${u.id},'refresh_weather','weather','hada',${JSON.stringify(saved)})`;
    return json({status:"ok",location:"هدى - حبان - شبوة",horizon_hours:48,models:saved});
   }
+  if(url.pathname==="/admin/weather/analyze"&&request.method==="POST"){
+   const u=await auth(request,sql,"owner");if(!u)return json({detail:"غير مصرح"},403);
+   const rows=await sql`SELECT r.model,p.target_time,p.rain_mm,p.wind_kph,p.severe_risk FROM weather_model_runs r JOIN weather_forecast_points p ON p.run_id=r.id WHERE r.id IN (SELECT DISTINCT ON (model) id FROM weather_model_runs ORDER BY model,run_time DESC) AND p.target_time>=NOW() AND p.target_time<NOW()+INTERVAL '48 hours' ORDER BY p.target_time,r.model`;
+   if(!rows.length)return json({detail:"لا توجد بيانات موديلات"},409);
+   const byTime=new Map();
+   for(const x of rows){const k=new Date(x.target_time).toISOString();if(!byTime.has(k))byTime.set(k,[]);byTime.get(k).push(x)}
+   let best=null;
+   for(const [time,xs] of byTime){
+    const wet=xs.filter(x=>Number(x.rain_mm||0)>=0.1), amounts=xs.map(x=>Number(x.rain_mm||0));
+    const score=wet.length*100+amounts.reduce((a,b)=>a+b,0);
+    if(!best||score>best.score)best={time,xs,wet,score,avgRain:amounts.reduce((a,b)=>a+b,0)/amounts.length};
+   }
+   const agree=best.wet.length, confidence=agree>=4?"high":agree>=3?"medium":agree>=2?"low":"unknown";
+   const wetModels=best.wet.map(x=>x.model);
+   const summary=agree?(`أفضل فرصة خلال 48 ساعة قرب ${best.time}: اتفاق ${agree} من ${best.xs.length} موديلات على هطول، بمتوسط ${best.avgRain.toFixed(2)} مم.`):"لا يظهر اتفاق معتبر على هطول خلال 48 ساعة.";
+   const previous=await sql`SELECT summary,best_model,confidence FROM analysis_runs ORDER BY created_at DESC LIMIT 1`;
+   const material=!previous.length||previous[0].confidence!==confidence||previous[0].summary!==summary;
+   const id=uuid(),start=new Date().toISOString(),end=new Date(Date.now()+48*3600000).toISOString();
+   const modelTotals={};for(const x of rows)modelTotals[x.model]=(modelTotals[x.model]||0)+Number(x.rain_mm||0);
+   const bestModel=Object.entries(modelTotals).sort((a,b)=>b[1]-a[1])[0]?.[0]||null;
+   await sql`INSERT INTO analysis_runs(id,horizon_start,horizon_end,latitude,longitude,summary,best_model,confidence,material_change) VALUES(${id},${start},${end},14.212599,47.161149,${summary},${bestModel},${confidence},${material})`;
+   if(material&&agree>=3){
+    await sql`INSERT INTO weather_alerts(id,analysis_id,alert_type,severity,title,message,starts_at,ends_at) VALUES(${uuid()},${id},'rain_change',${agree>=4?'warning':'watch'},'تغير ملموس في فرص المطر',${summary},${best.time},${new Date(new Date(best.time).getTime()+3600000).toISOString()})`;
+   }
+   await sql`INSERT INTO audit_log(id,actor_id,action,entity_type,entity_id,details) VALUES(${uuid()},${u.id},'analyze_weather','analysis_run',${id},${JSON.stringify({agree,wetModels,bestModel,confidence,material})})`;
+   return json({status:"ok",analysis:{id,summary,best_time:best.time,agree,total_models:best.xs.length,wet_models:wetModels,best_model:bestModel,confidence,material_change:material}});
+  }
   if(url.pathname==="/weather/analysis/latest"&&request.method==="GET"){
    const a=await sql`SELECT id,created_at,horizon_start,horizon_end,latitude,longitude,summary,best_model,confidence,material_change FROM analysis_runs ORDER BY created_at DESC LIMIT 1`;
    if(!a.length)return json({status:"empty",detail:"لا يوجد تحليل جوي محفوظ بعد"});
