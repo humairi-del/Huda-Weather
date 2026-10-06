@@ -118,6 +118,20 @@ export default {async fetch(request,env){
    const rows=await sql`SELECT r.model,r.run_time,r.fetched_at,r.source,p.target_time,p.rain_mm,p.rain_probability,p.temperature_c,p.humidity_pct,p.wind_kph,p.wind_direction_deg,p.wind_gust_kph,p.cloud_cover_pct,p.thunder_probability,p.severe_risk FROM weather_model_runs r JOIN weather_forecast_points p ON p.run_id=r.id WHERE r.id IN (SELECT DISTINCT ON (model) id FROM weather_model_runs ORDER BY model,run_time DESC) AND p.target_time>=NOW() AND p.target_time<NOW()+INTERVAL '48 hours' ORDER BY p.target_time,r.model`;
    return json({status:"ok",horizon_hours:48,location:{name:"هدى - حبان - شبوة",latitude:14.212599,longitude:47.161149},points:rows});
   }
+  if(url.pathname==="/weather/dust"&&request.method==="GET"){
+   const api=new URL("https://air-quality-api.open-meteo.com/v1/air-quality");
+   api.search=new URLSearchParams({latitude:"14.212599",longitude:"47.161149",hourly:"dust,pm10,pm2_5",forecast_days:"2",timezone:"Asia/Aden",domains:"cams_global"}).toString();
+   const res=await fetch(api);if(!res.ok)return json({status:"source_error"},502);
+   const d=await res.json(),h=d.hourly||{};let peak=null;
+   for(let i=0;i<(h.time||[]).length;i++){const x={time:h.time[i],dust:h.dust?.[i]??null,pm10:h.pm10?.[i]??null,pm2_5:h.pm2_5?.[i]??null};if(x.dust!=null&&(!peak||x.dust>peak.dust))peak=x}
+   return json({status:"ok",location:"هدى - حبان - شبوة",source:"CAMS Global via Open-Meteo",horizon_hours:48,peak});
+  }
+  if(url.pathname==="/weather/arabian-sea"&&request.method==="GET"){
+   const pts=[["غرب بحر العرب",12,52],["شرق سقطرى",12,55],["شمال غرب بحر العرب",16,55],["وسط بحر العرب الغربي",14,58],["شمال بحر العرب",18,58],["وسط بحر العرب",14,61],["شمال بحر العرب الشرقي",18,61],["وسط بحر العرب الشرقي",14,64],["شمال شرق بحر العرب",18,64],["شرق بحر العرب",14,67],["جنوب بحر العرب",10,58],["جنوب شرق بحر العرب",10,64]];
+   const scan=async p=>{const q=new URL("https://api.open-meteo.com/v1/forecast");q.search=new URLSearchParams({latitude:String(p[1]),longitude:String(p[2]),hourly:"pressure_msl,precipitation,cloud_cover,relative_humidity_2m,wind_speed_10m,wind_direction_10m",forecast_days:"2",timezone:"Asia/Aden",cell_selection:"sea"}).toString();const r=await fetch(q);if(!r.ok)return null;const d=await r.json(),h=d.hourly||{};let best=null;for(let i=0;i<(h.time||[]).length;i++){const pressure=Number(h.pressure_msl?.[i]),rain=Number(h.precipitation?.[i]||0),cloud=Number(h.cloud_cover?.[i]||0),humidity=Number(h.relative_humidity_2m?.[i]||0),wind=Number(h.wind_speed_10m?.[i]||0);if(!Number.isFinite(pressure))continue;const score=Math.max(0,1010-pressure)*1.8+Math.min(rain,20)*2.2+Math.max(0,wind-20)*.28+Math.max(0,humidity-75)*.05+Math.max(0,cloud-70)*.025;const x={name:p[0],latitude:p[1],longitude:p[2],time:h.time[i],pressure,rain,cloud,humidity,wind,wind_direction:h.wind_direction_10m?.[i]??null,score:Number(score.toFixed(2))};if(!best||x.score>best.score)best=x}return best};
+   const points=(await Promise.all(pts.map(scan))).filter(Boolean).sort((x,y)=>y.score-x.score);
+   return json({status:"ok",source:"Open-Meteo forecast models",classification:"مؤشر مراقبة نموذجي فقط وليس تصنيفًا للأعاصير",horizon_hours:48,points_checked:points.length,strongest:points[0]||null,points});
+  }
   if(url.pathname==="/ai/status"&&request.method==="GET"){
    const s=await sql`SELECT key,value FROM system_settings WHERE key IN ('ai_enabled','visitor_ai_daily_limit')`;
    const m=Object.fromEntries(s.map(x=>[x.key,x.value]));
