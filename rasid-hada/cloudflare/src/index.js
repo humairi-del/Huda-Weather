@@ -49,13 +49,19 @@ export default {async fetch(request,env){
    const a=enc.encode(await sha256(supplied)),b=enc.encode(await sha256(env.OWNER_BOOTSTRAP_SECRET));
    let diff=a.length^b.length;for(let i=0;i<Math.min(a.length,b.length);i++)diff|=a[i]^b[i];
    if(diff!==0)return json({detail:"غير مصرح"},403);
-   const owners=await sql`SELECT COUNT(*)::int AS n FROM users WHERE role='owner'`;
-   if(owners[0].n!==0)return json({detail:"تم إنشاء المالك مسبقًا"},409);
+   const owners=await sql`SELECT id,email FROM users WHERE role='owner' LIMIT 2`;
    const d=await body(request),email=String(d?.email||"").trim().toLowerCase(),password=String(d?.password||"");
    if(!email||email.length>320||!email.includes("@")||password.length<14)return json({detail:"استخدم بريدًا صحيحًا وكلمة مرور من 14 حرفًا على الأقل"},400);
-   const exists=await sql`SELECT 1 FROM users WHERE lower(email)=lower(${email})`;if(exists.length)return json({detail:"الحساب موجود"},409);
    try{
-    const id=uuid(),ph=await passwordHash(password,env.AUTH_PEPPER);
+    const ph=await passwordHash(password,env.AUTH_PEPPER);
+    if(owners.length===1){
+     if(String(owners[0].email).toLowerCase()!==email)return json({detail:"بريد المالك لا يطابق الحساب الحالي"},409);
+     await sql`UPDATE users SET password_hash=${ph},active=TRUE WHERE id=${owners[0].id} AND role='owner'`;
+     return json({status:"ok",owner_repaired:true},200);
+    }
+    if(owners.length>1)return json({detail:"حالة المالك غير صالحة"},409);
+    const exists=await sql`SELECT 1 FROM users WHERE lower(email)=lower(${email})`;if(exists.length)return json({detail:"الحساب موجود"},409);
+    const id=uuid();
     await sql`INSERT INTO users(id,email,password_hash,role,active) VALUES(${id},${email},${ph},'owner',TRUE)`;
     await sql`INSERT INTO audit_log(id,actor_id,action,entity_type,entity_id,details) VALUES(${uuid()},${id},'bootstrap_owner','user',${id},'initial owner created')`;
     return json({status:"ok",owner_created:true},201);
