@@ -70,7 +70,7 @@ export default {async fetch(request,env){
   }
   if(url.pathname==="/admin/weather/analyze"&&request.method==="POST"){
    const u=await auth(request,sql,"owner");if(!u)return json({detail:"غير مصرح"},403);
-   const rows=await sql`SELECT r.model,p.target_time,p.rain_mm,p.wind_kph,p.wind_gust_kph,p.cloud_cover_pct,p.severe_risk FROM weather_model_runs r JOIN weather_forecast_points p ON p.run_id=r.id WHERE r.id IN (SELECT DISTINCT ON (model) id FROM weather_model_runs ORDER BY model,run_time DESC) AND p.target_time>=NOW() AND p.target_time<NOW()+INTERVAL '48 hours' ORDER BY p.target_time,r.model`;
+   const rows=await sql`SELECT r.model,p.target_time,p.rain_mm,p.rain_probability,p.thunder_probability,p.wind_kph,p.wind_gust_kph,p.cloud_cover_pct,p.severe_risk FROM weather_model_runs r JOIN weather_forecast_points p ON p.run_id=r.id WHERE r.id IN (SELECT DISTINCT ON (model) id FROM weather_model_runs ORDER BY model,run_time DESC) AND p.target_time>=NOW() AND p.target_time<NOW()+INTERVAL '48 hours' ORDER BY p.target_time,r.model`;
    if(!rows.length)return json({detail:"لا توجد بيانات موديلات"},409);
    const skillRows=await sql`SELECT model,COUNT(*)::int AS samples,AVG(absolute_error)::float AS mae FROM weather_verifications WHERE verified_at>=NOW()-INTERVAL '90 days' AND absolute_error IS NOT NULL GROUP BY model`;
    const skill={};for(const s of skillRows){const n=Number(s.samples),mae=Number(s.mae);skill[s.model]={samples:n,mae,weight:n>=5?Math.max(.35,Math.min(1.65,1.35/(1+mae))):1}}
@@ -80,13 +80,19 @@ export default {async fetch(request,env){
    for(const [time,xs] of byTime){
     const wet=xs.filter(x=>Number(x.rain_mm||0)>=0.1),weightedAgree=wet.reduce((a,x)=>a+weight(x.model),0),totalWeight=xs.reduce((a,x)=>a+weight(x.model),0);
     const weightedRain=xs.reduce((a,x)=>a+Number(x.rain_mm||0)*weight(x.model),0)/Math.max(totalWeight,.01);
-    const score=weightedAgree*100+weightedRain;
-    if(!best||score>best.score)best={time,xs,wet,score,weightedAgree,totalWeight,weightedRain};
+    const probRows=xs.filter(x=>x.rain_probability!=null&&Number.isFinite(Number(x.rain_probability)));
+    const probWeight=probRows.reduce((a,x)=>a+weight(x.model),0);
+    const weightedProbability=probWeight?probRows.reduce((a,x)=>a+Number(x.rain_probability)*weight(x.model),0)/probWeight:null;
+    const thunderRows=xs.filter(x=>x.thunder_probability!=null&&Number.isFinite(Number(x.thunder_probability)));
+    const thunderWeight=thunderRows.reduce((a,x)=>a+weight(x.model),0);
+    const weightedThunderProbability=thunderWeight?thunderRows.reduce((a,x)=>a+Number(x.thunder_probability)*weight(x.model),0)/thunderWeight:null;
+    const score=weightedAgree*100+weightedRain+(weightedProbability??0)/100;
+    if(!best||score>best.score)best={time,xs,wet,score,weightedAgree,totalWeight,weightedRain,weightedProbability,weightedThunderProbability};
    }
    const agree=best.wet.length,ratio=best.weightedAgree/Math.max(best.totalWeight,.01);
    const confidence=ratio>=.72?"high":ratio>=.52?"medium":ratio>=.32?"low":"unknown";
    const wetModels=best.wet.map(x=>x.model);
-   const summary=agree?(`أفضل فرصة خلال 48 ساعة قرب ${best.time}: اتفاق مرجح ${Math.round(ratio*100)}% (${agree} من ${best.xs.length} موديلات)، ومتوسط مطر مرجح ${best.weightedRain.toFixed(2)} مم.`):"لا يظهر اتفاق معتبر على هطول خلال 48 ساعة.";
+   const probabilityText=best.weightedProbability==null?"":`، ومتوسط احتمال المطر المتاح ${Math.round(best.weightedProbability)}%`;\n   const thunderText=best.weightedThunderProbability==null?"":`، واحتمال الرعد المتاح ${Math.round(best.weightedThunderProbability)}%`;\n   const summary=agree?(`أفضل فرصة خلال 48 ساعة قرب ${best.time}: اتفاق مرجح ${Math.round(ratio*100)}% (${agree} من ${best.xs.length} موديلات)، ومتوسط مطر مرجح ${best.weightedRain.toFixed(2)} مم${probabilityText}${thunderText}.`):"لا يظهر اتفاق معتبر على هطول خلال 48 ساعة.";
    const previous=await sql`SELECT summary,best_model,confidence FROM analysis_runs ORDER BY created_at DESC LIMIT 1`;
    const material=!previous.length||previous[0].confidence!==confidence||previous[0].summary!==summary;
    const id=uuid(),startTime=new Date().toISOString(),endTime=new Date(Date.now()+48*3600000).toISOString();
