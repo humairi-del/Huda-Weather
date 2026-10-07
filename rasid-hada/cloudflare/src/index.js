@@ -48,7 +48,7 @@ export default {async fetch(request,env){
    const saved=[];
    for(const [model,apiModel] of configs){
     const api=new URL("https://api.open-meteo.com/v1/forecast");
-    api.search=new URLSearchParams({latitude:"14.212599",longitude:"47.161149",hourly:vars,forecast_days:"2",timezone:"Asia/Aden",models:apiModel}).toString();
+    api.search=new URLSearchParams({latitude:"14.212599",longitude:"47.161149",hourly:vars,forecast_days:"15",timezone:"Asia/Aden",models:apiModel}).toString();
     const res=await fetch(api,{headers:{"User-Agent":"Rasid-Hada/1.0"}});
     if(!res.ok){saved.push({model,status:"source_error",http:res.status});continue}
     const d=await res.json(),h=d.hourly;if(!h?.time?.length){saved.push({model,status:"empty"});continue}
@@ -66,11 +66,11 @@ export default {async fetch(request,env){
     saved.push({model,status:"ok",points:n});
    }
    await sql`INSERT INTO audit_log(id,actor_id,action,entity_type,entity_id,details) VALUES(${uuid()},${u.id},'refresh_weather','weather','hada',${JSON.stringify(saved)})`;
-   return json({status:"ok",location:"هدى - حبان - شبوة",horizon_hours:48,models:saved});
+   return json({status:"ok",location:"هدى - حبان - شبوة",horizon_hours:360,models:saved});
   }
   if(url.pathname==="/admin/weather/analyze"&&request.method==="POST"){
    const u=await auth(request,sql,"owner");if(!u)return json({detail:"غير مصرح"},403);
-   const rows=await sql`SELECT r.model,p.target_time,p.rain_mm,p.rain_probability,p.thunder_probability,p.wind_kph,p.wind_gust_kph,p.cloud_cover_pct,p.severe_risk FROM weather_model_runs r JOIN weather_forecast_points p ON p.run_id=r.id WHERE r.id IN (SELECT DISTINCT ON (model) id FROM weather_model_runs ORDER BY model,run_time DESC) AND p.target_time>=NOW() AND p.target_time<NOW()+INTERVAL '48 hours' ORDER BY p.target_time,r.model`;
+   const rows=await sql`SELECT r.model,p.target_time,p.rain_mm,p.rain_probability,p.thunder_probability,p.wind_kph,p.wind_gust_kph,p.cloud_cover_pct,p.severe_risk FROM weather_model_runs r JOIN weather_forecast_points p ON p.run_id=r.id WHERE r.id IN (SELECT DISTINCT ON (model) id FROM weather_model_runs ORDER BY model,run_time DESC) AND p.target_time>=NOW() AND p.target_time<NOW()+INTERVAL '15 days' ORDER BY p.target_time,r.model`;
    if(!rows.length)return json({detail:"لا توجد بيانات موديلات"},409);
    const skillRows=await sql`SELECT model,COUNT(*)::int AS samples,AVG(absolute_error)::float AS mae FROM weather_verifications WHERE verified_at>=NOW()-INTERVAL '90 days' AND absolute_error IS NOT NULL GROUP BY model`;
    const skill={};for(const s of skillRows){const n=Number(s.samples),mae=Number(s.mae);skill[s.model]={samples:n,mae,weight:n>=5?Math.max(.35,Math.min(1.65,1.35/(1+mae))):1}}
@@ -94,12 +94,12 @@ export default {async fetch(request,env){
    const wetModels=best.wet.map(x=>x.model);
    const probabilityText=best.weightedProbability==null?"":`، ومتوسط احتمال المطر المتاح ${Math.round(best.weightedProbability)}%`;
    const thunderText=best.weightedThunderProbability==null?"":`، واحتمال الرعد المتاح ${Math.round(best.weightedThunderProbability)}%`;
-   const summary=agree?(`أفضل فرصة خلال 48 ساعة قرب ${best.time}: اتفاق مرجح ${Math.round(ratio*100)}% (${agree} من ${best.xs.length} موديلات)، ومتوسط مطر مرجح ${best.weightedRain.toFixed(2)} مم${probabilityText}${thunderText}.`):"لا يظهر اتفاق معتبر على هطول خلال 48 ساعة.";
+   const summary=agree?(`أفضل فرصة خلال 15 يومًا قرب ${best.time}: اتفاق مرجح ${Math.round(ratio*100)}% (${agree} من ${best.xs.length} موديلات)، ومتوسط مطر مرجح ${best.weightedRain.toFixed(2)} مم${probabilityText}${thunderText}.`):"لا يظهر اتفاق معتبر على هطول خلال 15 يومًا.";
    const previous=await sql`SELECT summary,best_model,confidence FROM analysis_runs ORDER BY created_at DESC LIMIT 1`;
    const parseSummary=s=>{const t=String(s||"");const agreement=Number(t.match(/اتفاق مرجح (\\d+)%/)?.[1]);const rain=Number(t.match(/مطر مرجح ([\\d.]+) مم/)?.[1]);const probability=Number(t.match(/احتمال المطر المتاح (\\d+)%/)?.[1]);const time=t.match(/قرب ([^:]+T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z)/)?.[1];return {agreement:Number.isFinite(agreement)?agreement:null,rain:Number.isFinite(rain)?rain:null,probability:Number.isFinite(probability)?probability:null,time:time?Date.parse(time):null}};
    const prev=previous[0],pv=parseSummary(prev?.summary),cv={agreement:Math.round(ratio*100),rain:best.weightedRain,probability:best.weightedProbability,time:Date.parse(best.time)};
    const material=!prev||prev.confidence!==confidence||(pv.agreement!=null&&Math.abs(cv.agreement-pv.agreement)>=15)||(pv.rain!=null&&Math.abs(cv.rain-pv.rain)>=0.5)||(pv.probability!=null&&cv.probability!=null&&Math.abs(cv.probability-pv.probability)>=20)||(pv.time!=null&&Number.isFinite(cv.time)&&Math.abs(cv.time-pv.time)>=3*3600000);
-   const id=uuid(),startTime=new Date().toISOString(),endTime=new Date(Date.now()+48*3600000).toISOString();
+   const id=uuid(),startTime=new Date().toISOString(),endTime=new Date(Date.now()+15*24*3600000).toISOString();
    const ranked=Object.entries(skill).filter(([,v])=>v.samples>=5).sort((a,b)=>b[1].weight-a[1].weight);
    const bestModel=ranked[0]?.[0]||null;
    await sql`INSERT INTO analysis_runs(id,horizon_start,horizon_end,latitude,longitude,summary,best_model,confidence,material_change) VALUES(${id},${startTime},${endTime},14.212599,47.161149,${summary},${bestModel},${confidence},${material})`;
@@ -125,8 +125,8 @@ export default {async fetch(request,env){
    return json({status:"ok",location:{name:"هدى - حبان - شبوة",latitude:14.212599,longitude:47.161149,timezone:"Asia/Aden"},analysis:a[0],models,alerts});
   }
   if(url.pathname==="/weather/models/latest"&&request.method==="GET"){
-   const rows=await sql`SELECT r.model,r.run_time,r.fetched_at,r.source,p.target_time,p.rain_mm,p.rain_probability,p.temperature_c,p.humidity_pct,p.wind_kph,p.wind_direction_deg,p.wind_gust_kph,p.cloud_cover_pct,p.thunder_probability,p.severe_risk FROM weather_model_runs r JOIN weather_forecast_points p ON p.run_id=r.id WHERE r.id IN (SELECT DISTINCT ON (model) id FROM weather_model_runs ORDER BY model,run_time DESC) AND p.target_time>=NOW() AND p.target_time<NOW()+INTERVAL '48 hours' ORDER BY p.target_time,r.model`;
-   return json({status:"ok",horizon_hours:48,location:{name:"هدى - حبان - شبوة",latitude:14.212599,longitude:47.161149},points:rows});
+   const rows=await sql`SELECT r.model,r.run_time,r.fetched_at,r.source,p.target_time,p.rain_mm,p.rain_probability,p.temperature_c,p.humidity_pct,p.wind_kph,p.wind_direction_deg,p.wind_gust_kph,p.cloud_cover_pct,p.thunder_probability,p.severe_risk FROM weather_model_runs r JOIN weather_forecast_points p ON p.run_id=r.id WHERE r.id IN (SELECT DISTINCT ON (model) id FROM weather_model_runs ORDER BY model,run_time DESC) AND p.target_time>=NOW() AND p.target_time<NOW()+INTERVAL '15 days' ORDER BY p.target_time,r.model`;
+   return json({status:"ok",horizon_hours:360,location:{name:"هدى - حبان - شبوة",latitude:14.212599,longitude:47.161149},points:rows});
   }
   if(url.pathname==="/weather/dust"&&request.method==="GET"){
    const api=new URL("https://air-quality-api.open-meteo.com/v1/air-quality");
@@ -134,13 +134,13 @@ export default {async fetch(request,env){
    const res=await fetch(api);if(!res.ok)return json({status:"source_error"},502);
    const d=await res.json(),h=d.hourly||{};let peak=null;
    for(let i=0;i<(h.time||[]).length;i++){const x={time:h.time[i],dust:h.dust?.[i]??null,pm10:h.pm10?.[i]??null,pm2_5:h.pm2_5?.[i]??null};if(x.dust!=null&&(!peak||x.dust>peak.dust))peak=x}
-   return json({status:"ok",location:"هدى - حبان - شبوة",source:"CAMS Global via Open-Meteo",horizon_hours:48,peak});
+   return json({status:"ok",location:"هدى - حبان - شبوة",source:"CAMS Global via Open-Meteo",horizon_hours:360,peak});
   }
   if(url.pathname==="/weather/arabian-sea"&&request.method==="GET"){
    const pts=[["غرب بحر العرب",12,52],["شرق سقطرى",12,55],["شمال غرب بحر العرب",16,55],["وسط بحر العرب الغربي",14,58],["شمال بحر العرب",18,58],["وسط بحر العرب",14,61],["شمال بحر العرب الشرقي",18,61],["وسط بحر العرب الشرقي",14,64],["شمال شرق بحر العرب",18,64],["شرق بحر العرب",14,67],["جنوب بحر العرب",10,58],["جنوب شرق بحر العرب",10,64]];
    const scan=async p=>{const q=new URL("https://api.open-meteo.com/v1/forecast");q.search=new URLSearchParams({latitude:String(p[1]),longitude:String(p[2]),hourly:"pressure_msl,precipitation,cloud_cover,relative_humidity_2m,wind_speed_10m,wind_direction_10m",forecast_days:"2",timezone:"Asia/Aden",cell_selection:"sea"}).toString();const r=await fetch(q);if(!r.ok)return null;const d=await r.json(),h=d.hourly||{};let best=null;for(let i=0;i<(h.time||[]).length;i++){const pressure=Number(h.pressure_msl?.[i]),rain=Number(h.precipitation?.[i]||0),cloud=Number(h.cloud_cover?.[i]||0),humidity=Number(h.relative_humidity_2m?.[i]||0),wind=Number(h.wind_speed_10m?.[i]||0);if(!Number.isFinite(pressure))continue;const score=Math.max(0,1010-pressure)*1.8+Math.min(rain,20)*2.2+Math.max(0,wind-20)*.28+Math.max(0,humidity-75)*.05+Math.max(0,cloud-70)*.025;const x={name:p[0],latitude:p[1],longitude:p[2],time:h.time[i],pressure,rain,cloud,humidity,wind,wind_direction:h.wind_direction_10m?.[i]??null,score:Number(score.toFixed(2))};if(!best||x.score>best.score)best=x}return best};
    const points=(await Promise.all(pts.map(scan))).filter(Boolean).sort((x,y)=>y.score-x.score);
-   return json({status:"ok",source:"Open-Meteo forecast models",classification:"مؤشر مراقبة نموذجي فقط وليس تصنيفًا للأعاصير",horizon_hours:48,points_checked:points.length,strongest:points[0]||null,points});
+   return json({status:"ok",source:"Open-Meteo forecast models",classification:"مؤشر مراقبة نموذجي فقط وليس تصنيفًا للأعاصير",horizon_hours:360,points_checked:points.length,strongest:points[0]||null,points});
   }
   if(url.pathname==="/ai/status"&&request.method==="GET"){
    const s=await sql`SELECT key,value FROM system_settings WHERE key IN ('ai_enabled','visitor_ai_daily_limit')`;
