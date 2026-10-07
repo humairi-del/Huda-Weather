@@ -72,10 +72,31 @@ export default {
    const used=Number(usedRows[0]?.n||0);
    if(used>=limit)return json({detail:"تم الوصول إلى الحد اليومي",limit,remaining:0},429);
    const latest=await sql`SELECT summary,confidence,created_at FROM analysis_runs ORDER BY created_at DESC LIMIT 1`;
-   const forecast=await sql`WITH lr AS (SELECT DISTINCT ON (model) id,model,run_time FROM weather_model_runs ORDER BY model,run_time DESC) SELECT lr.model,lr.run_time,p.target_time,p.rain_mm,p.rain_probability,p.temperature_c,p.humidity_pct,p.wind_kph,p.wind_direction_deg,p.wind_gust_kph,p.cloud_cover_pct,p.thunder_probability,p.severe_risk,p.raw_summary FROM lr JOIN weather_forecast_points p ON p.run_id=lr.id WHERE p.target_time>=NOW()-INTERVAL '2 hours' AND p.target_time<NOW()+INTERVAL '15 days' ORDER BY p.target_time,lr.model`;
+   const forecast=await sql`WITH lr AS (
+ SELECT DISTINCT ON (model) id,model,run_time FROM weather_model_runs ORDER BY model,run_time DESC
+)
+SELECT lr.model,
+       (p.target_time AT TIME ZONE 'Asia/Aden')::date AS local_day,
+       MIN(p.temperature_c)::float AS temp_min,
+       MAX(p.temperature_c)::float AS temp_max,
+       AVG(p.humidity_pct)::float AS humidity_avg,
+       SUM(COALESCE(p.rain_mm,0))::float AS rain_total,
+       MAX(p.rain_probability)::float AS rain_probability_max,
+       MAX(p.wind_kph)::float AS wind_max,
+       MAX(p.wind_gust_kph)::float AS gust_max,
+       AVG(p.cloud_cover_pct)::float AS cloud_avg,
+       MAX(p.thunder_probability)::float AS thunder_probability_max,
+       CASE WHEN BOOL_OR(p.severe_risk='high') THEN 'high'
+            WHEN BOOL_OR(p.severe_risk='moderate') THEN 'moderate'
+            WHEN BOOL_OR(p.severe_risk='low') THEN 'low' ELSE 'none' END AS severe_risk
+FROM lr JOIN weather_forecast_points p ON p.run_id=lr.id
+WHERE p.target_time>=NOW()-INTERVAL '2 hours' AND p.target_time<NOW()+INTERVAL '15 days'
+GROUP BY lr.model,(p.target_time AT TIME ZONE 'Asia/Aden')::date
+ORDER BY local_day,lr.model`;
    const knowledge=await sql`SELECT subject,statement FROM knowledge_items WHERE status='approved' ORDER BY reviewed_at DESC NULLS LAST,created_at DESC LIMIT 20`;
-   const rows=forecast.map(x=>[x.model,new Date(x.target_time).toLocaleString("ar-YE",{timeZone:"Asia/Aden",weekday:"short",day:"numeric",month:"numeric",hour:"numeric"}),"حرارة "+(x.temperature_c??"—")+"°","رطوبة "+(x.humidity_pct??"—")+"%","مطر "+(x.rain_mm??"—")+" مم","احتمال "+(x.rain_probability??"—")+"%","رياح "+(x.wind_kph??"—")+" كم/س","اتجاه "+(x.wind_direction_deg??"—")+"°","هبات "+(x.wind_gust_kph??"—")+" كم/س","سحب "+(x.cloud_cover_pct??"—")+"%","رعد "+(x.thunder_probability??"—")+"%","خطر "+(x.severe_risk??"—"),x.raw_summary??""].join(" | ")).join("\n");
-   const context=[latest[0]?.summary?("آخر تحليل آلي: "+latest[0].summary+" | الثقة: "+latest[0].confidence):"لا يوجد تحليل محفوظ.","توقعات أحدث تشغيل لكل موديل حتى 15 يومًا:\n"+rows,...knowledge.map(x=>"معرفة محلية معتمدة - "+x.subject+": "+x.statement)].join("\n\n");
+   const n=v=>v==null||!Number.isFinite(Number(v))?"—":Math.round(Number(v)*10)/10;
+   const rows=forecast.map(x=>[x.local_day,x.model,"حرارة "+n(x.temp_min)+"–"+n(x.temp_max)+"°","رطوبة "+n(x.humidity_avg)+"%","إجمالي مطر "+n(x.rain_total)+" مم","أعلى احتمال مطر "+n(x.rain_probability_max)+"%","أقصى رياح "+n(x.wind_max)+" كم/س","أقصى هبات "+n(x.gust_max)+" كم/س","متوسط سحب "+n(x.cloud_avg)+"%","أعلى احتمال رعد "+n(x.thunder_probability_max)+"%","خطر "+x.severe_risk].join(" | ")).join("\n");
+   const context=[latest[0]?.summary?("آخر تحليل آلي: "+latest[0].summary+" | الثقة: "+latest[0].confidence):"لا يوجد تحليل محفوظ.","ملخص يومي للموديلات حتى 15 يومًا (ليس بيانات ساعية خام):\n"+rows,...knowledge.map(x=>"معرفة محلية معتمدة - "+x.subject+": "+x.statement)].join("\n\n");
    const system="أنت راصد هدى الذكي، مساعد محلي ودود لأهل هدى وحبان بشبوة. تكلم بالعربية البسيطة وبأسلوب قريب من لهجة أهل هدى، وبحماس معتدل وطبيعي. استخدم عبارات مثل «أبشر»، «ولا يهمك يا غالي»، «تم»، و«إن شاء الله» عندما تناسب السياق، ولا تكرر العبارة نفسها آليًا في كل جواب. إذا كان السؤال تحية أو حديثًا اجتماعيًا بسيطًا فتفاعل بود وباختصار. في المعلومات المحلية عن هدى: اعتمد حصريًا على المعرفة المحلية المعتمدة الموجودة في البيانات أدناه؛ إذا لم توجد معلومة معتمدة فقل بوضوح «ما عندي معلومة معتمدة عن هذا الموضوع حتى الآن» ولا تستخدم معلومات عامة أو معرفة مسبقة لتخمين حقائق عن هدى. في الطقس: لديك أحدث تشغيلات ECMWF وAIFS وGFS وICON وCMC حتى 15 يومًا. لا تعرض صفوف البيانات الخام ولا أسماء الحقول ولا تسرد أرقام الموديلات بشكل مربك؛ حوّلها إلى توقع مفهوم للزائر: الحالة العامة، فرصة المطر وقوتها وتوقيتها، الحرارة، الرياح والهبات والسحب والرطوبة عند فائدتها. اذكر الأرقام المهمة فقط عندما تساعد على الفهم. قارن الموديلات داخليًا واذكر اختلافها فقط إذا كان مؤثرًا على الثقة. الأيام 1-3 أعلى ثقة نسبيًا، 4-7 متوسطة المدى، و8-15 اتجاه بعيد أقل ثقة ويجب التصريح بأنه قابل للتغير. عند المطر: أقل من 30% فرصة ضعيفة، 30-49% محدودة، 50-69% متوسطة، 70% فأكثر قوية. لا تحوّل المليمترات إلى نسبة. لا تخترع قيمة غير متاحة. لا تعتبر CAPE أو مستوى الخطر نسبة رعد، ولا تعتبر مؤشرات بحر العرب إعصارًا مؤكدًا. إذا لم تكف البيانات فقل ذلك بوضوح. البيانات:\\n"+context;
    const out=await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fast",{messages:[{role:"system",content:system},{role:"user",content:message}],max_tokens:500,temperature:0.2});
    const answer=String(out?.response||"").trim();
