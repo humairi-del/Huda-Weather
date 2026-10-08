@@ -41,9 +41,11 @@ jobs:
           cp ../index.html public/index.html
           cp ../owner-api-client.js public/owner-api-client.js
           cp ../owner-settings.js public/owner-settings.js
+          cp ../owner-audit.js public/owner-audit.js
           test -s public/index.html
           test -s public/owner-api-client.js
           test -s public/owner-settings.js
+          test -s public/owner-audit.js
       - name: Prevent API-only deployment replacing the owner UI
         run: |
           if ! grep -q 'assets' wrangler.dev.toml; then
