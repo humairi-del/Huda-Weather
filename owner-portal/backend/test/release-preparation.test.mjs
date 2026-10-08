@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {prepareRelease,verifyRelease,BASELINE} from '../release-preparation.mjs';
+import {prepareRelease,verifyRelease,BASELINE} from '../../release-preparation.mjs';
 const source='<!DOCTYPE html><html><head><title>طقس هدى وما جاورها</title></head><body>keep</body></html>';
 const entry={revision:2,payload:{title:'طقس هدى وما جاورها — جديد',body:'details'}};
 test('prepare a single reversible, scoped site title change',()=>{
