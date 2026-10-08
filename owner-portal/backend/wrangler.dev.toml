@@ -2,13 +2,15 @@ name = "hada-owner-portal-api-dev"
 main = "src/index.js"
 compatibility_date = "2026-10-01"
 
-# Development database ONLY; never bind Rasid Hada production resources.
 [[d1_databases]]
 binding = "DB"
 database_name = "hada_owner_portal_dev"
 database_id = "d1d04704-4453-4c8f-9581-8918a4c697ad"
 
-# Required before deployment: enable Cloudflare Zero Trust Access,
-# create a protected Access application and an owner-only policy,
-# then configure ACCESS_TEAM_DOMAIN, ACCESS_AUD and OWNER_EMAIL.
-# Do not deploy this scaffold as-is: validation and concurrency tests remain.
+[vars]
+ACCESS_TEAM_DOMAIN = "holy-wood-59d7.cloudflareaccess.com"
+ACCESS_AUD = "0d7863319bff89849475dfff6b2196d44db6004a750b471a1e72ccf2bca04cad"
+OWNER_EMAIL = "sam715745@gmail.com"
+
+# Isolated staging only: owner-dev.hada-weather.com
+# No production routes; do not deploy before security and concurrency tests.
