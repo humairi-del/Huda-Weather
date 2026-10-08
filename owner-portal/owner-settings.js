@@ -5,7 +5,7 @@ const $=id=>document.getElementById(id);
 const section=$('settingsSection'),title=$('settingsTitle'),body=$('settingsBody'),status=$('settingsStatus'),load=$('settingsLoad'),save=$('settingsSave');
 let revision=null, loadedSection=null, sequence=0, editVersion=0;
 const preview=$('settingsPreview');
-function renderPreview(){preview.textContent=(title.value.trim()||'بدون عنوان')+'\n\n'+(body.value||'لا يوجد محتوى بعد.')}
+function renderPreview(){preview.textContent=(title.value.trim()||'بدون عنوان')+'\n\n'+(body.value||'لا يوجد محتوى بعد.');$('settingsCount').textContent='طول المحتوى: '+body.value.length+' من 5000 حرف — العنوان: '+title.value.length+' من 120 حرف'}
 for(const field of [title,body])field.addEventListener('input',()=>{editVersion++;renderPreview()});
 const report=s=>{status.textContent=s};
 const reset=()=>{sequence++;revision=null;loadedSection=null;title.value='';body.value='';renderPreview();report('اختر تحميل المسودة قبل الحفظ.')};
@@ -58,6 +58,16 @@ $('settingsTemplate').addEventListener('click',()=>{
  renderPreview();
  report('تم إدراج نموذج إرشادي قابل للتعديل. لم يُحفظ ولم يُنشر بعد.');
 });
+
+$('settingsCopy').addEventListener('click',async()=>{
+ const content=(title.value.trim()||'بدون عنوان')+String.fromCharCode(10,10)+body.value;
+ try{
+  if(!navigator.clipboard||!window.isSecureContext)throw new Error('unavailable');
+  await navigator.clipboard.writeText(content);
+  report('تم نسخ المسودة إلى الحافظة. النسخ لا يحفظ ولا ينشر.');
+ }catch{report('تعذر النسخ التلقائي. يمكنك تحديد النص ونسخه يدويًا.')}
+});
+
 renderPreview();
 report('هذه مسودات تجريبية لا تظهر على الموقع العام.');
 })();
