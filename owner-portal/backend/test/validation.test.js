@@ -80,3 +80,30 @@ test('reject star payload with unexpected owner metadata',async()=>{
 test('reject non-object star payload',async()=>{
  await assert.rejects(payload(['الجبهة']));
 });
+
+test('reject oversized raw JSON body before parsing',async()=>{
+ const raw=' '.repeat(12001);
+ await assert.rejects(parsePayload(new Request('https://owner-dev.hada-weather.com/api/entries/site:draft',{method:'PUT',body:raw}),'site'));
+});
+test('reject empty object in draft section',async()=>{
+ await assert.rejects(payload({},'alerts'));
+});
+test('reject array in draft section',async()=>{
+ await assert.rejects(payload(['عنوان','محتوى'],'modules'));
+});
+test('reject draft with non-string body',async()=>{
+ await assert.rejects(payload({title:'معلومات الموقع',body:42},'site'));
+});
+test('reject draft title longer than 120 characters',async()=>{
+ await assert.rejects(payload({title:'x'.repeat(121),body:''},'site'));
+});
+test('reject invalid leap day',async()=>{
+ await assert.rejects(payload({name:'الجبهة',date:'2025-02-29',detail:''}));
+});
+test('accept valid leap day',async()=>{
+ const data=JSON.parse(await payload({name:'الجبهة',date:'2028-02-29',detail:''}));
+ assert.equal(data.date,'2028-02-29');
+});
+test('reject malformed cross-origin header',()=>{
+ assert.equal(corsReject(request('https://owner-dev.hada-weather.com/api/me',{origin:'not a valid origin'})).status,403);
+});
