@@ -237,3 +237,15 @@ test('public integration review is read-only and never claims direct publishing'
  assert.ok(html.includes('لا توجد صلاحية نشر مباشر'));
  assert.ok(html.includes('rel="noopener noreferrer"'));
 });
+
+test('staging public comparison only reads owner drafts and escapes their text',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const html=await readFile(new URL('../../index.html',import.meta.url),'utf8');
+ const js=await readFile(new URL('../../owner-review.js',import.meta.url),'utf8');
+ for(const id of ['reviewSection','reviewLoad','reviewStatus','reviewDraft','reviewPublic'])assert.ok(html.includes('id="'+id+'"'));
+ assert.ok(html.includes('src="./owner-review.js"'));
+ assert.ok(js.includes("draft.textContent="));
+ assert.ok(js.includes("credentials:'same-origin'"));
+ assert.ok(!js.includes("method:'PUT'"));
+ assert.ok(!js.includes("innerHTML"));
+});
