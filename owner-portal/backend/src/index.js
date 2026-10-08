@@ -1,9 +1,9 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 const json=(data,status=200,extra={})=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff',...extra}});
 const allowedSections=new Set(['stars','prayers','alerts','sponsor','rates','modules','site']);
-const allowedRoles=new Set(['owner','sponsor']);
+const allowedRoles=new Set(['owner']);
 const idPattern=/^[a-z0-9][a-z0-9:_-]{0,119}$/;
-function corsReject(request){const origin=request.headers.get('origin');return origin ? json({error:'Cross-origin requests are not supported'},403):null}
+function corsReject(request){const origin=request.headers.get('origin');if(!origin)return null;try{return new URL(origin).origin===new URL(request.url).origin?null:json({error:'Cross-origin requests are not supported'},403)}catch{return json({error:'Invalid Origin'},403)}}
 async function identity(request,env){
  const token=request.headers.get('cf-access-jwt-assertion');
  if(!token||!env.ACCESS_TEAM_DOMAIN||!env.ACCESS_AUD)throw new Error('unauthorized');
@@ -15,14 +15,13 @@ async function identity(request,env){
  const email=String(payload.email||'').toLowerCase();
  if(!email||!env.OWNER_EMAIL)throw new Error('unauthorized');
  const owner=email===env.OWNER_EMAIL.toLowerCase();
- const sponsor=env.SPONSOR_EMAIL&&email===env.SPONSOR_EMAIL.toLowerCase();
- if(!owner&&!sponsor)throw new Error('forbidden');
- return {email,role:owner?'owner':'sponsor'};
+ if(!owner)throw new Error('forbidden');
+ return {email,role:'owner'};
 }
 function authorize(actor,section,method){
  if(!allowedRoles.has(actor.role))return false;
  if(actor.role==='owner')return true;
- return actor.role==='sponsor'&&section==='rates'&&['GET','PUT'].includes(method);
+ return false;
 }
 async function parsePayload(request,section){
  const size=Number(request.headers.get('content-length')||0);
@@ -31,6 +30,9 @@ async function parsePayload(request,section){
  if(raw.length>12000)throw new Error('payload');
  const obj=JSON.parse(raw);
  if(!obj||typeof obj!=='object'||Array.isArray(obj))throw new Error('payload');
+ if(section==='stars'){
+  if(typeof obj.name!=='string'||obj.name.length>100||typeof obj.detail!=='string'||obj.detail.length>5000||typeof obj.date!=='string'||!/^\\d{4}-\\d{2}-\\d{2}$/.test(obj.date)||!Number.isFinite(Date.parse(obj.date+'T00:00:00Z')))throw new Error('payload');
+ }
  if(section==='rates'){
   for(const field of ['usdBuy','usdSell','sarBuy','sarSell'])if(typeof obj[field]!=='number'||!Number.isFinite(obj[field])||obj[field]<=0)throw new Error('rates');
   if(obj.usdBuy>obj.usdSell||obj.sarBuy>obj.sarSell)throw new Error('rates');
@@ -56,18 +58,18 @@ export default {async fetch(request,env){
   }
   if(request.method==='PUT'){
    if(!['application/json'].some(x=>(request.headers.get('content-type')||'').startsWith(x)))return json({error:'JSON required'},415);
-   const revision=Number(request.headers.get('if-match'));
+   const ifMatch=request.headers.get('if-match');
+   if(ifMatch===null||!/^\\d+$/.test(ifMatch))return json({error:'If-Match revision required'},428);
+   const revision=Number(ifMatch);
    if(!Number.isSafeInteger(revision)||revision<0)return json({error:'If-Match revision required (0 for new)'},428);
    const payload=await parsePayload(request,section);
    const old=await env.DB.prepare('SELECT payload,revision FROM content_entries WHERE id=?').bind(id).first();
    if((old?.revision||0)!==revision)return json({error:'Revision conflict'},409);
    const next=revision+1,now=new Date().toISOString(),eventId=crypto.randomUUID();
-   const batch=[
-    env.DB.prepare('INSERT INTO content_entries(id,section,payload,revision,updated_at,updated_by) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,revision=excluded.revision,updated_at=excluded.updated_at,updated_by=excluded.updated_by WHERE content_entries.revision=?').bind(id,section,payload,next,now,actor.email,revision),
-    env.DB.prepare('INSERT INTO audit_events(id,actor,action,entry_id,before_payload,after_payload,created_at) VALUES(?,?,?,?,?,?,?)').bind(eventId,actor.email,'update',id,old?.payload||null,payload,now)
-   ];
-   const result=await env.DB.batch(batch);
-   if(!result[0]?.meta?.changes)return json({error:'Revision conflict'},409);
+   const statement=env.DB.prepare('INSERT INTO content_entries(id,section,payload,revision,updated_at,updated_by) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,revision=excluded.revision,updated_at=excluded.updated_at,updated_by=excluded.updated_by WHERE content_entries.revision=?').bind(id,section,payload,next,now,actor.email,revision);
+   const result=await statement.run();
+   if(!result.meta?.changes)return json({error:'Revision conflict'},409);
+   await env.DB.prepare('INSERT INTO audit_events(id,actor,action,entry_id,before_payload,after_payload,created_at) VALUES(?,?,?,?,?,?,?)').bind(eventId,actor.email,'update',id,old?.payload||null,payload,now).run();
    return json({ok:true,id,revision:next,updated_at:now});
   }
   return json({error:'Method not allowed'},405,{allow:'GET, PUT'});
