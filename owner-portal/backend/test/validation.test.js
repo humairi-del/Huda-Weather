@@ -256,7 +256,7 @@ test('public site reference mapping is informational and read-only',async()=>{
  assert.ok(js.includes('const knownPublic='));
  assert.ok(js.includes("main/index.html"));
  assert.ok(js.includes("publicLabel.textContent="));
- assert.ok(js.includes('لم تُعتمد مقارنة القيم التفصيلية بعد'));
+ assert.ok(js.includes('reviewReadiness(select.value)'));
  assert.ok(!js.includes('fetch(\'https://hada-weather.com'));
 });
 
