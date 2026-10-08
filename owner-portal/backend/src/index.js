@@ -67,10 +67,14 @@ export default {async fetch(request,env){
    const old=await env.DB.prepare('SELECT payload,revision FROM content_entries WHERE id=?').bind(id).first();
    if((old?.revision||0)!==revision)return json({error:'Revision conflict'},409);
    const next=revision+1,now=new Date().toISOString(),eventId=crypto.randomUUID();
-   const statement=env.DB.prepare('INSERT INTO content_entries(id,section,payload,revision,updated_at,updated_by) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,revision=excluded.revision,updated_at=excluded.updated_at,updated_by=excluded.updated_by WHERE content_entries.revision=?').bind(id,section,payload,next,now,actor.email,revision);
-   const result=await statement.run();
-   if(!result.meta?.changes)return json({error:'Revision conflict'},409);
-   await env.DB.prepare('INSERT INTO audit_events(id,actor,action,entry_id,before_payload,after_payload,created_at) VALUES(?,?,?,?,?,?,?)').bind(eventId,actor.email,'update',id,old?.payload||null,payload,now).run();
+   // D1 batch executes in one transaction: content and audit succeed or roll back together.
+   // Audit is conditional on the exact newly written row, preventing false audit entries on conflicts.
+   const writes=await env.DB.batch([
+    env.DB.prepare('INSERT INTO content_entries(id,section,payload,revision,updated_at,updated_by) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,revision=excluded.revision,updated_at=excluded.updated_at,updated_by=excluded.updated_by WHERE content_entries.revision=?').bind(id,section,payload,next,now,actor.email,revision),
+    env.DB.prepare('INSERT INTO audit_events(id,actor,action,entry_id,before_payload,after_payload,created_at) SELECT ?,?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM content_entries WHERE id=? AND revision=? AND payload=? AND updated_at=? AND updated_by=?)').bind(eventId,actor.email,'update',id,old?.payload||null,payload,now,id,next,payload,now,actor.email)
+   ]);
+   if(!writes[0]?.meta?.changes)return json({error:'Revision conflict'},409);
+   if(writes[1]?.meta?.changes!==1)return json({error:'Audit integrity failure'},500);
    return json({ok:true,id,revision:next,updated_at:now});
   }
   return json({error:'Method not allowed'},405,{allow:'GET, PUT'});
