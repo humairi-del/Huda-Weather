@@ -1,0 +1,11 @@
+name = "hada-owner-portal-api-dev"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+# Rename to wrangler.toml after creating a dedicated D1 database.
+# Never point to the Rasid Hada production database.
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "hada-owner-portal-dev"
+# database_id = "REPLACE_WITH_NEW_D1_DATABASE_ID"
+# Set ACCESS_TEAM_DOMAIN and ACCESS_AUD as Worker environment variables.
+# Protect the entire /api/* route with a Cloudflare Access application/policy.
