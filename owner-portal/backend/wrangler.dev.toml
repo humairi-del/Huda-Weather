@@ -1,4 +1,4 @@
-name = "hada-owner-portal-api-dev"
+name = "hada-owner-portal-staging"
 main = "src/index.js"
 compatibility_date = "2026-10-01"
 workers_dev = false
@@ -15,4 +15,4 @@ OWNER_EMAIL = "sam715745@gmail.com"
 STAGING_HOST = "owner-dev.hada-weather.com"
 
 # Isolated staging only: owner-dev.hada-weather.com
-# No production routes; do not deploy before security and concurrency tests.
+# Deployment requires manual GitHub Actions approval and staging-only API token.
