@@ -1,0 +1,37 @@
+name: Deploy HADA Owner Staging
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: hada-owner-staging
+  cancel-in-progress: false
+jobs:
+  deploy:
+    name: Deploy owner portal staging
+    runs-on: ubuntu-latest
+    environment: owner-staging
+    defaults:
+      run:
+        working-directory: owner-portal/backend
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: owner-portal-development
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: owner-portal/backend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Validate backend
+        run: |
+          npm run check
+          npm test
+      - name: Deploy isolated Worker
+        run: npx wrangler deploy --config wrangler.dev.toml
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
