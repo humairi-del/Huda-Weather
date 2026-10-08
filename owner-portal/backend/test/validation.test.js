@@ -37,3 +37,16 @@ test('reject nonexistent calendar dates',async()=>{
 test('reject blank star names',async()=>{
  await assert.rejects(payload({name:'   ',date:'2026-01-16',detail:''}));
 });
+
+for(const section of ['site','prayers','alerts','modules']){
+ test('accept '+section+' draft',async()=>{
+  const saved=JSON.parse(await payload({title:'عنوان تجريبي',body:'ملاحظات'},section));
+  assert.equal(saved.title,'عنوان تجريبي');
+ });
+ test('reject blank '+section+' draft title',async()=>{
+  await assert.rejects(payload({title:'  ',body:'ملاحظات'},section));
+ });
+ test('reject unexpected '+section+' draft fields',async()=>{
+  await assert.rejects(payload({title:'عنوان',body:'ملاحظات',published:true},section));
+ });
+}
