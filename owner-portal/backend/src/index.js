@@ -33,6 +33,9 @@ async function parsePayload(request,section){
  if(section==='stars'){
   if(typeof obj.name!=='string'||obj.name.trim().length===0||obj.name.length>100||typeof obj.detail!=='string'||obj.detail.length>5000||typeof obj.date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(obj.date)||!Number.isFinite(Date.parse(obj.date+'T00:00:00Z'))||new Date(obj.date+'T00:00:00Z').toISOString().slice(0,10)!==obj.date)throw new Error('payload');
  }
+ if(['site','prayers','alerts','modules'].includes(section)){
+  if(typeof obj.title!=='string'||!obj.title.trim()||obj.title.length>120||typeof obj.body!=='string'||obj.body.length>5000||Object.keys(obj).some(k=>!['title','body'].includes(k)))throw new Error('payload');
+ }
  if(section==='rates'){
   for(const field of ['usdBuy','usdSell','sarBuy','sarSell'])if(typeof obj[field]!=='number'||!Number.isFinite(obj[field])||obj[field]<=0)throw new Error('rates');
   if(obj.usdBuy>obj.usdSell||obj.sarBuy>obj.sarSell)throw new Error('rates');
@@ -53,6 +56,7 @@ export default {async fetch(request,env){
  const id=match[1],section=id.split(':')[0];
  if(!idPattern.test(id)||!allowedSections.has(section))return json({error:'Invalid entry'},400);
  if(section==='stars'&&!/^stars:(hassan|mohammed):(spring|summer|autumn|winter):[0-6]$/.test(id))return json({error:'Invalid star entry'},400);
+ if(['site','prayers','alerts','modules'].includes(section)&&id!==section+':draft')return json({error:'Invalid draft entry'},400);
  if(!authorize(actor,section,request.method))return json({error:'Forbidden'},403);
  try{
   if(request.method==='GET'){
