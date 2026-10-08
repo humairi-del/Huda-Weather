@@ -31,7 +31,7 @@ async function parsePayload(request,section){
  const obj=JSON.parse(raw);
  if(!obj||typeof obj!=='object'||Array.isArray(obj))throw new Error('payload');
  if(section==='stars'){
-  if(typeof obj.name!=='string'||obj.name.length>100||typeof obj.detail!=='string'||obj.detail.length>5000||typeof obj.date!=='string'||!/^\\d{4}-\\d{2}-\\d{2}$/.test(obj.date)||!Number.isFinite(Date.parse(obj.date+'T00:00:00Z')))throw new Error('payload');
+  if(typeof obj.name!=='string'||obj.name.length>100||typeof obj.detail!=='string'||obj.detail.length>5000||typeof obj.date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(obj.date)||!Number.isFinite(Date.parse(obj.date+'T00:00:00Z')))throw new Error('payload');
  }
  if(section==='rates'){
   for(const field of ['usdBuy','usdSell','sarBuy','sarSell'])if(typeof obj[field]!=='number'||!Number.isFinite(obj[field])||obj[field]<=0)throw new Error('rates');
@@ -59,7 +59,7 @@ export default {async fetch(request,env){
   if(request.method==='PUT'){
    if(!['application/json'].some(x=>(request.headers.get('content-type')||'').startsWith(x)))return json({error:'JSON required'},415);
    const ifMatch=request.headers.get('if-match');
-   if(ifMatch===null||!/^\\d+$/.test(ifMatch))return json({error:'If-Match revision required'},428);
+   if(ifMatch===null||!/^\d+$/.test(ifMatch))return json({error:'If-Match revision required'},428);
    const revision=Number(ifMatch);
    if(!Number.isSafeInteger(revision)||revision<0)return json({error:'If-Match revision required (0 for new)'},428);
    const payload=await parsePayload(request,section);
