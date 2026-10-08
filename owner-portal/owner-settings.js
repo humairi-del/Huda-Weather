@@ -41,6 +41,23 @@ save.addEventListener('click',async()=>{
  }catch(e){if(e.status===409){revision=null;loadedSection=null}report('تعذر الحفظ: '+e.message+(e.status===409?' — حمّل النسخة الجديدة ثم راجع التعديل.':''))}
  finally{save.disabled=false}
 });
+
+const templates={
+ site:{title:'معلومات موقع طقس هدى وما جاورها',lines:['نبذة الموقع:','النطاق الجغرافي: هدى — حبان — شبوة','معلومات التواصل:','رقم الإصدار:','ملاحظات الإدارة:']},
+ prayers:{title:'مراجعة مواقيت الصلاة — هدى',lines:['تاريخ المراجعة:','مصدر المواقيت:','الشروق:','الغروب:','الفجر:','الظهر:','العصر:','المغرب:','العشاء:','ملاحظات المطابقة مع لوحة الجامع:']},
+ alerts:{title:'مراجعة تنبيهات الطقس',lines:['تاريخ المراجعة:','المنطقة: هدى وحبان','نوع التنبيه:','درجة الخطورة:','بداية الحالة:','نهاية الحالة:','المصدر:','ملاحظات:']},
+ modules:{title:'تنظيم أقسام الموقع',lines:['الحالة الحالية:','الحالة الجوية:','الساعات القادمة:','توقعات الأيام:','بحر العرب:','الزلازل:','توقعات الموديلات:','حساب النجوم:','ملاحظات التفعيل:']}
+};
+$('settingsTemplate').addEventListener('click',()=>{
+ const template=templates[section.value];
+ if(!template)return;
+ if((title.value.trim()||body.value.trim())&&!confirm('سيستبدل النموذج النص الموجود في هذا القسم. هل تريد المتابعة؟'))return;
+ title.value=template.title;
+ body.value=template.lines.join('\\n');
+ editVersion++;
+ renderPreview();
+ report('تم إدراج نموذج إرشادي قابل للتعديل. لم يُحفظ ولم يُنشر بعد.');
+});
 renderPreview();
 report('هذه مسودات تجريبية لا تظهر على الموقع العام.');
 })();
