@@ -5,7 +5,7 @@ const $=id=>document.getElementById(id);
 const select=$('reviewSection'),load=$('reviewLoad'),status=$('reviewStatus'),draft=$('reviewDraft');
 const knownPublic={site:{title:'طقس هدى وما جاورها',source:'main/index.html'},prayers:{title:'مواقيت الصلاة',source:'main/base-2.1.1.html و prayer-7day.js'},alerts:{title:'تنبيهات الطقس',source:'main/base-2.1.1.html و patch-2.2.js'},modules:{title:'الأقسام والخدمات',source:'main/index.html و base-2.1.1.html'}};
 const publicLabel=$('reviewPublic');
-function describePublic(){const record=knownPublic[select.value];publicLabel.textContent='القسم الموجود في الموقع: '+record.title+'؛ الملفات المرجعية: '+record.source+'؛ لم تُعتمد مقارنة القيم التفصيلية بعد.';}
+function describePublic(){const record=knownPublic[select.value];publicLabel.textContent='القسم الموجود في الموقع: '+record.title+'؛ الملفات المرجعية: '+record.source+'؛ '+reviewReadiness(select.value);}
 select.addEventListener('change',describePublic);describePublic();
 const reviewedSnapshot={site:{title:'طقس هدى وما جاورها',sourceRevision:'39206620492782c51313fdee7802b697dad536cc'}};
 function showSiteTitleDiff(title){
@@ -13,6 +13,11 @@ function showSiteTitleDiff(title){
  const current=reviewedSnapshot.site;
  const normalized=title.trim();
  publicLabel.textContent='عنوان الموقع في نسخة main المفحوصة: '+current.title+'؛ النسخة المرجعية: '+current.sourceRevision.slice(0,7)+'؛ عنوان مسودة المالك: '+normalized+'؛ '+(normalized===current.title?'العنوان متطابق':'العنوان مختلف ويحتاج موافقة قبل تطبيقه')+'؛ المقارنة تخص العنوان فقط ولا تمثل تغييرًا منشورًا.';
+}
+const publicReference={site:{title:'طقس هدى وما جاورها',file:'index.html',sha:'39206620492782c51313fdee7802b697dad536cc'},prayers:{file:'base-2.1.1.html',note:'توجد مواقيت افتراضية ثابتة؛ التحديث النهائي يتطلب فحص prayer-7day.js'},alerts:{file:'patch-2.2.js',note:'تنبيهات الطقس تشمل حسابات آلية؛ لا يجوز استبدالها بمسودة نصية'},modules:{file:'base-2.1.1.html',note:'الأقسام مبنية داخل الصفحة؛ المسودة النصية لا تمثل مفاتيح تشغيل جاهزة'}};
+function reviewReadiness(section){
+ const reference=publicReference[section];
+ return 'مرجع العرض: '+reference.file+'؛ '+(reference.note||'يمكن مقارنة عنوان الموقع مع نسخة main المحددة')+'؛ لا يوجد نشر تلقائي.';
 }
 let serial=0;
 select.addEventListener('change',()=>{
