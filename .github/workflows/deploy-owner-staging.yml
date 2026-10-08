@@ -1,5 +1,11 @@
 name: Deploy HADA Owner Staging
 on:
+  push:
+    branches:
+      - owner-portal-development
+    paths:
+      - 'owner-portal/**'
+      - '.github/workflows/deploy-owner-staging.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -10,6 +16,7 @@ jobs:
   deploy:
     name: Deploy owner portal staging
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/owner-portal-development'
     environment: owner-staging
     defaults:
       run:
@@ -41,6 +48,13 @@ jobs:
             echo 'BLOCKED: frontend assets are not yet configured; preserving current staging UI.'
             exit 1
           fi
+      - name: Verify staging target and owner-only assets
+        run: |
+          grep -Fq 'name = "hada-owner-portal-staging"' wrangler.dev.toml
+          grep -Fq 'workers_dev = false' wrangler.dev.toml
+          grep -Fq 'owner-dev.hada-weather.com' wrangler.dev.toml
+          grep -Fq 'run_worker_first = ["/api/*"]' wrangler.dev.toml
+          test ! -f public/src/index.js
       - name: Deploy isolated Worker
         run: npx wrangler deploy --config wrangler.dev.toml
         env:
