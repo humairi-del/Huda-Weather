@@ -259,3 +259,13 @@ test('public site reference mapping is informational and read-only',async()=>{
  assert.ok(js.includes('لم تُعتمد مقارنة القيم التفصيلية بعد'));
  assert.ok(!js.includes('fetch(\'https://hada-weather.com'));
 });
+
+test('site title preview uses pinned public snapshot and does not publish',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const js=await readFile(new URL('../../owner-review.js',import.meta.url),'utf8');
+ assert.ok(js.includes('const reviewedSnapshot='));
+ assert.ok(js.includes('39206620492782c51313fdee7802b697dad536cc'));
+ assert.ok(js.includes('showSiteTitleDiff(data.payload.title)'));
+ assert.ok(js.includes('العنوان مختلف ويحتاج موافقة'));
+ assert.ok(!js.includes('method:\'PUT\''));
+});
