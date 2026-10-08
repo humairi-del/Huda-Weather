@@ -30,6 +30,7 @@ jobs:
           node --check ../owner-settings.js
           node --check ../owner-audit.js
           node --check ../owner-overview.js
+          node --check ../owner-review.js
       - name: Verify isolated deploy assets
         run: |
           test -s ../index.html
@@ -37,5 +38,6 @@ jobs:
           test -s ../owner-settings.js
           test -s ../owner-audit.js
           test -s ../owner-overview.js
+          test -s ../owner-review.js
           grep -Fq 'directory = "./public"' wrangler.dev.toml
           grep -Fq 'hada-owner-portal-staging' wrangler.dev.toml
