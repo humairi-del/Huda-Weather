@@ -303,3 +303,12 @@ test('review checklist resets on new draft and cannot publish',async()=>{
  assert.ok(js.includes('if(request===serial)load.disabled=false'));
  assert.ok(!js.includes("method:'PUT'"));
 });
+
+test('owner review keeps non-site sections blocked pending typed adapters',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const js=await readFile(new URL('../../owner-review.js',import.meta.url),'utf8');
+ assert.ok(js.includes("const approvedSections=new Set(['site'])"));
+ assert.ok(js.includes('function integrationGate(section,record)'));
+ assert.ok(js.includes('gate.eligible&&gate.isValid'));
+ assert.ok(js.includes('تنفيذ النشر لا يزال غير مفعّل'));
+});
