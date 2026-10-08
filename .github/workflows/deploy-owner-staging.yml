@@ -28,6 +28,13 @@ jobs:
         run: |
           npm run check
           npm test
+      - name: Package owner UI into public-only directory
+        run: |
+          mkdir -p public
+          cp ../index.html public/index.html
+          cp ../owner-api-client.js public/owner-api-client.js
+          test -s public/index.html
+          test -s public/owner-api-client.js
       - name: Prevent API-only deployment replacing the owner UI
         run: |
           if ! grep -q 'assets' wrangler.dev.toml; then
