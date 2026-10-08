@@ -17,8 +17,9 @@
  $('stars').append(panel,status);
  let actor=null;
  const revisions=new Map();
- let selectionVersion=0;
- for(const id of ['observer','season','star'])$(id).addEventListener('change',()=>{selectionVersion++});
+ let selectionVersion=0, editVersion=0;
+ for(const id of ['date','starName','detail'])$(id).addEventListener('input',()=>{editVersion++});
+ for(const id of ['observer','season','star'])$(id).addEventListener('change',()=>{selectionVersion++;revisions.clear()});
  const entryId=()=>['stars',$('observer').value,$('season').value,$('star').value].join(':');
  const say=message=>{status.textContent=message};
  async function api(path,opts={}){
@@ -37,10 +38,10 @@
  }
  async function fetchEntry(){
   if(!actor){say('تحقق من حساب المالك أولًا');return}
-  const id=entryId(), version=selectionVersion;
+  const id=entryId(), version=selectionVersion, edits=editVersion;
   try{
    const data=await api('/api/entries/'+id);
-   if(id!==entryId()||version!==selectionVersion){say('تغير النجم أثناء التحميل، أعد المحاولة');return}
+   if(id!==entryId()||version!==selectionVersion||edits!==editVersion){say('تغير الاختيار أو النص أثناء التحميل؛ لم أستبدل تعديلاتك.');return}
    if(!data.payload||typeof data.payload.date!=='string'||typeof data.payload.detail!=='string')throw Error('بيانات النجم غير مكتملة');
    $('date').value=data.payload.date;
    $('starName').value=data.payload.name;
@@ -48,7 +49,7 @@
    revisions.set(id,data.revision);
    say('تم تحميل البيانات من قاعدة التطوير. النسخة رقم '+data.revision);
   }catch(e){
-   if(id!==entryId()||version!==selectionVersion)return;
+   if(id!==entryId()||version!==selectionVersion||edits!==editVersion)return;
    if(e.code===404){revisions.set(id,0);say('هذا النجم لم يُحفظ بعد. يمكنك إدخال تفاصيله وحفظه لأول مرة.')}
    else say('تعذر تحميل النجم: '+e.message)
   }
@@ -61,10 +62,11 @@
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||detail.length>5000){say('تحقق من التاريخ وطول التفاصيل (5000 حرف كحد أقصى)');return}
   const name=$('starName').value.trim();
   if(!name||name.length>100){say('اسم النجم مطلوب وبحد أقصى 100 حرف');return}
-  const payload={date,detail,name};
+  const payload={date,detail,name}, version=selectionVersion, edits=editVersion;
   save.disabled=true;
   try{
    const result=await api('/api/entries/'+id,{method:'PUT',headers:{'content-type':'application/json','if-match':String(revisions.get(id))},body:JSON.stringify(payload)});
+   if(id!==entryId()||version!==selectionVersion||edits!==editVersion){revisions.delete(id);say('تم حفظ البيانات المرسلة، لكن الاختيار أو النص تغيّر أثناء الحفظ؛ حمّل النجم مجددًا قبل حفظ تعديل جديد.');return}
    revisions.set(id,result.revision);
    say('تم الحفظ في قاعدة بيانات التطوير. النسخة رقم '+result.revision+'. لا يظهر التعديل في الموقع العام.');
   }catch(e){
