@@ -1,6 +1,6 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 const json=(data,status=200,extra={})=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff',...extra}});
-const allowedSections=new Set(['stars','prayers','alerts','sponsor','rates','modules','site']);
+const allowedSections=new Set(['stars','prayers','alerts','modules','site']);
 const allowedRoles=new Set(['owner']);
 const idPattern=/^[a-z0-9][a-z0-9:_-]{0,119}$/;
 function corsReject(request){const origin=request.headers.get('origin');if(!origin)return null;try{return new URL(origin).origin===new URL(request.url).origin?null:json({error:'Cross-origin requests are not supported'},403)}catch{return json({error:'Invalid Origin'},403)}}
@@ -35,10 +35,6 @@ async function parsePayload(request,section){
  }
  if(['site','prayers','alerts','modules'].includes(section)){
   if(typeof obj.title!=='string'||!obj.title.trim()||obj.title.length>120||typeof obj.body!=='string'||obj.body.length>5000||Object.keys(obj).some(k=>!['title','body'].includes(k)))throw new Error('payload');
- }
- if(section==='rates'){
-  for(const field of ['usdBuy','usdSell','sarBuy','sarSell'])if(typeof obj[field]!=='number'||!Number.isFinite(obj[field])||obj[field]<=0)throw new Error('rates');
-  if(obj.usdBuy>obj.usdSell||obj.sarBuy>obj.sarSell)throw new Error('rates');
  }
  return JSON.stringify(obj);
 }
