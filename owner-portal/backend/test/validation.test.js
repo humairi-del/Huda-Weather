@@ -249,3 +249,13 @@ test('staging public comparison only reads owner drafts and escapes their text',
  assert.ok(!js.includes("method:'PUT'"));
  assert.ok(!js.includes("innerHTML"));
 });
+
+test('public site reference mapping is informational and read-only',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const js=await readFile(new URL('../../owner-review.js',import.meta.url),'utf8');
+ assert.ok(js.includes('const knownPublic='));
+ assert.ok(js.includes("main/index.html"));
+ assert.ok(js.includes("publicLabel.textContent="));
+ assert.ok(js.includes('لم تُعتمد مقارنة القيم التفصيلية بعد'));
+ assert.ok(!js.includes('fetch(\'https://hada-weather.com'));
+});
