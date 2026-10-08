@@ -22,14 +22,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-          cache-dependency-path: owner-portal/backend/package-lock.json
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund
       - name: Validate backend
         run: |
           npm run check
           npm test
+      - name: Prevent API-only deployment replacing the owner UI
+        run: |
+          if ! grep -q 'assets' wrangler.dev.toml; then
+            echo 'BLOCKED: frontend assets are not yet configured; preserving current staging UI.'
+            exit 1
+          fi
       - name: Deploy isolated Worker
         run: npx wrangler deploy --config wrangler.dev.toml
         env:
