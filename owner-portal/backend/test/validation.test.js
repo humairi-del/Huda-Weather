@@ -219,3 +219,12 @@ test('owner draft editor supports local copying and character counts',async()=>{
  assert.ok(js.includes("navigator.clipboard.writeText(content)"));
  assert.ok(js.includes("body.value.length"));
 });
+
+test('owner editor marks unsaved draft changes without publishing',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const html=await readFile(new URL('../../index.html',import.meta.url),'utf8');
+ const js=await readFile(new URL('../../owner-settings.js',import.meta.url),'utf8');
+ assert.ok(html.includes('id="settingsDirty"'));
+ assert.ok(js.includes("function renderDirty()"));
+ assert.ok(js.includes("savedTitle=sentTitle;savedBody=sentBody"));
+});
