@@ -30,3 +30,10 @@ test('reject malformed JSON',async()=>{
 test('reject inverted currency prices',async()=>{
  await assert.rejects(payload({usdBuy:2000,usdSell:1900,sarBuy:500,sarSell:510},'rates'));
 });
+
+test('reject nonexistent calendar dates',async()=>{
+ await assert.rejects(payload({name:'الجبهة',date:'2026-02-30',detail:''}));
+});
+test('reject blank star names',async()=>{
+ await assert.rejects(payload({name:'   ',date:'2026-01-16',detail:''}));
+});
