@@ -146,3 +146,26 @@ test('never serve non-API paths through the API worker',async()=>{
  const response=await worker.fetch(apiRequest('/src/index.js'),fakeEnv);
  assert.equal(response.status,404);
 });
+
+test('API error responses prevent caching',async()=>{
+ const response=await worker.fetch(apiRequest('/api/me'),fakeEnv);
+ assert.equal(response.headers.get('cache-control'),'no-store');
+});
+test('API error responses disable MIME sniffing',async()=>{
+ const response=await worker.fetch(apiRequest('/api/me'),fakeEnv);
+ assert.equal(response.headers.get('x-content-type-options'),'nosniff');
+});
+test('API error responses are JSON',async()=>{
+ const response=await worker.fetch(apiRequest('/api/me'),fakeEnv);
+ assert.match(response.headers.get('content-type'),/^application\/json/);
+});
+test('star name maximum length is enforced',async()=>{
+ await assert.rejects(payload({name:'x'.repeat(101),date:'2026-01-16',detail:''}));
+});
+test('draft body must be text',async()=>{
+ await assert.rejects(payload({title:'عنوان',body:null},'site'));
+});
+test('empty draft body is supported',async()=>{
+ const saved=JSON.parse(await payload({title:'عنوان',body:''},'site'));
+ assert.equal(saved.body,'');
+});
