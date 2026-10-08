@@ -7,6 +7,13 @@ const knownPublic={site:{title:'طقس هدى وما جاورها',source:'main/
 const publicLabel=$('reviewPublic');
 function describePublic(){const record=knownPublic[select.value];publicLabel.textContent='القسم الموجود في الموقع: '+record.title+'؛ الملفات المرجعية: '+record.source+'؛ لم تُعتمد مقارنة القيم التفصيلية بعد.';}
 select.addEventListener('change',describePublic);describePublic();
+const reviewedSnapshot={site:{title:'طقس هدى وما جاورها',sourceRevision:'39206620492782c51313fdee7802b697dad536cc'}};
+function showSiteTitleDiff(title){
+ if(select.value!=='site')return;
+ const current=reviewedSnapshot.site;
+ const normalized=title.trim();
+ publicLabel.textContent='عنوان الموقع في نسخة main المفحوصة: '+current.title+'؛ النسخة المرجعية: '+current.sourceRevision.slice(0,7)+'؛ عنوان مسودة المالك: '+normalized+'؛ '+(normalized===current.title?'العنوان متطابق':'العنوان مختلف ويحتاج موافقة قبل تطبيقه')+'؛ المقارنة تخص العنوان فقط ولا تمثل تغييرًا منشورًا.';
+}
 let serial=0;
 select.addEventListener('change',()=>{
  serial++;draft.textContent='لم يتم تحميل المسودة.';status.textContent='اختر تحميل بيانات المراجعة.';
@@ -22,6 +29,7 @@ load.addEventListener('click',async()=>{
   const data=await response.json();
   if(!data.payload||typeof data.payload.title!=='string'||typeof data.payload.body!=='string')throw Error('صيغة المسودة غير صالحة');
   draft.textContent=data.payload.title+String.fromCharCode(10,10)+data.payload.body;
+  showSiteTitleDiff(data.payload.title);
   status.textContent='تمت قراءة المسودة رقم '+data.revision+'. هذه معاينة فقط؛ لم يتم النشر.';
  }catch(error){
   if(request===serial){draft.textContent='تعذر عرض المسودة.';status.textContent=error.message}
