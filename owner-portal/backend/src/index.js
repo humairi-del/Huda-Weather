@@ -43,6 +43,7 @@ export {corsReject,parsePayload};
 export default {async fetch(request,env){
  if(!env.DB)return json({error:'Database not configured'},503);
  const url=new URL(request.url);
+ if(url.protocol!=='https:'||url.hostname!==(env.STAGING_HOST||'owner-dev.hada-weather.com'))return json({error:'Staging host required'},403);
  if(!url.pathname.startsWith('/api/'))return json({error:'Not found'},404);
  const cross=corsReject(request);if(cross)return cross;
  let actor;try{actor=await identity(request,env)}catch{return json({error:'Unauthorized'},401)}
