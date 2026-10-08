@@ -322,3 +322,13 @@ test('review report binds the exact draft revision and requires current main ver
  assert.ok(js.includes('إعادة التحقق من رقم المسودة وSHA'));
  assert.ok(js.includes('function clearPlan(){loadedRevision=null;'));
 });
+
+test('site title release proposal is narrowly scoped and HTML escaped',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const js=await readFile(new URL('../../owner-review.js',import.meta.url),'utf8');
+ assert.ok(js.includes('استبدال عنصر title الوحيد في index.html'));
+ assert.ok(js.includes("replaceAll('&','&amp;')"));
+ assert.ok(js.includes('التحقق من وجود عنصر title واحد فقط'));
+ assert.ok(js.includes('إلغاء المقترح'));
+ assert.ok(!js.includes("method:'PUT'"));
+});
