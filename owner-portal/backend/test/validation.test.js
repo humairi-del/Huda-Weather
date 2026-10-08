@@ -269,3 +269,12 @@ test('site title preview uses pinned public snapshot and does not publish',async
  assert.ok(js.includes('العنوان مختلف ويحتاج موافقة'));
  assert.ok(!js.includes('method:\'PUT\''));
 });
+
+test('each public integration section states why drafts are not publish-ready',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const js=await readFile(new URL('../../owner-review.js',import.meta.url),'utf8');
+ for(const section of ['site','prayers','alerts','modules'])assert.ok(js.includes(section+':{file:')||js.includes(section+':{title:'));
+ assert.ok(js.includes('reviewReadiness(select.value)'));
+ assert.ok(js.includes('لا يجوز استبدالها بمسودة نصية'));
+ assert.ok(js.includes('المسودة النصية لا تمثل مفاتيح تشغيل جاهزة'));
+});
