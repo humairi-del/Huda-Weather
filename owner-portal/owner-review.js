@@ -36,15 +36,26 @@ function integrationGate(section,record){
 }
 
 let lastPlan='';
-function clearPlan(){resetChecks();lastPlan='';copy.disabled=true;diff.textContent='حمّل المسودة لإنشاء تقرير مقارنة.';planStatus.textContent='';}
+let loadedRevision=null;
+function reviewIdentity(section,data){
+ const entry=section+':draft';
+ const revision=data.revision;
+ if(!Number.isSafeInteger(revision)||revision<1)throw Error('رقم مراجعة المسودة غير صالح');
+ loadedRevision={entry,revision};
+ return entry+'@'+revision;
+}
+
+function clearPlan(){loadedRevision=null;resetChecks();lastPlan='';copy.disabled=true;diff.textContent='حمّل المسودة لإنشاء تقرير مقارنة.';planStatus.textContent='';}
 function makePlan(section,data){
  const baseline=publicReference[section],title=data.payload.title.trim(),body=data.payload.body;
+ const identity=reviewIdentity(section,data);
  const changedTitle=section==='site'&&title!==reviewedSnapshot.site.title;
  const gate=integrationGate(section,data);
  const lines=[
  'تقرير مراجعة تغيير — بيئة المالك فقط',
  'القسم: '+section,
  'رقم المسودة: '+data.revision,
+ 'معرف المراجعة: '+identity,
  'عنوان المسودة: '+title,
  'طول المحتوى: '+body.length+' حرف',
  'مرجع الموقع العام: '+baseline.file,
@@ -52,6 +63,7 @@ function makePlan(section,data){
  'المقارنة: '+(section==='site'?(changedTitle?'عنوان الموقع مختلف عن المرجع':'عنوان الموقع مطابق للمرجع'):'لا توجد مقارنة قيم تلقائية موثوقة لهذا القسم'),
  'أهلية المقارنة: '+(gate.eligible&&gate.isValid?'مراجعة عنوان الموقع متاحة':'غير جاهز للمقارنة المعتمدة')+'؛ '+gate.reason,
  'حالة النشر: ممنوع حتى مراجعة ملف الموقع الحالي والتغييرات والموافقة المستقلة',
+ 'شرط السلامة: يجب إعادة التحقق من رقم المسودة وSHA الخاص بـ main عند التنفيذ؛ أي تغيير يلغي الموافقة السابقة',
  'خطة التطبيق: إنشاء فرع نشر منفصل من main الحالي؛ تجهيز فرق محدد للملف؛ مراجعة بشرية؛ اختبارات؛ اعتماد التغيير؛ نشر مراقب',
  'خطة الرجوع: حفظ SHA السابق للفرع العام ونسخة الملفات المتغيرة؛ في حال الفشل إعادة الملفات المعتمدة السابقة عبر تغيير عكسي مُراجع؛ التحقق من صحة الموقع',
  'تحذير: هذا التقرير لا ينفذ نشرًا أو استرجاعًا.'
