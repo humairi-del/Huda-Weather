@@ -54,9 +54,9 @@ for(const section of ['site','prayers','alerts','modules']){
 test('staging HTML references every deployed owner asset',async()=>{
  const {readFile}=await import('node:fs/promises');
  const html=await readFile(new URL('../../index.html',import.meta.url),'utf8');
- for(const name of ['owner-api-client.js','owner-settings.js','owner-audit.js'])
+ for(const name of ['owner-api-client.js','owner-settings.js','owner-audit.js','owner-overview.js'])
   assert.ok(html.includes('src="./'+name+'"'),'missing '+name+' script');
- for(const id of ['settingsSection','settingsTitle','settingsBody','auditRefresh','auditList'])
+ for(const id of ['settingsSection','settingsTitle','settingsBody','auditRefresh','auditList','overviewRefresh','overviewList'])
   assert.ok(html.includes('id="'+id+'"'),'missing '+id+' control');
 });
 
