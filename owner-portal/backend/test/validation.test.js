@@ -70,3 +70,13 @@ test('deployment remains isolated from the public worker and production database
 test('drafts reject oversized body',async()=>{
  await assert.rejects(payload({title:'معلومات الموقع',body:'x'.repeat(5001)},'site'));
 });
+
+test('reject star payload with unexpected publishing flag',async()=>{
+ await assert.rejects(payload({name:'الجبهة',date:'2026-01-16',detail:'',published:true}));
+});
+test('reject star payload with unexpected owner metadata',async()=>{
+ await assert.rejects(payload({name:'الجبهة',date:'2026-01-16',detail:'',role:'owner'}));
+});
+test('reject non-object star payload',async()=>{
+ await assert.rejects(payload(['الجبهة']));
+});
