@@ -31,7 +31,7 @@ async function parsePayload(request,section){
  const obj=JSON.parse(raw);
  if(!obj||typeof obj!=='object'||Array.isArray(obj))throw new Error('payload');
  if(section==='stars'){
-  if(typeof obj.name!=='string'||obj.name.trim().length===0||obj.name.length>100||typeof obj.detail!=='string'||obj.detail.length>5000||typeof obj.date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(obj.date)||!Number.isFinite(Date.parse(obj.date+'T00:00:00Z'))||new Date(obj.date+'T00:00:00Z').toISOString().slice(0,10)!==obj.date)throw new Error('payload');
+  if(Object.keys(obj).some(k=>!['name','detail','date'].includes(k))||typeof obj.name!=='string'||obj.name.trim().length===0||obj.name.length>100||typeof obj.detail!=='string'||obj.detail.length>5000||typeof obj.date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(obj.date)||!Number.isFinite(Date.parse(obj.date+'T00:00:00Z'))||new Date(obj.date+'T00:00:00Z').toISOString().slice(0,10)!==obj.date)throw new Error('payload');
  }
  if(['site','prayers','alerts','modules'].includes(section)){
   if(typeof obj.title!=='string'||!obj.title.trim()||obj.title.length>120||typeof obj.body!=='string'||obj.body.length>5000||Object.keys(obj).some(k=>!['title','body'].includes(k)))throw new Error('payload');
@@ -65,6 +65,7 @@ export default {async fetch(request,env){
  if(!match)return json({error:'Not found'},404);
  const id=match[1],section=id.split(':')[0];
  if(!idPattern.test(id)||!allowedSections.has(section))return json({error:'Invalid entry'},400);
+ if(request.method!=='GET'&&request.method!=='PUT')return json({error:'Method not allowed'},405,{allow:'GET, PUT'});
  if(section==='stars'&&!/^stars:(hassan|mohammed):(spring|summer|autumn|winter):[0-6]$/.test(id))return json({error:'Invalid star entry'},400);
  if(['site','prayers','alerts','modules'].includes(section)&&id!==section+':draft')return json({error:'Invalid draft entry'},400);
  if(!authorize(actor,section,request.method))return json({error:'Forbidden'},403);
@@ -74,7 +75,7 @@ export default {async fetch(request,env){
    return entry?json({...entry,payload:JSON.parse(entry.payload)}):json({error:'Not found'},404);
   }
   if(request.method==='PUT'){
-   if(!['application/json'].some(x=>(request.headers.get('content-type')||'').startsWith(x)))return json({error:'JSON required'},415);
+   if(!/^application\/json(?:\s*;|\s*$)/i.test(request.headers.get('content-type')||''))return json({error:'JSON required'},415);
    const ifMatch=request.headers.get('if-match');
    if(ifMatch===null||!/^\d+$/.test(ifMatch))return json({error:'If-Match revision required'},428);
    const revision=Number(ifMatch);
