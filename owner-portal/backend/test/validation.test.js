@@ -50,3 +50,22 @@ for(const section of ['site','prayers','alerts','modules']){
   await assert.rejects(payload({title:'عنوان',body:'ملاحظات',published:true},section));
  });
 }
+
+test('staging HTML references every deployed owner asset',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const html=await readFile(new URL('../../index.html',import.meta.url),'utf8');
+ for(const name of ['owner-api-client.js','owner-settings.js','owner-audit.js'])
+  assert.ok(html.includes('src="./'+name+'"'),'missing '+name+' script');
+ for(const id of ['settingsSection','settingsTitle','settingsBody','auditRefresh','auditList'])
+  assert.ok(html.includes('id="'+id+'"'),'missing '+id+' control');
+});
+
+test('deployment remains isolated from the public worker and production database',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const config=await readFile(new URL('../wrangler.dev.toml',import.meta.url),'utf8');
+ assert.match(config,/name = "hada-owner-portal-staging"/);
+ assert.match(config,/workers_dev = false/);
+ assert.match(config,/database_name = "hada_owner_portal_dev"/);
+ assert.match(config,/STAGING_HOST = "owner-dev\.hada-weather\.com"/);
+ assert.doesNotMatch(config,/name = "rasid-hada"/);
+});
