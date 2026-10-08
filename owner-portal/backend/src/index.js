@@ -81,4 +81,4 @@ export default {async fetch(request,env){
   }
   return json({error:'Method not allowed'},405,{allow:'GET, PUT'});
  }catch(e){if(['payload','rates'].includes(e.message)||e instanceof SyntaxError)return json({error:'Invalid input'},400);return json({error:'Server error'},500)}
-}}};
+}};
