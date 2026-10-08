@@ -28,11 +28,19 @@ function resetChecks(){checks.forEach(x=>{x.checked=false});refreshChecks();}
 checks.forEach(x=>x.addEventListener('change',refreshChecks));refreshChecks();
 
 const diff=$('reviewDiff'),copy=$('reviewCopyPlan'),planStatus=$('reviewPlanStatus');
+const approvedSections=new Set(['site']);
+function integrationGate(section,record){
+ const eligible=approvedSections.has(section);
+ const isValid=Number.isSafeInteger(record.revision)&&record.revision>0&&record.payload.title.trim().length>0;
+ return {eligible,isValid,reason:eligible?'توجد مقارنة عنوان مرجعية فقط؛ تنفيذ النشر لا يزال غير مفعّل':'يحتاج القسم محول بيانات وتحققًا مستقلًا قبل اعتماده للنشر'};
+}
+
 let lastPlan='';
 function clearPlan(){resetChecks();lastPlan='';copy.disabled=true;diff.textContent='حمّل المسودة لإنشاء تقرير مقارنة.';planStatus.textContent='';}
 function makePlan(section,data){
  const baseline=publicReference[section],title=data.payload.title.trim(),body=data.payload.body;
  const changedTitle=section==='site'&&title!==reviewedSnapshot.site.title;
+ const gate=integrationGate(section,data);
  const lines=[
  'تقرير مراجعة تغيير — بيئة المالك فقط',
  'القسم: '+section,
@@ -42,6 +50,7 @@ function makePlan(section,data){
  'مرجع الموقع العام: '+baseline.file,
  'نسخة index.html المرجعية: '+reviewedSnapshot.site.sourceRevision,
  'المقارنة: '+(section==='site'?(changedTitle?'عنوان الموقع مختلف عن المرجع':'عنوان الموقع مطابق للمرجع'):'لا توجد مقارنة قيم تلقائية موثوقة لهذا القسم'),
+ 'أهلية المقارنة: '+(gate.eligible&&gate.isValid?'مراجعة عنوان الموقع متاحة':'غير جاهز للمقارنة المعتمدة')+'؛ '+gate.reason,
  'حالة النشر: ممنوع حتى مراجعة ملف الموقع الحالي والتغييرات والموافقة المستقلة',
  'خطة التطبيق: إنشاء فرع نشر منفصل من main الحالي؛ تجهيز فرق محدد للملف؛ مراجعة بشرية؛ اختبارات؛ اعتماد التغيير؛ نشر مراقب',
  'خطة الرجوع: حفظ SHA السابق للفرع العام ونسخة الملفات المتغيرة؛ في حال الفشل إعادة الملفات المعتمدة السابقة عبر تغيير عكسي مُراجع؛ التحقق من صحة الموقع',
