@@ -39,6 +39,7 @@ async function parsePayload(request,section){
  }
  return JSON.stringify(obj);
 }
+export {corsReject,parsePayload};
 export default {async fetch(request,env){
  if(!env.DB)return json({error:'Database not configured'},503);
  const url=new URL(request.url);
