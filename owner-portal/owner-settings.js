@@ -4,9 +4,11 @@
 const $=id=>document.getElementById(id);
 const section=$('settingsSection'),title=$('settingsTitle'),body=$('settingsBody'),status=$('settingsStatus'),load=$('settingsLoad'),save=$('settingsSave');
 let revision=null, loadedSection=null, sequence=0, editVersion=0;
-for(const field of [title,body])field.addEventListener('input',()=>{editVersion++});
+const preview=$('settingsPreview');
+function renderPreview(){preview.textContent=(title.value.trim()||'بدون عنوان')+'\n\n'+(body.value||'لا يوجد محتوى بعد.')}
+for(const field of [title,body])field.addEventListener('input',()=>{editVersion++;renderPreview()});
 const report=s=>{status.textContent=s};
-const reset=()=>{sequence++;revision=null;loadedSection=null;title.value='';body.value='';report('اختر تحميل المسودة قبل الحفظ.')};
+const reset=()=>{sequence++;revision=null;loadedSection=null;title.value='';body.value='';renderPreview();report('اختر تحميل المسودة قبل الحفظ.')};
 section.addEventListener('change',reset);
 async function call(path,options={}){
  const res=await fetch(path,{credentials:'same-origin',cache:'no-store',...options,headers:{accept:'application/json',...(options.headers||{})}});
@@ -20,10 +22,10 @@ load.addEventListener('click',async()=>{
   const data=await call('/api/entries/'+selected+':draft');
   if(request!==sequence||selected!==section.value||edits!==editVersion){report('تغيرت البيانات أثناء التحميل. أعد التحميل بعد حفظ ملاحظاتك.');return}
   title.value=data.payload.title||'';body.value=data.payload.body||'';
-  revision=data.revision;loadedSection=selected;report('تم تحميل المسودة. النسخة رقم '+revision);
+  revision=data.revision;loadedSection=selected;renderPreview();report('تم تحميل المسودة. النسخة رقم '+revision);
  }catch(e){
   if(request!==sequence||selected!==section.value||edits!==editVersion)return;
-  if(e.status===404){title.value='';body.value='';revision=0;loadedSection=selected;report('لا توجد مسودة سابقة. يمكنك إنشاء مسودة جديدة.')}
+  if(e.status===404){title.value='';body.value='';revision=0;loadedSection=selected;renderPreview();report('لا توجد مسودة سابقة. يمكنك إنشاء مسودة جديدة.')}
   else report('تعذر التحميل: '+e.message);
  }finally{load.disabled=false}
 });
@@ -39,5 +41,6 @@ save.addEventListener('click',async()=>{
  }catch(e){if(e.status===409){revision=null;loadedSection=null}report('تعذر الحفظ: '+e.message+(e.status===409?' — حمّل النسخة الجديدة ثم راجع التعديل.':''))}
  finally{save.disabled=false}
 });
+renderPreview();
 report('هذه مسودات تجريبية لا تظهر على الموقع العام.');
 })();
