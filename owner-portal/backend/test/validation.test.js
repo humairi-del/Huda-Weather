@@ -278,3 +278,16 @@ test('each public integration section states why drafts are not publish-ready',a
  assert.ok(js.includes('لا يجوز استبدالها بمسودة نصية'));
  assert.ok(js.includes('المسودة النصية لا تمثل مفاتيح تشغيل جاهزة'));
 });
+
+test('review generates explicit change and rollback report without deployment actions',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const html=await readFile(new URL('../../index.html',import.meta.url),'utf8');
+ const js=await readFile(new URL('../../owner-review.js',import.meta.url),'utf8');
+ for(const id of ['reviewDiff','reviewCopyPlan','reviewPlanStatus'])assert.ok(html.includes('id="'+id+'"'));
+ assert.ok(js.includes('function makePlan(section,data)'));
+ assert.ok(js.includes('خطة الرجوع:'));
+ assert.ok(js.includes('حالة النشر: ممنوع'));
+ assert.ok(js.includes('navigator.clipboard.writeText(lastPlan)'));
+ assert.ok(!js.includes("method:'PUT'"));
+ assert.ok(!js.includes('innerHTML'));
+});
