@@ -3,6 +3,10 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const select=$('reviewSection'),load=$('reviewLoad'),status=$('reviewStatus'),draft=$('reviewDraft');
+const knownPublic={site:{title:'طقس هدى وما جاورها',source:'main/index.html'},prayers:{title:'مواقيت الصلاة',source:'main/base-2.1.1.html و prayer-7day.js'},alerts:{title:'تنبيهات الطقس',source:'main/base-2.1.1.html و patch-2.2.js'},modules:{title:'الأقسام والخدمات',source:'main/index.html و base-2.1.1.html'}};
+const publicLabel=$('reviewPublic');
+function describePublic(){const record=knownPublic[select.value];publicLabel.textContent='القسم الموجود في الموقع: '+record.title+'؛ الملفات المرجعية: '+record.source+'؛ لم تُعتمد مقارنة القيم التفصيلية بعد.';}
+select.addEventListener('change',describePublic);describePublic();
 let serial=0;
 select.addEventListener('change',()=>{
  serial++;draft.textContent='لم يتم تحميل المسودة.';status.textContent='اختر تحميل بيانات المراجعة.';
