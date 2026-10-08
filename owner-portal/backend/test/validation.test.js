@@ -291,3 +291,15 @@ test('review generates explicit change and rollback report without deployment ac
  assert.ok(!js.includes("method:'PUT'"));
  assert.ok(!js.includes('innerHTML'));
 });
+
+test('review checklist resets on new draft and cannot publish',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const html=await readFile(new URL('../../index.html',import.meta.url),'utf8');
+ const js=await readFile(new URL('../../owner-review.js',import.meta.url),'utf8');
+ for(const id of ['reviewCheckSource','reviewCheckDiff','reviewCheckBackup','reviewCheckStatus'])assert.ok(html.includes('id="'+id+'"'));
+ assert.ok(js.includes('function resetChecks()'));
+ assert.ok(js.includes('function clearPlan(){resetChecks();'));
+ assert.ok(js.includes('String.fromCharCode(10)'));
+ assert.ok(js.includes('if(request===serial)load.disabled=false'));
+ assert.ok(!js.includes("method:'PUT'"));
+});
