@@ -19,9 +19,39 @@ function reviewReadiness(section){
  const reference=publicReference[section];
  return 'مرجع العرض: '+reference.file+'؛ '+(reference.note||'يمكن مقارنة عنوان الموقع مع نسخة main المحددة')+'؛ لا يوجد نشر تلقائي.';
 }
+const diff=$('reviewDiff'),copy=$('reviewCopyPlan'),planStatus=$('reviewPlanStatus');
+let lastPlan='';
+function clearPlan(){lastPlan='';copy.disabled=true;diff.textContent='حمّل المسودة لإنشاء تقرير مقارنة.';planStatus.textContent='';}
+function makePlan(section,data){
+ const baseline=publicReference[section],title=data.payload.title.trim(),body=data.payload.body;
+ const changedTitle=section==='site'&&title!==reviewedSnapshot.site.title;
+ const lines=[
+ 'تقرير مراجعة تغيير — بيئة المالك فقط',
+ 'القسم: '+section,
+ 'رقم المسودة: '+data.revision,
+ 'عنوان المسودة: '+title,
+ 'طول المحتوى: '+body.length+' حرف',
+ 'مرجع الموقع العام: '+baseline.file,
+ 'نسخة index.html المرجعية: '+reviewedSnapshot.site.sourceRevision,
+ 'المقارنة: '+(section==='site'?(changedTitle?'عنوان الموقع مختلف عن المرجع':'عنوان الموقع مطابق للمرجع'):'لا توجد مقارنة قيم تلقائية موثوقة لهذا القسم'),
+ 'حالة النشر: ممنوع حتى مراجعة ملف الموقع الحالي والتغييرات والموافقة المستقلة',
+ 'خطة التطبيق: إنشاء فرع نشر منفصل من main الحالي؛ تجهيز فرق محدد للملف؛ مراجعة بشرية؛ اختبارات؛ اعتماد التغيير؛ نشر مراقب',
+ 'خطة الرجوع: حفظ SHA السابق للفرع العام ونسخة الملفات المتغيرة؛ في حال الفشل إعادة الملفات المعتمدة السابقة عبر تغيير عكسي مُراجع؛ التحقق من صحة الموقع',
+ 'تحذير: هذا التقرير لا ينفذ نشرًا أو استرجاعًا.'
+ ];
+ lastPlan=lines.join('\\n');
+ diff.textContent=section==='site'?(changedTitle?'اختلاف مؤكد في عنوان الموقع بين المسودة والنسخة المرجعية.':'عنوان الموقع مطابق للنسخة المرجعية.'): 'القسم '+section+' يحتاج محول بيانات منظّم قبل إجراء مقارنة قيم دقيقة.';
+ copy.disabled=false;
+}
+copy.addEventListener('click',async()=>{
+ if(!lastPlan)return;
+ try{await navigator.clipboard.writeText(lastPlan);planStatus.textContent='تم نسخ تقرير المراجعة وخطة الرجوع. لا يوجد نشر.'}
+ catch{planStatus.textContent='تعذر النسخ؛ لا يوجد نشر.'}
+});
+
 let serial=0;
 select.addEventListener('change',()=>{
- serial++;draft.textContent='لم يتم تحميل المسودة.';status.textContent='اختر تحميل بيانات المراجعة.';
+ serial++;clearPlan();draft.textContent='لم يتم تحميل المسودة.';status.textContent='اختر تحميل بيانات المراجعة.';
 });
 load.addEventListener('click',async()=>{
  const section=select.value,request=++serial;
@@ -29,15 +59,16 @@ load.addEventListener('click',async()=>{
  try{
   const response=await fetch('/api/entries/'+section+':draft',{credentials:'same-origin',cache:'no-store',headers:{accept:'application/json'}});
   if(request!==serial||section!==select.value)return;
-  if(response.status===404){draft.textContent='لا توجد مسودة محفوظة لهذا القسم.';status.textContent='لم يُحفظ محتوى بعد.';return}
+  if(response.status===404){clearPlan();draft.textContent='لا توجد مسودة محفوظة لهذا القسم.';status.textContent='لم يُحفظ محتوى بعد.';return}
   if(!response.ok)throw Error('تعذر قراءة المسودة المحمية: '+response.status);
   const data=await response.json();
   if(!data.payload||typeof data.payload.title!=='string'||typeof data.payload.body!=='string')throw Error('صيغة المسودة غير صالحة');
   draft.textContent=data.payload.title+String.fromCharCode(10,10)+data.payload.body;
   showSiteTitleDiff(data.payload.title);
+  makePlan(section,data);
   status.textContent='تمت قراءة المسودة رقم '+data.revision+'. هذه معاينة فقط؛ لم يتم النشر.';
  }catch(error){
-  if(request===serial){draft.textContent='تعذر عرض المسودة.';status.textContent=error.message}
+  if(request===serial){clearPlan();draft.textContent='تعذر عرض المسودة.';status.textContent=error.message}
  }finally{load.disabled=false}
 });
 })();
