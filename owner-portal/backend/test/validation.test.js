@@ -169,3 +169,20 @@ test('empty draft body is supported',async()=>{
  const saved=JSON.parse(await payload({title:'عنوان',body:''},'site'));
  assert.equal(saved.body,'');
 });
+
+test('star read requires authentication',async()=>{
+ const response=await worker.fetch(apiRequest('/api/entries/stars:hassan:spring:0'),fakeEnv);
+ assert.equal(response.status,401);
+});
+test('prayer draft read requires authentication',async()=>{
+ const response=await worker.fetch(apiRequest('/api/entries/prayers:draft'),fakeEnv);
+ assert.equal(response.status,401);
+});
+test('alerts draft read requires authentication',async()=>{
+ const response=await worker.fetch(apiRequest('/api/entries/alerts:draft'),fakeEnv);
+ assert.equal(response.status,401);
+});
+test('modules draft read requires authentication',async()=>{
+ const response=await worker.fetch(apiRequest('/api/entries/modules:draft'),fakeEnv);
+ assert.equal(response.status,401);
+});
