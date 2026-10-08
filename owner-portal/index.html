@@ -3,7 +3,7 @@
 <header><h1>بوابة المالك — طقس هدى وما جاورها</h1><p>إدارة النجوم الزراعية — نسخة التطوير</p></header>
 <main><p class="notice">لا تستخدم هذه الصفحة إلا على عنوان التطوير المحمي بعد ربط الخادم والتحقق من الدخول. التعديلات المحفوظة في قاعدة التطوير لا تظهر على الموقع العام.</p>
 <section id="stars"><h2>تفاصيل النجوم</h2><div class="grid"><div><label for="observer">الراصد</label><select id="observer"><option value="hassan">حسن علي قشعر</option><option value="mohammed">محمد شمروخ الطهيبي</option></select></div><div><label for="season">الفصل</label><select id="season"></select></div><div><label for="star">النجم</label><select id="star"></select></div><div><label for="date">تاريخ الدخول</label><input id="date" type="date"></div></div>
-<label for="detail">تفاصيل النجم</label><textarea id="detail" maxlength="5000" placeholder="أدخل التفاصيل عندما تتوفر"></textarea><div id="starPreview"></div></section>
+<label for="starName">اسم النجم (قابل للتعديل)</label><input id="starName" maxlength="100" required><label for="detail">تفاصيل النجم</label><textarea id="detail" maxlength="5000" placeholder="أدخل التفاصيل عندما تتوفر"></textarea><div id="starPreview"></div></section>
 </main>
 <script>
 const names={spring:['الجبهة','الزبرة','الصرفة','عواء','السماك','الغفر','زبان'],summer:['أكليل','قلب','شول','النعيم','بلدة','الذراع','مرزم'],autumn:['سهيل','سعد','قترة (ناهز)','عرج','خامس','سادس','سابع'],winter:['الثريا','بركان','هقاع','هناع','ذراع','نثرة','طرف']};
@@ -11,7 +11,7 @@ const starts={hassan:['2026-01-16','2026-04-17','2026-07-17','2026-10-16'],moham
 const seasons=['spring','summer','autumn','winter'];const $=id=>document.getElementById(id);
 function plusDays(iso,days){const d=new Date(iso+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10)}
 seasons.forEach((s,i)=>$('season').add(new Option(['الربيع','الصيف','الخريف','الشتاء'][i],s)));
-function refresh(){const s=$('season').value;const i=Number($('star').value)||0;const n=names[s][i];const start=starts[$('observer').value][seasons.indexOf(s)];$('date').value=plusDays(start,i*13);$('detail').value='';$('starPreview').textContent='النجم: '+n+' — البيانات غير المحفوظة في هذه الصفحة لا تُنشر.'}
+function refresh(){const s=$('season').value;const i=Number($('star').value)||0;const n=names[s][i];const start=starts[$('observer').value][seasons.indexOf(s)];$('date').value=plusDays(start,i*13);$('starName').value=n;$('detail').value='';$('starPreview').textContent='النجم: '+n+' — البيانات غير المحفوظة في هذه الصفحة لا تُنشر.'}
 function fill(){const s=$('season').value;$('star').replaceChildren(...names[s].map((n,i)=>new Option(n,String(i))));refresh()}
 $('observer').addEventListener('change',refresh);$('season').addEventListener('change',fill);$('star').addEventListener('change',refresh);fill();
 </script><script src="./owner-api-client.js"></script></body></html>
