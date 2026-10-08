@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {corsReject,parsePayload} from '../src/index.js';
+import worker,{corsReject,parsePayload} from '../src/index.js';
 
 const request=(url,headers={})=>new Request(url,{headers});
 const payload=(body,section='stars')=>parsePayload(new Request('https://owner-dev.hada-weather.com/api/entries/stars:hassan:spring:0',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(body)}),section);
@@ -106,4 +106,43 @@ test('accept valid leap day',async()=>{
 });
 test('reject malformed cross-origin header',()=>{
  assert.equal(corsReject(request('https://owner-dev.hada-weather.com/api/me',{origin:'not a valid origin'})).status,403);
+});
+
+const fakeEnv={DB:{},STAGING_HOST:'owner-dev.hada-weather.com'};
+const apiRequest=(path,options={})=>new Request('https://owner-dev.hada-weather.com'+path,options);
+test('unauthenticated owner identity is denied',async()=>{
+ const response=await worker.fetch(apiRequest('/api/me'),fakeEnv);
+ assert.equal(response.status,401);
+});
+test('unauthenticated database overview is denied',async()=>{
+ const response=await worker.fetch(apiRequest('/api/overview'),fakeEnv);
+ assert.equal(response.status,401);
+});
+test('unauthenticated audit history is denied',async()=>{
+ const response=await worker.fetch(apiRequest('/api/audit'),fakeEnv);
+ assert.equal(response.status,401);
+});
+test('unauthenticated draft write is denied',async()=>{
+ const response=await worker.fetch(apiRequest('/api/entries/site:draft',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({title:'اختبار',body:''})}),fakeEnv);
+ assert.equal(response.status,401);
+});
+test('reject requests on unexpected host',async()=>{
+ const response=await worker.fetch(new Request('https://hada-weather.com/api/me'),fakeEnv);
+ assert.equal(response.status,403);
+});
+test('reject requests over HTTP',async()=>{
+ const response=await worker.fetch(new Request('http://owner-dev.hada-weather.com/api/me'),fakeEnv);
+ assert.equal(response.status,403);
+});
+test('reject foreign origin before authentication',async()=>{
+ const response=await worker.fetch(apiRequest('/api/me',{headers:{origin:'https://example.com'}}),fakeEnv);
+ assert.equal(response.status,403);
+});
+test('reject requests when isolated database binding is absent',async()=>{
+ const response=await worker.fetch(apiRequest('/api/me'),{STAGING_HOST:'owner-dev.hada-weather.com'});
+ assert.equal(response.status,503);
+});
+test('never serve non-API paths through the API worker',async()=>{
+ const response=await worker.fetch(apiRequest('/src/index.js'),fakeEnv);
+ assert.equal(response.status,404);
 });
