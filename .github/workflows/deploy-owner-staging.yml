@@ -35,6 +35,9 @@ jobs:
         run: |
           npm run check
           npm test
+          node --check ../owner-api-client.js
+          node --check ../owner-settings.js
+          node --check ../owner-audit.js
       - name: Package owner UI into public-only directory
         run: |
           mkdir -p public
