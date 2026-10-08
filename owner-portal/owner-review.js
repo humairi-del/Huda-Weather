@@ -19,9 +19,17 @@ function reviewReadiness(section){
  const reference=publicReference[section];
  return 'مرجع العرض: '+reference.file+'؛ '+(reference.note||'يمكن مقارنة عنوان الموقع مع نسخة main المحددة')+'؛ لا يوجد نشر تلقائي.';
 }
+const checks=['reviewCheckSource','reviewCheckDiff','reviewCheckBackup'].map($),checkStatus=$('reviewCheckStatus');
+function refreshChecks(){
+ const count=checks.filter(x=>x.checked).length;
+ checkStatus.textContent=count===3?'اكتملت قائمة المراجعة اليدوية؛ لا يزال النشر يتطلب موافقة مستقلة وتنفيذًا آمنًا.':'مراجعة ما قبل النشر: '+count+' من 3. لا يوجد نشر.';
+}
+function resetChecks(){checks.forEach(x=>{x.checked=false});refreshChecks();}
+checks.forEach(x=>x.addEventListener('change',refreshChecks));refreshChecks();
+
 const diff=$('reviewDiff'),copy=$('reviewCopyPlan'),planStatus=$('reviewPlanStatus');
 let lastPlan='';
-function clearPlan(){lastPlan='';copy.disabled=true;diff.textContent='حمّل المسودة لإنشاء تقرير مقارنة.';planStatus.textContent='';}
+function clearPlan(){resetChecks();lastPlan='';copy.disabled=true;diff.textContent='حمّل المسودة لإنشاء تقرير مقارنة.';planStatus.textContent='';}
 function makePlan(section,data){
  const baseline=publicReference[section],title=data.payload.title.trim(),body=data.payload.body;
  const changedTitle=section==='site'&&title!==reviewedSnapshot.site.title;
