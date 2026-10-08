@@ -31,7 +31,7 @@ async function parsePayload(request,section){
  const obj=JSON.parse(raw);
  if(!obj||typeof obj!=='object'||Array.isArray(obj))throw new Error('payload');
  if(section==='stars'){
-  if(typeof obj.name!=='string'||obj.name.length>100||typeof obj.detail!=='string'||obj.detail.length>5000||typeof obj.date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(obj.date)||!Number.isFinite(Date.parse(obj.date+'T00:00:00Z')))throw new Error('payload');
+  if(typeof obj.name!=='string'||obj.name.trim().length===0||obj.name.length>100||typeof obj.detail!=='string'||obj.detail.length>5000||typeof obj.date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(obj.date)||new Date(obj.date+'T00:00:00Z').toISOString().slice(0,10)!==obj.date)throw new Error('payload');
  }
  if(section==='rates'){
   for(const field of ['usdBuy','usdSell','sarBuy','sarSell'])if(typeof obj[field]!=='number'||!Number.isFinite(obj[field])||obj[field]<=0)throw new Error('rates');
