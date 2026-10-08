@@ -51,6 +51,13 @@ export default {async fetch(request,env){
  const cross=corsReject(request);if(cross)return cross;
  let actor;try{actor=await identity(request,env)}catch{return json({error:'Unauthorized'},401)}
  if(url.pathname==='/api/me'&&request.method==='GET')return json({role:actor.role,email:actor.email});
+ if(url.pathname==='/api/overview'){
+  if(request.method!=='GET')return json({error:'Method not allowed'},405,{allow:'GET'});
+  try{
+   const result=await env.DB.prepare('SELECT section, COUNT(*) AS entries FROM content_entries GROUP BY section').all();
+   return json({sections:result.results||[]});
+  }catch{return json({error:'Server error'},500)}
+ }
  if(url.pathname==='/api/audit'){
   if(request.method!=='GET')return json({error:'Method not allowed'},405,{allow:'GET'});
   try{
