@@ -17,6 +17,8 @@
  $('stars').append(panel,status);
  let actor=null;
  const revisions=new Map();
+ let selectionVersion=0;
+ for(const id of ['observer','season','star'])$(id).addEventListener('change',()=>{selectionVersion++});
  const entryId=()=>['stars',$('observer').value,$('season').value,$('star').value].join(':');
  const say=message=>{status.textContent=message};
  async function api(path,opts={}){
@@ -35,10 +37,10 @@
  }
  async function fetchEntry(){
   if(!actor){say('تحقق من حساب المالك أولًا');return}
-  const id=entryId();
+  const id=entryId(), version=selectionVersion;
   try{
    const data=await api('/api/entries/'+id);
-   if(id!==entryId()){say('تغير النجم أثناء التحميل، أعد المحاولة');return}
+   if(id!==entryId()||version!==selectionVersion){say('تغير النجم أثناء التحميل، أعد المحاولة');return}
    if(!data.payload||typeof data.payload.date!=='string'||typeof data.payload.detail!=='string')throw Error('بيانات النجم غير مكتملة');
    $('date').value=data.payload.date;
    $('starName').value=data.payload.name;
@@ -46,6 +48,7 @@
    revisions.set(id,data.revision);
    say('تم تحميل البيانات من قاعدة التطوير. النسخة رقم '+data.revision);
   }catch(e){
+   if(id!==entryId()||version!==selectionVersion)return;
    if(e.code===404){revisions.set(id,0);say('هذا النجم لم يُحفظ بعد. يمكنك إدخال تفاصيله وحفظه لأول مرة.')}
    else say('تعذر تحميل النجم: '+e.message)
   }
