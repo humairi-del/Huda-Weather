@@ -41,6 +41,7 @@
    if(id!==entryId()){say('تغير النجم أثناء التحميل، أعد المحاولة');return}
    if(!data.payload||typeof data.payload.date!=='string'||typeof data.payload.detail!=='string')throw Error('بيانات النجم غير مكتملة');
    $('date').value=data.payload.date;
+   $('starName').value=data.payload.name;
    $('detail').value=data.payload.detail;
    revisions.set(id,data.revision);
    say('تم تحميل البيانات من قاعدة التطوير. النسخة رقم '+data.revision);
@@ -55,7 +56,9 @@
   if(!revisions.has(id)){say('حمّل بيانات هذا النجم أولًا لتجنب الكتابة فوق تعديل آخر');return}
   const date=$('date').value,detail=$('detail').value;
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||detail.length>5000){say('تحقق من التاريخ وطول التفاصيل (5000 حرف كحد أقصى)');return}
-  const payload={date,detail,name:$('star').selectedOptions[0]?.textContent||''};
+  const name=$('starName').value.trim();
+  if(!name||name.length>100){say('اسم النجم مطلوب وبحد أقصى 100 حرف');return}
+  const payload={date,detail,name};
   save.disabled=true;
   try{
    const result=await api('/api/entries/'+id,{method:'PUT',headers:{'content-type':'application/json','if-match':String(revisions.get(id))},body:JSON.stringify(payload)});
