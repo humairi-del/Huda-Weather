@@ -312,3 +312,13 @@ test('owner review keeps non-site sections blocked pending typed adapters',async
  assert.ok(js.includes('gate.eligible&&gate.isValid'));
  assert.ok(js.includes('تنفيذ النشر لا يزال غير مفعّل'));
 });
+
+test('review report binds the exact draft revision and requires current main verification',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const js=await readFile(new URL('../../owner-review.js',import.meta.url),'utf8');
+ assert.ok(js.includes('function reviewIdentity(section,data)'));
+ assert.ok(js.includes("return entry+'@'+revision"));
+ assert.ok(js.includes('معرف المراجعة: '));
+ assert.ok(js.includes('إعادة التحقق من رقم المسودة وSHA'));
+ assert.ok(js.includes('function clearPlan(){loadedRevision=null;'));
+});
