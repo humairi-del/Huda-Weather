@@ -201,3 +201,12 @@ test('owner portal declares Arabic and right-to-left layout',async()=>{
  assert.match(html,/<html lang="ar" dir="rtl">/);
  assert.match(html,/name="viewport"/);
 });
+
+test('draft preview is present in the owner editor',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const html=await readFile(new URL('../../index.html',import.meta.url),'utf8');
+ const js=await readFile(new URL('../../owner-settings.js',import.meta.url),'utf8');
+ assert.ok(html.includes('id="settingsPreview"'));
+ assert.ok(js.includes("preview.textContent="));
+ assert.ok(js.includes("renderPreview()"));
+});
