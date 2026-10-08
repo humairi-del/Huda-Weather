@@ -186,3 +186,18 @@ test('modules draft read requires authentication',async()=>{
  const response=await worker.fetch(apiRequest('/api/entries/modules:draft'),fakeEnv);
  assert.equal(response.status,401);
 });
+
+test('owner navigation links reach each existing section',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const html=await readFile(new URL('../../index.html',import.meta.url),'utf8');
+ for(const section of ['overview','stars','settings','audit']){
+  assert.ok(html.includes('href="#'+section+'"'));
+  assert.ok(html.includes('id="'+section+'"'));
+ }
+});
+test('owner portal declares Arabic and right-to-left layout',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const html=await readFile(new URL('../../index.html',import.meta.url),'utf8');
+ assert.match(html,/<html lang="ar" dir="rtl">/);
+ assert.match(html,/name="viewport"/);
+});
