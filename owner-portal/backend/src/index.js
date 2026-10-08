@@ -51,6 +51,13 @@ export default {async fetch(request,env){
  const cross=corsReject(request);if(cross)return cross;
  let actor;try{actor=await identity(request,env)}catch{return json({error:'Unauthorized'},401)}
  if(url.pathname==='/api/me'&&request.method==='GET')return json({role:actor.role,email:actor.email});
+ if(url.pathname==='/api/audit'){
+  if(request.method!=='GET')return json({error:'Method not allowed'},405,{allow:'GET'});
+  try{
+   const history=await env.DB.prepare('SELECT entry_id,action,created_at FROM audit_events ORDER BY created_at DESC,id DESC LIMIT 20').all();
+   return json({events:history.results||[]});
+  }catch{return json({error:'Server error'},500)}
+ }
  const match=/^\/api\/entries\/([a-z0-9:_-]{1,120})$/.exec(url.pathname);
  if(!match)return json({error:'Not found'},404);
  const id=match[1],section=id.split(':')[0];
