@@ -1,0 +1,17 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>بوابة المالك — هدى</title><style>
+*{box-sizing:border-box}body{margin:0;background:#081725;color:#edf6ff;font:16px Tahoma,Arial,sans-serif}header{background:#10283f;padding:24px}main{max-width:860px;margin:20px auto;padding:20px;background:#10263b;border:1px solid #35536b;border-radius:15px}h1{margin:0}p{line-height:1.8}.notice{padding:14px;background:#392c1d;color:#ffe2aa;border-radius:9px}label{display:block;margin:12px 0 6px}select,input,textarea{width:100%;padding:12px;background:#071625;border:1px solid #50708c;color:#fff;border-radius:8px;font:inherit}textarea{min-height:180px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}button{background:#25658c;color:white;border:1px solid #6c9ab4;padding:12px;border-radius:9px;cursor:pointer}button:disabled{opacity:.5}button:focus-visible{outline:3px solid #fff}#starPreview{white-space:pre-wrap;background:#071625;padding:12px;margin-top:16px;border-radius:9px}</style></head><body>
+<header><h1>بوابة المالك — طقس هدى وما جاورها</h1><p>إدارة النجوم الزراعية — نسخة التطوير</p></header>
+<main><p class="notice">لا تستخدم هذه الصفحة إلا على عنوان التطوير المحمي بعد ربط الخادم والتحقق من الدخول. التعديلات المحفوظة في قاعدة التطوير لا تظهر على الموقع العام.</p>
+<section id="stars"><h2>تفاصيل النجوم</h2><div class="grid"><div><label for="observer">الراصد</label><select id="observer"><option value="hassan">حسن علي قشعر</option><option value="mohammed">محمد شمروخ الطهيبي</option></select></div><div><label for="season">الفصل</label><select id="season"></select></div><div><label for="star">النجم</label><select id="star"></select></div><div><label for="date">تاريخ الدخول</label><input id="date" type="date"></div></div>
+<label for="detail">تفاصيل النجم</label><textarea id="detail" maxlength="5000" placeholder="أدخل التفاصيل عندما تتوفر"></textarea><div id="starPreview"></div></section>
+</main>
+<script>
+const names={spring:['الجبهة','الزبرة','الصرفة','عواء','السماك','الغفر','زبان'],summer:['أكليل','قلب','شول','النعيم','بلدة','الذراع','مرزم'],autumn:['سهيل','سعد','قترة (ناهز)','عرج','خامس','سادس','سابع'],winter:['الثريا','بركان','هقاع','هناع','ذراع','نثرة','طرف']};
+const starts={hassan:['2026-01-16','2026-04-17','2026-07-17','2026-10-16'],mohammed:['2026-01-30','2026-05-01','2026-07-31','2026-10-30']};
+const seasons=['spring','summer','autumn','winter'];const $=id=>document.getElementById(id);
+function plusDays(iso,days){const d=new Date(iso+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10)}
+seasons.forEach((s,i)=>$('season').add(new Option(['الربيع','الصيف','الخريف','الشتاء'][i],s)));
+function refresh(){const s=$('season').value;const i=Number($('star').value)||0;const n=names[s][i];const start=starts[$('observer').value][seasons.indexOf(s)];$('date').value=plusDays(start,i*13);$('detail').value='';$('starPreview').textContent='النجم: '+n+' — البيانات غير المحفوظة في هذه الصفحة لا تُنشر.'}
+function fill(){const s=$('season').value;$('star').replaceChildren(...names[s].map((n,i)=>new Option(n,String(i))));refresh()}
+$('observer').addEventListener('change',refresh);$('season').addEventListener('change',fill);$('star').addEventListener('change',refresh);fill();
+</script><script src="./owner-api-client.js"></script></body></html>
