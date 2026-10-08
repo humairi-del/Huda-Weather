@@ -53,7 +53,7 @@ $('settingsTemplate').addEventListener('click',()=>{
  if(!template)return;
  if((title.value.trim()||body.value.trim())&&!confirm('سيستبدل النموذج النص الموجود في هذا القسم. هل تريد المتابعة؟'))return;
  title.value=template.title;
- body.value=template.lines.join('\\n');
+ body.value=template.lines.join(String.fromCharCode(10));
  editVersion++;
  renderPreview();
  report('تم إدراج نموذج إرشادي قابل للتعديل. لم يُحفظ ولم يُنشر بعد.');
