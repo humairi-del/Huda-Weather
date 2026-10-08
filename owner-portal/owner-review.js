@@ -51,10 +51,11 @@ copy.addEventListener('click',async()=>{
 
 let serial=0;
 select.addEventListener('change',()=>{
- serial++;clearPlan();draft.textContent='لم يتم تحميل المسودة.';status.textContent='اختر تحميل بيانات المراجعة.';
+ serial++;load.disabled=false;clearPlan();draft.textContent='لم يتم تحميل المسودة.';status.textContent='اختر تحميل بيانات المراجعة.';
 });
 load.addEventListener('click',async()=>{
  const section=select.value,request=++serial;
+ clearPlan();
  load.disabled=true;status.textContent='جاري قراءة المسودة المحفوظة...';
  try{
   const response=await fetch('/api/entries/'+section+':draft',{credentials:'same-origin',cache:'no-store',headers:{accept:'application/json'}});
@@ -69,6 +70,6 @@ load.addEventListener('click',async()=>{
   status.textContent='تمت قراءة المسودة رقم '+data.revision+'. هذه معاينة فقط؛ لم يتم النشر.';
  }catch(error){
   if(request===serial){clearPlan();draft.textContent='تعذر عرض المسودة.';status.textContent=error.message}
- }finally{load.disabled=false}
+ }finally{if(request===serial)load.disabled=false}
 });
 })();
