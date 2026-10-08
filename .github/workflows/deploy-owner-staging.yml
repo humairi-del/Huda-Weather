@@ -39,6 +39,7 @@ jobs:
           node --check ../owner-settings.js
           node --check ../owner-audit.js
           node --check ../owner-overview.js
+          node --check ../owner-review.js
       - name: Package owner UI into public-only directory
         run: |
           mkdir -p public
@@ -47,11 +48,13 @@ jobs:
           cp ../owner-settings.js public/owner-settings.js
           cp ../owner-audit.js public/owner-audit.js
           cp ../owner-overview.js public/owner-overview.js
+          cp ../owner-review.js public/owner-review.js
           test -s public/index.html
           test -s public/owner-api-client.js
           test -s public/owner-settings.js
           test -s public/owner-audit.js
           test -s public/owner-overview.js
+          test -s public/owner-review.js
       - name: Prevent API-only deployment replacing the owner UI
         run: |
           if ! grep -q 'assets' wrangler.dev.toml; then
