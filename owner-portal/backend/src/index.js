@@ -51,6 +51,7 @@ export default {async fetch(request,env){
  if(!match)return json({error:'Not found'},404);
  const id=match[1],section=id.split(':')[0];
  if(!idPattern.test(id)||!allowedSections.has(section))return json({error:'Invalid entry'},400);
+ if(section==='stars'&&!/^stars:(hassan|mohammed):(spring|summer|autumn|winter):[0-6]$/.test(id))return json({error:'Invalid star entry'},400);
  if(!authorize(actor,section,request.method))return json({error:'Forbidden'},403);
  try{
   if(request.method==='GET'){
