@@ -210,3 +210,12 @@ test('draft preview is present in the owner editor',async()=>{
  assert.ok(js.includes("preview.textContent="));
  assert.ok(js.includes("renderPreview()"));
 });
+
+test('owner draft editor supports local copying and character counts',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const html=await readFile(new URL('../../index.html',import.meta.url),'utf8');
+ const js=await readFile(new URL('../../owner-settings.js',import.meta.url),'utf8');
+ for(const id of ['settingsCopy','settingsCount'])assert.ok(html.includes('id="'+id+'"'));
+ assert.ok(js.includes("navigator.clipboard.writeText(content)"));
+ assert.ok(js.includes("body.value.length"));
+});
