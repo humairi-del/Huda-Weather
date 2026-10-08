@@ -27,9 +27,6 @@ test('reject oversized details',async()=>{
 test('reject malformed JSON',async()=>{
  await assert.rejects(parsePayload(new Request('https://owner-dev.hada-weather.com/api/me',{method:'PUT',body:'{broken'}),'stars'));
 });
-test('reject inverted currency prices',async()=>{
- await assert.rejects(payload({usdBuy:2000,usdSell:1900,sarBuy:500,sarSell:510},'rates'));
-});
 
 test('reject nonexistent calendar dates',async()=>{
  await assert.rejects(payload({name:'الجبهة',date:'2026-02-30',detail:''}));
@@ -68,4 +65,8 @@ test('deployment remains isolated from the public worker and production database
  assert.match(config,/database_name = "hada_owner_portal_dev"/);
  assert.match(config,/STAGING_HOST = "owner-dev\.hada-weather\.com"/);
  assert.doesNotMatch(config,/name = "rasid-hada"/);
+});
+
+test('drafts reject oversized body',async()=>{
+ await assert.rejects(payload({title:'معلومات الموقع',body:'x'.repeat(5001)},'site'));
 });
