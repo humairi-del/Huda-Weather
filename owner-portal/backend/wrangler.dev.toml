@@ -3,6 +3,11 @@ main = "src/index.js"
 compatibility_date = "2026-10-01"
 workers_dev = false
 
+[assets]
+directory = "../"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
 [[d1_databases]]
 binding = "DB"
 database_name = "hada_owner_portal_dev"
