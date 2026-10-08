@@ -228,3 +228,12 @@ test('owner editor marks unsaved draft changes without publishing',async()=>{
  assert.ok(js.includes("function renderDirty()"));
  assert.ok(js.includes("savedTitle=sentTitle;savedBody=sentBody"));
 });
+
+test('public integration review is read-only and never claims direct publishing',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const html=await readFile(new URL('../../index.html',import.meta.url),'utf8');
+ assert.ok(html.includes('id="publishReview"'));
+ assert.ok(html.includes('href="https://hada-weather.com/"'));
+ assert.ok(html.includes('لا توجد صلاحية نشر مباشر'));
+ assert.ok(html.includes('rel="noopener noreferrer"'));
+});
