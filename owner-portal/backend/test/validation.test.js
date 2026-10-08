@@ -299,7 +299,7 @@ test('review checklist resets on new draft and cannot publish',async()=>{
  for(const id of ['reviewCheckSource','reviewCheckDiff','reviewCheckBackup','reviewCheckStatus'])assert.ok(html.includes('id="'+id+'"'));
  assert.ok(js.includes('function resetChecks()'));
  assert.ok(js.includes('function clearPlan(){resetChecks();'));
- assert.ok(js.includes('String.fromCharCode(10)'));
+ assert.ok(js.includes('lastPlan=lines.join('));
  assert.ok(js.includes('if(request===serial)load.disabled=false'));
  assert.ok(!js.includes("method:'PUT'"));
 });
