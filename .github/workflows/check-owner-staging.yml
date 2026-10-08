@@ -29,11 +29,13 @@ jobs:
           node --check ../owner-api-client.js
           node --check ../owner-settings.js
           node --check ../owner-audit.js
+          node --check ../owner-overview.js
       - name: Verify isolated deploy assets
         run: |
           test -s ../index.html
           test -s ../owner-api-client.js
           test -s ../owner-settings.js
           test -s ../owner-audit.js
+          test -s ../owner-overview.js
           grep -Fq 'directory = "./public"' wrangler.dev.toml
           grep -Fq 'hada-owner-portal-staging' wrangler.dev.toml
