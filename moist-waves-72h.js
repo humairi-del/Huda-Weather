@@ -20,7 +20,14 @@ function start(){
  const state=line('💧 الحالة','جاري مقارنة رطوبة بحر العرب والساحل...');
  const arrival=line('📍 حبان وهدى','لم يتأكد اتجاه وصول موجة رطبة أو توقيتها.');
  const validChance=h.precipitation_probability?.slice(0,72)?.filter(Number.isFinite)||[];const maxChance=validChance.length>=36?Math.max(...validChance):null;
- const rain=line('🌧️ الأمطار',maxChance===null?'بيانات فرص المطر غير مكتملة.':maxChance>=65?'توجد فرص مطر تستحق المتابعة خلال 72 ساعة؛ شدتها غير مؤكدة.':maxChance>=35?'توجد فرص مطر محدودة خلال 72 ساعة؛ شدتها غير مؤكدة.':'لا تظهر فرصة مطر قوية خلال 72 ساعة؛ لا يمكن تحديد الشدة.');
+ const rain=line('🌧️ الأمطار','جاري تقدير فرص المطر...');
+ const rainHours=Array.from({length:72},(_,i)=>({i,p:h.precipitation_probability?.[i],mm:h.precipitation?.[i]}));
+ const validRain=rainHours.filter(x=>Number.isFinite(x.p)&&Number.isFinite(x.mm));
+ if(validRain.length<48){rain.textContent='بيانات المطر غير مكتملة؛ لا يمكن تحديد شدته.'}
+ else {const likely=validRain.filter(x=>x.p>=50&&x.mm>=0.2);const peak=likely.length?Math.max(...likely.map(x=>x.mm)):null;
+ const intensity=peak===null?'غير محددة':peak>=7.6?'قد تكون غزيرة محليًا':peak>=2.5?'قد تكون متوسطة':'قد تكون خفيفة';
+ const first=likely[0],window=first?Math.floor(first.i/24)+1:null;
+ rain.textContent=first?'توجد إشارة لأمطار '+intensity+' خلال فترة الـ24 ساعة رقم '+window+'؛ التوقيت والشدة قابلان للتغير.':maxChance>=35?'توجد فرص مطر، لكن لا تكفي البيانات لتحديد شدة أو وقت هطول مرجح.':'لا تظهر إشارة قوية لأمطار خلال 72 ساعة.';}
 
  const seaSites=[['غرب بحر العرب',13,53],['قرب سقطرى',12.5,54.5],['ساحل شبوة',14.2,48.6],['حبان وهدى',LAT,LON]];
  async function siteForecast(site){const url=new URL('https://api.open-meteo.com/v1/forecast');Object.entries({latitude:String(site[1]),longitude:String(site[2]),hourly:'relative_humidity_850hPa,wind_speed_850hPa,wind_direction_850hPa',forecast_hours:'72',timezone:'Asia/Aden'}).forEach(([k,v])=>url.searchParams.set(k,v));const response=await fetch(url);if(!response.ok)throw Error('marine comparison unavailable');const d=await response.json();return {name:site[0],hourly:d.hourly}};
@@ -28,7 +35,7 @@ function start(){
  try{const sites=await Promise.all(seaSites.map(siteForecast));const samples=sites.map(site=>{const values=site.hourly?.relative_humidity_850hPa?.slice(0,72)?.filter(Number.isFinite)||[];return values.length>=48?Math.round(values.reduce((a,b)=>a+b,0)/values.length):null});
  const [sea,island,coast,inland]=samples;
  if([sea,island,coast,inland].some(x=>x===null)){state.textContent='بيانات الرطوبة غير مكتملة؛ لا يمكن تأكيد وجود موجة رطبة.'}
- else if(Math.max(sea,island)>=70){state.textContent='رطوبة مرتفعة فوق أجزاء من بحر العرب؛ اتجاه حركة موجة محددة غير مؤكد.';if(coast>=70&&inland>=65)arrival.textContent='رطوبة مرتفعة أيضًا قرب ساحل شبوة وهدى، لكن لا يمكن تأكيد اتجاه انتقالها أو وقت وصولها.'}
+ else if(Math.max(sea,island)>=70){state.textContent='رطوبة مرتفعة فوق أجزاء من بحر العرب؛ منشأ الموجة واتجاهها غير محسومين.';if(coast>=70&&inland>=65){const coastal=sites[2].hourly?.relative_humidity_850hPa||[],local=sites[3].hourly?.relative_humidity_850hPa||[];let first=-1;for(let i=0;i<=66;i++){if(Array.from({length:6},(_,k)=>i+k).every(k=>Number.isFinite(coastal[k])&&coastal[k]>=70&&Number.isFinite(local[k])&&local[k]>=65)){first=i;break}}arrival.textContent=first>=0?'تظهر رطوبة مرتفعة متزامنة قرب الساحل وهدى خلال فترة الـ24 ساعة رقم '+(Math.floor(first/24)+1)+'؛ هذا ليس تأكيدًا لوصول موجة.':'رطوبة مرتفعة بالساحل وهدى، دون دليل كافٍ لتحديد وقت وصول موجة.';}}
  else state.textContent='لا تظهر مؤشرات قوية لرطوبة بحرية مرتفعة في نقاط المتابعة خلال 72 ساعة.';
  }catch(err){state.textContent='تعذرت قراءة رطوبة بحر العرب حاليًا؛ لا يمكن تأكيد موجة أو اتجاهها.';console.warn('marine comparison',err)}
  
