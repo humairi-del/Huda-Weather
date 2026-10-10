@@ -36,12 +36,12 @@ function start(){
  try{const sites=await Promise.all(seaSites.map(siteForecast));
  const valid=(v)=>Number.isFinite(v)&&v>=0&&v<=100;
  const hourly=sites.map(x=>x.hourly?.relative_humidity_850hPa||[]);const commonTimes=sites.every(x=>x.hourly.time.slice(0,72).every((t,i)=>t===h.time[i]));
- if(!commonTimes){state.textContent='أوقات التوقعات بين المواقع غير متطابقة؛ لا يمكن مقارنة حركة الرطوبة.';arrival.textContent='لا يمكن تحديد توقيت التأثير بسبب اختلاف أوقات البيانات.'}
- else if(hourly.some(v=>!Array.isArray(v)||v.length<72)){state.textContent='بيانات الرطوبة البحرية غير مكتملة؛ لا يمكن تحديد مسارها.'}
+ if(!commonTimes){lastSucceeded=false;state.textContent='أوقات التوقعات بين المواقع غير متطابقة؛ لا يمكن مقارنة حركة الرطوبة.';arrival.textContent='لا يمكن تحديد توقيت التأثير بسبب اختلاف أوقات البيانات.'}
+ else if(hourly.some(v=>!Array.isArray(v)||v.length<72)){lastSucceeded=false;state.textContent='بيانات الرطوبة البحرية غير مكتملة؛ لا يمكن تحديد مسارها.'}
  else {
  const means=hourly.map(v=>{const good=v.slice(0,72).filter(valid);return good.length>=60?good.reduce((a,b)=>a+b,0)/good.length:null});
  const [sea,island,coast,inland]=means;
- if(means.some(v=>v===null))state.textContent='بيانات الرطوبة غير مكتملة؛ لا يمكن تأكيد وجود موجة رطبة.';
+ if(means.some(v=>v===null)){lastSucceeded=false;state.textContent='بيانات الرطوبة غير مكتملة؛ لا يمكن تأكيد وجود موجة رطبة.'}
  else if(Math.max(sea,island)>=70){
  state.textContent='رطوبة مرتفعة فوق أجزاء من بحر العرب؛ جهة قدوم موجة محددة غير مؤكدة.';
  const coastH=hourly[2],landH=hourly[3],wind=sites[2].hourly?.wind_direction_850hPa||[],speed=sites[2].hourly?.wind_speed_850hPa||[];
@@ -60,8 +60,7 @@ function start(){
  }else state.textContent='لا تظهر رطوبة بحرية مرتفعة بصورة مستمرة في نقاط المتابعة خلال 72 ساعة.';
  }
 
- lastSucceeded=true;
- }catch(err){lastSucceeded=true;state.textContent='تعذرت قراءة رطوبة بحر العرب حاليًا؛ لا يمكن تأكيد موجة أو اتجاهها.';arrival.textContent='تعذر تحديد أي تأثير محتمل على حبان وهدى بسبب نقص البيانات.';console.warn('marine comparison',err)}
+ }catch(err){lastSucceeded=false;state.textContent='تعذرت قراءة رطوبة بحر العرب حاليًا؛ لا يمكن تأكيد موجة أو اتجاهها.';arrival.textContent='تعذر تحديد أي تأثير محتمل على حبان وهدى بسبب نقص البيانات.';console.warn('marine comparison',err)}
  
 
  }catch(e){report.textContent='تعذر تحديث تحليل الموجات الرطبة الآن. حاول إعادة فتح القسم لاحقًا. لا يعني تعذر البيانات عدم وجود موجة.';console.warn('moist-waves',e)}}
