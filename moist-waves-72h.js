@@ -62,7 +62,7 @@ function start(){
  }catch(err){lastSucceeded=false;state.textContent='تعذرت قراءة رطوبة بحر العرب حاليًا؛ لا يمكن تأكيد موجة أو اتجاهها.';arrival.textContent='تعذر تحديد أي تأثير محتمل على حبان وهدى بسبب نقص البيانات.';console.warn('marine comparison',err)}
  
 
- }catch(e){report.textContent='تعذر تحديث تحليل الموجات الرطبة الآن. حاول إعادة فتح القسم لاحقًا. لا يعني تعذر البيانات عدم وجود موجة.';console.warn('moist-waves',e)}}
+ }catch(e){lastSucceeded=false;report.textContent='تعذر تحديث تحليل الموجات الرطبة الآن. حاول إعادة فتح القسم لاحقًا. لا يعني تعذر البيانات عدم وجود موجة.';console.warn('moist-waves',e)}}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
