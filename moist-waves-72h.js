@@ -59,7 +59,7 @@ function start(){
  }else state.textContent='لا تظهر رطوبة بحرية مرتفعة بصورة مستمرة في نقاط المتابعة خلال 72 ساعة.';
  }
 
- lastSucceeded=true;
+ lastSucceeded=!/غير متطابقة|غير مكتملة/.test(state.textContent);
  }catch(err){lastSucceeded=false;state.textContent='تعذرت قراءة رطوبة بحر العرب حاليًا؛ لا يمكن تأكيد موجة أو اتجاهها.';arrival.textContent='تعذر تحديد أي تأثير محتمل على حبان وهدى بسبب نقص البيانات.';console.warn('marine comparison',err)}
  
 
