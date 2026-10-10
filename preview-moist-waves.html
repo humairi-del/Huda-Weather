@@ -43,7 +43,7 @@ function start(){
  const [sea,island,coast,inland]=means;
  if(means.some(v=>v===null)){lastSucceeded=false;state.textContent='بيانات الرطوبة غير مكتملة؛ لا يمكن تأكيد وجود موجة رطبة.'}
  else if(Math.max(sea,island)>=70){
- state.textContent='رطوبة مرتفعة فوق أجزاء من بحر العرب؛ جهة قدوم موجة محددة غير مؤكدة.';
+ state.textContent='رطوبة مرتفعة متوقعة فوق نقاط من بحر العرب؛ لا توجد متابعة فعلية لمسار موجة.';
  const coastH=hourly[2],landH=hourly[3],wind=sites[2].hourly?.wind_direction_850hPa||[],speed=sites[2].hourly?.wind_speed_850hPa||[];
  // Wind direction is meteorological FROM; east-to-west transport toward Hada requires easterly flow. This is only a screening heuristic, not trajectory modeling.
  // Look for a sustained 6-hour high-humidity interval near the coast followed by a sustained inland interval.
@@ -55,10 +55,10 @@ function start(){
  const coastRise=c>0&&valid(coastH[c-1])&&coastH[c-1]<70;
  const inlandRise=t>0&&valid(landH[t-1])&&landH[t-1]<65;
  if(supporting&&coastRise&&inlandRise){found={t,lag};break}}}
- if(found){const p=found.t<24?'خلال 24 ساعة':found.t<48?'خلال 24–48 ساعة':'خلال 48–72 ساعة';arrival.textContent='ارتفاع الرطوبة في الساحل ثم هدى '+p+' مع رياح داعمة؛ هذا ترابط في التوقعات وليس إثباتًا لوصول موجة.'}
+ if(found){const p=found.t<24?'خلال 24 ساعة':found.t<48?'خلال 24–48 ساعة':'خلال 48–72 ساعة';arrival.textContent='ارتفاع متتابع متوقع للرطوبة عند الساحل ثم هدى '+p+' مع رياح شرقية؛ لا يثبت ذلك وصول موجة فعلية.'}
  else if(coast>=70&&inland>=65)arrival.textContent='رطوبة مرتفعة قرب الساحل وهدى، لكن لا توجد إشارة انتقال زمنية كافية لتحديد الوصول.';
  else arrival.textContent='لم تظهر مؤشرات كافية لانتقال رطوبة بحرية إلى حبان وهدى خلال 72 ساعة.';
- }else state.textContent='لا تظهر رطوبة بحرية مرتفعة بصورة مستمرة في نقاط المتابعة خلال 72 ساعة.';
+ }else state.textContent='لا تشير توقعات النقاط المختارة إلى رطوبة بحرية مرتفعة باستمرار خلال 72 ساعة؛ لا يستبعد ذلك تغيرات خارج هذه النقاط.';
  }
 
  lastSucceeded=!/غير متطابقة|غير مكتملة/.test(state.textContent)&&validRain.length>=60;
