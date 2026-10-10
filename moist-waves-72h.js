@@ -44,12 +44,13 @@ function start(){
  else if(Math.max(sea,island)>=70){
  state.textContent='رطوبة مرتفعة فوق أجزاء من بحر العرب؛ جهة قدوم موجة محددة غير مؤكدة.';
  const coastH=hourly[2],landH=hourly[3],wind=sites[2].hourly?.wind_direction_850hPa||[],speed=sites[2].hourly?.wind_speed_850hPa||[];
+ // Wind direction is meteorological FROM; east-to-west transport toward Hada requires easterly flow. This is only a screening heuristic, not trajectory modeling.
  // Look for a sustained 6-hour high-humidity interval near the coast followed by a sustained inland interval.
  const sustained=(v,i,threshold)=>i>=0&&i+6<=72&&Array.from({length:6},(_,k)=>v[i+k]).every(x=>valid(x)&&x>=threshold);
  let found=null;
  for(let c=0;c<=60&&!found;c++){if(!sustained(coastH,c,70))continue;
  for(let lag=1;lag<=12&&c+lag<=66;lag++){const t=c+lag;if(!sustained(landH,t,65))continue;
- const supporting=Array.from({length:6},(_,k)=>c+k).filter(i=>Number.isFinite(wind[i])&&Number.isFinite(speed[i])&&speed[i]>=10&&wind[i]>=180&&wind[i]<=315).length>=4;
+ const supporting=Array.from({length:6},(_,k)=>c+k).filter(i=>Number.isFinite(wind[i])&&Number.isFinite(speed[i])&&speed[i]>=10&&wind[i]>=45&&wind[i]<=135).length>=4;
  const coastRise=c>0&&valid(coastH[c-1])&&coastH[c-1]<70;
  const inlandRise=t>0&&valid(landH[t-1])&&landH[t-1]<65;
  if(supporting&&coastRise&&inlandRise){found={t,lag};break}}}
@@ -59,7 +60,7 @@ function start(){
  }else state.textContent='لا تظهر رطوبة بحرية مرتفعة بصورة مستمرة في نقاط المتابعة خلال 72 ساعة.';
  }
 
- lastSucceeded=!/غير متطابقة|غير مكتملة/.test(state.textContent);
+ lastSucceeded=!/غير متطابقة|غير مكتملة/.test(state.textContent)&&validRain.length>=60;
  }catch(err){lastSucceeded=false;state.textContent='تعذرت قراءة رطوبة بحر العرب حاليًا؛ لا يمكن تأكيد موجة أو اتجاهها.';arrival.textContent='تعذر تحديد أي تأثير محتمل على حبان وهدى بسبب نقص البيانات.';console.warn('marine comparison',err)}
  
 
