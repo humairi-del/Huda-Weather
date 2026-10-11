@@ -715,7 +715,7 @@ footer{color:#789da7}
   <div class="modal-pad">
     <div id="modelsSummary" class="status-box">جاري تحميل مقارنة الموديلات...</div>
     <div id="modelsGrid" class="models-grid" style="margin-top:10px"></div>
-    <div class="small-note">المقارنة تعرض أحدث تشغيل متاح لكل نموذج. اختلاف النماذج طبيعي، وتتغير النتائج مع كل تحديث.</div>
+    <div class="small-note">هذه توقعات وقد تتغير.</div>
   </div>
 </div></div>
 
@@ -1407,25 +1407,22 @@ window.loadModels=async function(){
     const fmt=(v,unit)=>value(v)===null?'غير متوفر':`${Math.round(v)}${unit}`;
     const best=arr=>{let index=-1,amount=null;arr.forEach((v,i)=>{const n=value(v);if(n!==null&&(amount===null||n>amount)){index=i;amount=n;}});return {index,amount};};
     const day=i=>{const raw=daily.time?.[i];return raw?new Date(raw+'T12:00:00').toLocaleDateString('ar-YE',{weekday:'long',day:'numeric',month:'long'}):'غير متوفر';};
+    const names={ecmwf_ifs025:'الأوروبي ECMWF',gfs_seamless:'الأمريكي GFS',icon_seamless:'الألماني ICON',gem_seamless:'الكندي CMC',ecmwf_aifs025_single:'الأوروبي بالذكاء الاصطناعي AIFS'};
+    const ranked=[];
     for(const [label,model] of MODEL_LIST){
       const probs=get('precipitation_probability_max',model),sums=get('precipitation_sum',model),maxs=get('temperature_2m_max',model),mins=get('temperature_2m_min',model),winds=get('wind_speed_10m_max',model);
-      const probability=best(probs),rainfall=best(sums);
-      if(probability.amount!==null)rainSignals.push(probability.amount);
-      if(probability.amount===null){
-        const i=rainfall.index>=0?rainfall.index:0;
-        const amount=rainfall.amount===null?'غير متوفر':`${rainfall.amount.toFixed(1)} ملم`;
-        cards.push(`<div class="model-item"><span>${label}</span><strong>نسبة احتمال المطر: غير متوفرة</strong><br>أعلى كمية مطر يومية متوقعة: ${amount}<br>اليوم: ${rainfall.index>=0?day(i):'غير متوفر'}<br>الحرارة: ${fmt(maxs[i],'°')} / ${fmt(mins[i],'°')}<br>الرياح: ${fmt(winds[i],' كم/س')}<br><span class="small-note">كمية المطر ليست نسبة احتمال. لا يُحتسب هذا النموذج في مقارنة نسب المطر.</span></div>`);
-      }else if(probability.amount<=0){
-        cards.push(`<div class="model-item"><span>${label}</span><strong>لا توجد فرصة مطر معتبرة خلال فترة التوقع.</strong><br>الحرارة اليوم: ${fmt(maxs[0],'°')} / ${fmt(mins[0],'°')}<br>الرياح اليوم: ${fmt(winds[0],' كم/س')}</div>`);
-      }else{
-        const i=probability.index,rain=value(sums[i]);
-        cards.push(`<div class="model-item"><span>${label}</span><strong>أفضل فرصة: ${Math.round(probability.amount)}%</strong><br>المطر: ${rain===null?'غير متوفر':rain.toFixed(1)+' ملم'}<br>اليوم: ${day(i)}<br>الحرارة: ${fmt(maxs[i],'°')} / ${fmt(mins[i],'°')}<br>الرياح: ${fmt(winds[i],' كم/س')}</div>`);
-      }
+      const probability=best(probs),rainfall=best(sums),name=names[model]||label;
+      if(probability.amount!==null){rainSignals.push(probability.amount);ranked.push({name,amount:probability.amount});}
+      const i=probability.index>=0?probability.index:rainfall.index>=0?rainfall.index:0;
+      const rain=value(sums[i]),chance=probability.amount===null?'غير متاحة':Math.round(probability.amount)+'٪';
+      const temperature=(max,min)=>value(max)===null&&value(min)===null?'غير متوفرة':`العظمى ${fmt(max,'°')} — الصغرى ${fmt(min,'°')}`;
+      cards.push(`<div class="model-item"><span>${name}</span><strong>🌧️ فرصة المطر: ${chance}</strong><br>💧 كمية المطر المتوقعة: ${rain===null?'غير متوفرة':rain.toFixed(1)+' ملم'}<br>📅 الموعد: ${probability.index>=0||rainfall.index>=0?day(i):'غير متوفر'}<br>🌡️ الحرارة: ${temperature(maxs[i],mins[i])}<br>🌬️ الرياح: ${fmt(winds[i],' كم/س')}</div>`);
     }
     grid.innerHTML=cards.join('');
-    const high=rainSignals.filter(v=>v>=50).length,missing=MODEL_LIST.length-rainSignals.length;
-    const coverage=missing?` استُبعد ${missing} من النماذج لعدم توفر نسبة المطر.`:'';
-    summary.textContent=!rainSignals.length?'لا تتوفر نسب احتمال المطر لإجراء مقارنة بين النماذج.':high>=3?`🌧️ اتفاق جيد: ${high} من ${rainSignals.length} نماذج تتوفر لها نسب المطر تظهر إشارة 50% أو أكثر خلال 7 أيام.${coverage}`:high>0?`☁️ اتفاق محدود: ${high} من ${rainSignals.length} نماذج تتوفر لها نسب المطر تظهر إشارة 50% أو أكثر.${coverage}`:`☀️ لا يوجد حاليًا اتفاق قوي بين النماذج المتوفرة على فرصة مطر مرتفعة.${coverage}`;
+    const note=document.querySelector?.('#modelsModal .modal-pad > .small-note');if(note)note.textContent='هذه توقعات وقد تتغير.';
+    ranked.sort((a,b)=>b.amount-a.amount);
+    const high=rainSignals.filter(v=>v>=50).length;
+    summary.textContent=!ranked.length?'لا تتوفر فرص المطر حاليًا؛ راجع كميات المطر في البطاقات.':high>=3?'🌧️ أغلب الموديلات تشير إلى فرصة مطر مرتفعة.':high>0?`☁️ الموديلات تختلف حول المطر؛ ${ranked[0].name} يعطي أعلى احتمال.`:'☀️ فرص المطر منخفضة في الموديلات التي توفر النسبة.';
     window.modelsLoaded=true;
   }catch(e){console.error(e);summary.textContent='تعذر تحميل مقارنة الموديلات حاليًا.';grid.innerHTML='';}
 };
