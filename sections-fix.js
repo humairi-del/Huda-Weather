@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 const LAT=14.230586,LON=47.199415;
-window.MODEL_LIST=[['ECMWF','ecmwf_ifs025'],['GFS','gfs_seamless'],['ICON','icon_seamless'],['GEM / CMC','gem_seamless'],['AIFS','ecmwf_aifs025_single']];
+window.MODEL_LIST=[['ECMWF','ecmwf_ifs025'],['GFS','gfs_seamless'],['ICON','icon_seamless'],['GEM / CMC','gem_seamless'],['AIFS','ecmwf_aifs025_ensemble']];
 window.haversine=function(a,b,c,d){const R=6371,r=x=>x*Math.PI/180,da=r(c-a),dl=r(d-b),q=Math.sin(da/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dl/2)**2;return 2*R*Math.asin(Math.sqrt(q));};
 const oldModels=window.openModels,oldQuakes=window.openQuakes,oldSea=window.openSea;
 window.openModels=function(){oldModels?.();window.modelsLoaded=false;if(typeof window.loadModels==='function')window.loadModels();};
