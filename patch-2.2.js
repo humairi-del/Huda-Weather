@@ -294,13 +294,31 @@ window.loadModels=async function(){
   try{
     const models=MODEL_LIST.map(x=>x[1]).join(','),url=`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max&models=${models}&timezone=Asia%2FAden&forecast_days=7`;
     const r=await fetch(url);if(!r.ok)throw new Error('models');const d=await r.json(),daily=d.daily||{},get=(base,model)=>daily[`${base}_${model}`]||[],cards=[],rainSignals=[];
+    // Missing values are not zero forecasts and must not count as model agreement.
+    const value=v=>typeof v==='number'&&Number.isFinite(v)?v:null;
+    const fmt=(v,unit)=>value(v)===null?'غير متوفر':`${Math.round(v)}${unit}`;
+    const best=arr=>{let index=-1,amount=null;arr.forEach((v,i)=>{const n=value(v);if(n!==null&&(amount===null||n>amount)){index=i;amount=n;}});return {index,amount};};
+    const day=i=>{const raw=daily.time?.[i];return raw?new Date(raw+'T12:00:00').toLocaleDateString('ar-YE',{weekday:'long',day:'numeric',month:'long'}):'غير متوفر';};
     for(const [label,model] of MODEL_LIST){
       const probs=get('precipitation_probability_max',model),sums=get('precipitation_sum',model),maxs=get('temperature_2m_max',model),mins=get('temperature_2m_min',model),winds=get('wind_speed_10m_max',model);
-      let bi=0,bp=-1;probs.forEach((v,i)=>{if(Number(v)>bp){bp=Number(v);bi=i;}});rainSignals.push(bp);
-      if(!Number.isFinite(bp)||bp<=0){cards.push(`<div class="model-item"><span>${label}</span><strong>لا توجد فرصة مطر معتبرة خلال فترة التوقع.</strong><br>الحرارة اليوم: ${Math.round(Number(maxs[0]||0))}° / ${Math.round(Number(mins[0]||0))}°<br>الرياح اليوم: ${Math.round(Number(winds[0]||0))} كم/س</div>`);}
-      else{const rain=Number(sums[bi]||0),raw=daily.time?.[bi]||'--',day=raw==='--'?'--':new Date(raw+'T12:00:00').toLocaleDateString('ar-YE',{weekday:'long',day:'numeric',month:'long'});cards.push(`<div class="model-item"><span>${label}</span><strong>أفضل فرصة: ${Math.round(bp)}%</strong><br>المطر: ${rain.toFixed(1)} ملم<br>اليوم: ${day}<br>الحرارة: ${Math.round(Number(maxs[bi]||0))}° / ${Math.round(Number(mins[bi]||0))}°<br>الرياح: ${Math.round(Number(winds[bi]||0))} كم/س</div>`);}
+      const probability=best(probs),rainfall=best(sums);
+      if(probability.amount!==null)rainSignals.push(probability.amount);
+      if(probability.amount===null){
+        const i=rainfall.index>=0?rainfall.index:0;
+        const amount=rainfall.amount===null?'غير متوفر':`${rainfall.amount.toFixed(1)} ملم`;
+        cards.push(`<div class="model-item"><span>${label}</span><strong>نسبة احتمال المطر: غير متوفرة</strong><br>أعلى كمية مطر يومية متوقعة: ${amount}<br>اليوم: ${rainfall.index>=0?day(i):'غير متوفر'}<br>الحرارة: ${fmt(maxs[i],'°')} / ${fmt(mins[i],'°')}<br>الرياح: ${fmt(winds[i],' كم/س')}<br><span class="small-note">كمية المطر ليست نسبة احتمال. لا يُحتسب هذا النموذج في مقارنة نسب المطر.</span></div>`);
+      }else if(probability.amount<=0){
+        cards.push(`<div class="model-item"><span>${label}</span><strong>لا توجد فرصة مطر معتبرة خلال فترة التوقع.</strong><br>الحرارة اليوم: ${fmt(maxs[0],'°')} / ${fmt(mins[0],'°')}<br>الرياح اليوم: ${fmt(winds[0],' كم/س')}</div>`);
+      }else{
+        const i=probability.index,rain=value(sums[i]);
+        cards.push(`<div class="model-item"><span>${label}</span><strong>أفضل فرصة: ${Math.round(probability.amount)}%</strong><br>المطر: ${rain===null?'غير متوفر':rain.toFixed(1)+' ملم'}<br>اليوم: ${day(i)}<br>الحرارة: ${fmt(maxs[i],'°')} / ${fmt(mins[i],'°')}<br>الرياح: ${fmt(winds[i],' كم/س')}</div>`);
+      }
     }
-    grid.innerHTML=cards.join('');const valid=rainSignals.filter(Number.isFinite),high=valid.filter(v=>v>=50).length;summary.textContent=high>=3?`🌧️ اتفاق جيد: ${high} من ${valid.length} نماذج تظهر إشارة مطر 50% أو أكثر خلال 7 أيام.`:high>0?`☁️ اتفاق محدود: ${high} من ${valid.length} نماذج تظهر إشارة مطر 50% أو أكثر.`:'☀️ لا يوجد حاليًا اتفاق قوي بين النماذج على فرصة مطر مرتفعة.';window.modelsLoaded=true;
+    grid.innerHTML=cards.join('');
+    const high=rainSignals.filter(v=>v>=50).length,missing=MODEL_LIST.length-rainSignals.length;
+    const coverage=missing?` استُبعد ${missing} من النماذج لعدم توفر نسبة المطر.`:'';
+    summary.textContent=!rainSignals.length?'لا تتوفر نسب احتمال المطر لإجراء مقارنة بين النماذج.':high>=3?`🌧️ اتفاق جيد: ${high} من ${rainSignals.length} نماذج تتوفر لها نسب المطر تظهر إشارة 50% أو أكثر خلال 7 أيام.${coverage}`:high>0?`☁️ اتفاق محدود: ${high} من ${rainSignals.length} نماذج تتوفر لها نسب المطر تظهر إشارة 50% أو أكثر.${coverage}`:`☀️ لا يوجد حاليًا اتفاق قوي بين النماذج المتوفرة على فرصة مطر مرتفعة.${coverage}`;
+    window.modelsLoaded=true;
   }catch(e){console.error(e);summary.textContent='تعذر تحميل مقارنة الموديلات حاليًا.';grid.innerHTML='';}
 };
 
