@@ -289,17 +289,50 @@ window.showWeeklyWeather=function(data){
   }
 };
 
+function summarizeAifsEnsemble(data){
+  const daily=data.daily||{},hourly=data.hourly||{},dates=daily.time||[],hours=hourly.time||[];
+  const result={time:dates,precipitation_probability_max:[]};
+  const memberKeys=base=>[base,...Array.from({length:50},(_,i)=>base+'_member'+String(i+1).padStart(2,'0'))];
+  const valid=v=>typeof v==='number'&&Number.isFinite(v);
+  const rainKeys=memberKeys('precipitation');
+  for(const date of dates){
+    const indices=hours.map((time,i)=>time.startsWith(date+'T')?i:-1).filter(i=>i>=0);
+    const probabilities=indices.map(i=>{
+      const values=rainKeys.map(key=>hourly[key]?.[i]);
+      return values.every(v=>valid(v)&&v>=0)?100*values.filter(v=>v>0.1).length/51:null;
+    });
+    // Daily maximum hourly probability, matching the other cards' daily probability field.
+    result.precipitation_probability_max.push(indices.length===24&&probabilities.every(valid)?Math.max(...probabilities):null);
+  }
+  for(const base of ['temperature_2m_max','temperature_2m_min','precipitation_sum','wind_speed_10m_max']){
+    const keys=memberKeys(base);
+    result[base]=dates.map((_,i)=>{
+      const values=keys.map(key=>daily[key]?.[i]);
+      return values.every(v=>valid(v)&&(base==='precipitation_sum'||base==='wind_speed_10m_max'?v>=0:true))?values.reduce((a,b)=>a+b,0)/51:null;
+    });
+  }
+  return result;
+}
+
 window.loadModels=async function(){
-  const grid=document.getElementById('modelsGrid'),summary=document.getElementById('modelsSummary');grid.innerHTML='<div class="loading">جاري التحميل...</div>';
+  const grid=document.getElementById('modelsGrid'),summary=document.getElementById('modelsSummary');if(window.modelsLoading)return;window.modelsLoading=true;grid.innerHTML='<div class="loading">جاري التحميل...</div>';
   try{
-    const models=MODEL_LIST.map(x=>x[1]).join(','),url=`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max&models=${models}&timezone=Asia%2FAden&forecast_days=7`;
-    const r=await fetch(url);if(!r.ok)throw new Error('models');const d=await r.json(),daily=d.daily||{},get=(base,model)=>daily[`${base}_${model}`]||[],cards=[],rainSignals=[];
+    const aifsModel='ecmwf_aifs025_ensemble';
+    const models=MODEL_LIST.filter(x=>x[1]!==aifsModel).map(x=>x[1]).join(',');
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max&models=${models}&timezone=Asia%2FAden&forecast_days=7`;
+    const ensembleUrl=`https://ensemble-api.open-meteo.com/v1/ensemble?latitude=${latitude}&longitude=${longitude}&hourly=precipitation&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&models=ecmwf_aifs025&timezone=Asia%2FAden&forecast_days=7`;
+    const read=async url=>{const r=await fetch(url);if(!r.ok)throw new Error('models');return r.json();};
+    const responses=await Promise.allSettled([models?read(url):Promise.resolve(null),MODEL_LIST.some(x=>x[1]===aifsModel)?read(ensembleUrl):Promise.resolve(null)]);
+    const available=responses.map(r=>r.status==='fulfilled'?r.value:null);
+    if(!available.some(Boolean))throw new Error('models');
+    const aifs=summarizeAifsEnsemble(available[1]||{}),daily=available[0]?.daily||{time:aifs.time},cards=[],rainSignals=[];
+    const get=(base,model)=>model===aifsModel?(daily.time||[]).map(date=>aifs[base]?.[aifs.time.indexOf(date)]??null):daily[`${base}_${model}`]||[];
     // Missing values are not zero forecasts and must not count as model agreement.
     const value=v=>typeof v==='number'&&Number.isFinite(v)?v:null;
     const fmt=(v,unit)=>value(v)===null?'غير متوفر':`${Math.round(v)}${unit}`;
     const best=arr=>{let index=-1,amount=null;arr.forEach((v,i)=>{const n=value(v);if(n!==null&&(amount===null||n>amount)){index=i;amount=n;}});return {index,amount};};
     const day=i=>{const raw=daily.time?.[i];return raw?new Date(raw+'T12:00:00').toLocaleDateString('ar-YE',{weekday:'long',day:'numeric',month:'long'}):'غير متوفر';};
-    const names={ecmwf_ifs025:'الأوروبي ECMWF',gfs_seamless:'الأمريكي GFS',icon_seamless:'الألماني ICON',gem_seamless:'الكندي CMC',ecmwf_aifs025_single:'الأوروبي بالذكاء الاصطناعي AIFS'};
+    const names={ecmwf_ifs025:'الأوروبي ECMWF',gfs_seamless:'الأمريكي GFS',icon_seamless:'الألماني ICON',gem_seamless:'الكندي CMC',ecmwf_aifs025_ensemble:'الأوروبي بالذكاء الاصطناعي AIFS'};
     const ranked=[];
     for(const [label,model] of MODEL_LIST){
       const probs=get('precipitation_probability_max',model),sums=get('precipitation_sum',model),maxs=get('temperature_2m_max',model),mins=get('temperature_2m_min',model),winds=get('wind_speed_10m_max',model);
@@ -316,7 +349,7 @@ window.loadModels=async function(){
     const high=rainSignals.filter(v=>v>=50).length;
     summary.textContent=!ranked.length?'لا تتوفر فرص المطر حاليًا؛ راجع كميات المطر في البطاقات.':high>=3?'🌧️ أغلب الموديلات تشير إلى فرصة مطر مرتفعة.':high>0?`☁️ الموديلات تختلف حول المطر؛ ${ranked[0].name} يعطي أعلى احتمال.`:'☀️ فرص المطر منخفضة في الموديلات التي توفر النسبة.';
     window.modelsLoaded=true;
-  }catch(e){console.error(e);summary.textContent='تعذر تحميل مقارنة الموديلات حاليًا.';grid.innerHTML='';}
+  }catch(e){console.error(e);summary.textContent='تعذر تحميل مقارنة الموديلات حاليًا.';grid.innerHTML='';}finally{window.modelsLoading=false;}
 };
 
 function quakePlaceArabic(lat,lon,raw){
