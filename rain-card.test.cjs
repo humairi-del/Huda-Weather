@@ -1,0 +1,28 @@
+const assert = require('node:assert/strict');
+const vm = require('node:vm');
+const fs = require('node:fs');
+let now = Date.parse('2026-10-13T19:20:00+03:00'), timer, visible;
+class FakeDate extends Date { static now() { return now; } }
+const title = {textContent:''};
+const main = {textContent:'', parentElement:{querySelector:()=>title}, querySelector:()=>null};
+const detail = {children:[], textContent:'', replaceChildren(){this.children=[];this.textContent='';}, append(...v){this.children.push(...v);}};
+const document = {readyState:'complete', hidden:false, getElementById:id=>id==='bestRain'?main:detail, createElement:()=>({textContent:'',className:''}), addEventListener:(event, fn)=>{if(event==='visibilitychange')visible=fn;}};
+const window = {};
+vm.runInNewContext(fs.readFileSync(__dirname+'/rain-card.js','utf8'), {window,document,Date:FakeDate,Intl,setInterval:fn=>timer=fn});
+const dataset = (times, chance, rain) => ({daily:{time:['2026-10-13','2026-10-14']},hourly:{time:times,precipitation_probability:chance,precipitation:rain}});
+const content = () => detail.children.map(x=>x.textContent).join(' ');
+window.showBestRain(dataset(['2026-10-13T16:00','2026-10-13T19:00','2026-10-13T20:00','2026-10-13T21:00'],[100,66,38,16],[1.3,0,0,0]));
+assert.match(main.textContent,/38٪/);assert.doesNotMatch(main.textContent,/100/);assert.match(content(),/الفترة جارية/);assert.match(content(),/الجزء الذي مضى/);assert.match(content(),/0.0 ملم/);
+now=Date.parse('2026-10-13T20:00:00+03:00');timer();assert.match(main.textContent,/16٪/);assert.match(content(),/الفترة القادمة/);
+window.showBestRain(dataset(['2026-10-13T21:00','2026-10-13T22:00'],[null,42],[9,null]));assert.match(main.textContent,/42٪/);assert.match(content(),/كمية المطر المتوقعة غير متاحة/);assert.match(content(),/بعض الفترات/);
+window.showBestRain(dataset(['2026-10-13T21:00'],[null],[null]));assert.match(main.textContent,/غير متاحة/);
+window.showBestRain(dataset(['2026-10-13T21:00'],[0],[0]));assert.match(main.textContent,/لا تظهر/);
+window.showBestRain(dataset(['2026-10-13T21:00','2026-10-13T22:00'],[0,null],[0,0]));assert.match(main.textContent,/غير متاحة/);
+window.showBestRain(dataset(['2026-10-14T00:00'],[72],[0.4]));assert.match(main.textContent,/الثلاثاء/);assert.match(content(),/الأربعاء/);assert.match(content(),/0.4 ملم/);
+window.showBestRain(dataset(['2026-10-13T21:00','2026-10-13T22:00'],[50,50],[0.2,2]));assert.match(content(),/0.2 ملم/);
+window.showBestRain(dataset(['2026-10-13T21:00'],[85],[2]));assert.match(main.textContent,/85٪/);
+now=Date.parse('2026-10-13T22:00:00+03:00');visible();assert.match(main.textContent,/غير متاحة/);assert.equal(detail.children.length,0);
+window.showBestRain({daily:{time:['2026-10-13']},hourly:{time:['2026-10-14T12:00'],precipitation_probability:[100],precipitation:[3]}});assert.match(main.textContent,/غير متاحة/);
+window.showBestRain(dataset(['2026-10-13T23:00'],['100'],[1]));assert.match(main.textContent,/غير متاحة/);
+assert.match(title.textContent,/قادمة/);
+console.log('PASS: elapsed peak, hour boundary, ongoing amount note, missing data, zero chance, midnight, ties, new forecast, visibility, horizon, invalid probability, Aden timezone.');

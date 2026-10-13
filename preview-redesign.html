@@ -1995,15 +1995,98 @@ function start(){
  for(const [label,mode] of [['الساعات القادمة','hours'],['اليوم وغدًا','two'],['7 أيام','week']]){const b=make('button','redesign-btn',label);b.type='button';b.dataset.mode=mode;b.setAttribute('role','tab');b.onclick=()=>show(mode);forecastTabs.appendChild(b);}forecasts.append(forecastTabs,hours,weekly);show('hours');new MutationObserver(()=>show(selection)).observe(weekly.querySelector('#weeklyForecast'),{childList:true});
  const app=make('section','card','<h2 class="card-title">📱 التطبيق وإشعارات الطقس</h2>');app.id='appSection';const appButtons=make('div','app-actions');for(const id of ['installButton','notificationButton']){const b=document.getElementById(id);if(b)appButtons.appendChild(b);}app.appendChild(appButtons);const help=make('p','app-help');help.textContent=location.hostname.endsWith('.pages.dev')?'الإشعارات غير مفعلة في المعاينة. التثبيت والإشعارات في الموقع الرسمي يحتفظان بالنظام الحالي.':'ثبت الموقع للوصول السريع، وفعّل إشعارات الطقس عند توفر دعم المتصفح.';app.appendChild(help);
  const aboutText='<p>موقع طقس محلي لخدمة أهالي قرية هدى والقرى المجاورة بمديرية حبان، محافظة شبوة.</p><p>يجمع توقعات الطقس وفرص الأمطار والتنبيهات في مكان واحد.</p><p>نسعى لتقديم معلومات واضحة وسهلة تساعد الأهالي على متابعة أجواء منطقتهم.</p><p><strong>إخلاء المسؤولية:</strong> التوقعات تقديرات قابلة للتغيّر، ولا تضمن هطول المطر. وعند وجود مخاطر جوية، تُقدَّم تحذيرات الجهات الرسمية.</p>';
- const ad=Array.from(root.querySelectorAll('section')).find(x=>x.querySelector('.ad-space'));ad.id='advertisingSection';const about=root.querySelector('.whats-new-wrap'),footer=root.querySelector('footer'),aboutCard=make('section','card about-footer','<h2 class="card-title">عن طقس هدى وما جاورها</h2>'+aboutText);aboutCard.id='aboutSection';aboutCard.append(about,footer);footer.textContent='نسخة تطوير التصميم • 2.3.2-preview';
+ const ad=Array.from(root.querySelectorAll('section')).find(x=>x.querySelector('.ad-space'));ad.id='advertisingSection';const about=root.querySelector('.whats-new-wrap'),footer=root.querySelector('footer'),aboutCard=make('section','card about-footer','<h2 class="card-title">عن طقس هدى وما جاورها</h2>'+aboutText);aboutCard.id='aboutSection';aboutCard.append(about,footer);footer.textContent='نسخة تطوير التصميم • 2.3.3-preview';
  root.append(header,pair,sponsor,weather,prayer,monitor,map,alerts,forecasts,app,ad,aboutCard);renderCards();oldButtons.remove();const headerStar=document.getElementById('headerStar');if(headerStar)headerStar.hidden=true;
- document.querySelector('#whatsNewModal .modal-pad').innerHTML=aboutText+'<p class="source-note">الإصدار 2.3.2-preview</p>';
+ document.querySelector('#whatsNewModal .modal-pad').innerHTML=aboutText+'<p class="source-note">الإصدار 2.3.3-preview</p>';
  const isPreview=location.hostname.endsWith('.pages.dev');if(isPreview){document.body.prepend(make('div','preview-banner','معاينة التصميم الجديد — فرع التطوير فقط — الموقع الرسمي دون تغيير'));const b=document.getElementById('notificationButton');if(b){b.disabled=true;b.textContent='الإشعارات غير مفعلة في المعاينة';}}
  const tick=()=>{clock.textContent=new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true}).format(new Date());document.getElementById('hijriDate').textContent=new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura',{timeZone:'Asia/Aden',day:'numeric',month:'long',year:'numeric'}).format(new Date());};tick();setInterval(tick,1000);setInterval(()=>{renderCards();loadDate();},60000);
  window.openStars=()=>openTable(active);window.showHeaderStar=()=>{};
  document.querySelectorAll('.modal .close').forEach(b=>b.setAttribute('aria-label','إغلاق'));document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const open=Array.from(document.querySelectorAll('.modal')).filter(x=>x.style.display==='block');const last=open[open.length-1];if(last){last.querySelector('.close')?.click();}});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
+
+</script><script>
+/* UI-only hourly rain card. Open-Meteo hourly rain covers the preceding hour. */
+(function () {
+  'use strict';
+  const HOUR = 3600000;
+  let latest = null;
+  const valid = (v, max = Infinity) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= max;
+  function timeMs(value) {
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(value)) return NaN;
+    // API timezone is Asia/Aden, UTC+03:00; never use the phone's timezone.
+    return Date.parse(value + '+03:00');
+  }
+  function select(data, now) {
+    const h = data && data.hourly;
+    if (!h || !Array.isArray(h.time)) return { state: 'missing' };
+    const dates = data.daily && data.daily.time;
+    const allowed = Array.isArray(dates) ? new Set(dates.slice(0, 7)) : null;
+    let best = null, available = 0, missing = 0;
+    h.time.forEach((time, i) => {
+      const end = timeMs(time), start = end - HOUR;
+      if (!Number.isFinite(end) || end <= now || start >= now + 7 * 24 * HOUR) return;
+      // The hour ending at midnight belongs to the preceding forecast day.
+      const day = new Date(start + 3 * HOUR).toISOString().slice(0, 10);
+      if (allowed && !allowed.has(day)) return;
+      const chance = h.precipitation_probability && h.precipitation_probability[i];
+      if (!valid(chance, 100)) { missing++; return; }
+      available++;
+      const amount = h.precipitation && h.precipitation[i];
+      if (!best || chance > best.chance || (chance === best.chance && end < best.end)) {
+        best = { start, end, chance, amount: valid(amount) ? amount : null };
+      }
+    });
+    if (!available) return { state: 'missing' };
+    if (!best.chance) return { state: missing ? 'missing' : 'none' };
+    return { state: 'chance', ...best, incomplete: missing > 0 };
+  }
+  const date = ms => new Intl.DateTimeFormat('ar-YE', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Aden' }).format(ms);
+  const clock = ms => new Intl.DateTimeFormat('ar-YE', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Aden' }).format(ms);
+  function render(data) {
+    if (data) latest = data;
+    const main = document.getElementById('bestRain'), detail = document.getElementById('bestRainDetails');
+    if (!main || !detail) return;
+    const title = main.parentElement.querySelector('.card-title');
+    if (title) title.textContent = '🌧️ أفضل فرصة مطر قادمة على هدى';
+    const now = Date.now(), result = select(latest, now);
+    detail.replaceChildren();
+    if (result.state !== 'chance') {
+      main.textContent = result.state === 'none' ? 'لا تظهر فرصة مطر واضحة في التوقعات القادمة' : 'بيانات فرصة المطر القادمة غير متاحة';
+      detail.textContent = 'توقع قابل للتغيّر';
+      return;
+    }
+    main.textContent = `${date(result.start)} • ${Math.round(result.chance)}٪`;
+    const period = document.createElement('div');
+    const sameDay = date(result.start) === date(result.end);
+    period.textContent = `${result.start < now ? 'الفترة جارية' : 'الفترة القادمة'}: من ${clock(result.start)} إلى ${sameDay ? '' : date(result.end) + '، '}${clock(result.end)}`;
+    const amount = document.createElement('div');
+    amount.textContent = result.amount === null ? 'كمية المطر المتوقعة غير متاحة' : `كمية متوقعة للساعة كاملة: ${result.amount.toFixed(1)} ملم`;
+    const note = document.createElement('div');
+    note.className = 'source-note';
+    note.textContent = 'توقع قابل للتغيّر' + (result.start < now ? ' • كمية الساعة تشمل الجزء الذي مضى منها' : '') + (result.incomplete ? ' • بعض الفترات غير متاحة؛ المقارنة حسب البيانات المتوفرة' : '');
+    detail.append(period, amount, note);
+  }
+  window.showBestRain = render;
+  function initial() {
+    render(window.weatherData || (typeof weatherData !== 'undefined' ? weatherData : null));
+    setInterval(() => {
+      const main = document.getElementById('bestRain');
+      if (main && main.querySelector('.error')) {
+        const detail = document.getElementById('bestRainDetails');
+        if (detail) detail.replaceChildren();
+        return;
+      }
+      render();
+    }, 60000);
+    document.addEventListener('visibilitychange', () => {
+      const main = document.getElementById('bestRain');
+      if (!document.hidden && main && !main.querySelector('.error')) render();
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initial, { once: true });
+  else initial();
 })();
 
 </script></body>
