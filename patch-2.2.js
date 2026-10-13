@@ -315,13 +315,13 @@ function summarizeAifsEnsemble(data){
 }
 
 window.loadModels=async function(){
-  const grid=document.getElementById('modelsGrid'),summary=document.getElementById('modelsSummary');if(window.modelsLoading)return;window.modelsLoading=true;grid.innerHTML='<div class="loading">جاري التحميل...</div>';
+  const grid=document.getElementById('modelsGrid'),summary=document.getElementById('modelsSummary');if(window.modelsLoading)return;if(window.modelsLastSuccess&&Date.now()-window.modelsLastSuccess<300000)return;window.modelsLoading=true;grid.innerHTML='<div class="loading">جاري التحميل...</div>';
   try{
     const aifsModel='ecmwf_aifs025_ensemble';
     const models=MODEL_LIST.filter(x=>x[1]!==aifsModel).map(x=>x[1]).join(',');
     const url=`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max&models=${models}&timezone=Asia%2FAden&forecast_days=7`;
     const ensembleUrl=`https://ensemble-api.open-meteo.com/v1/ensemble?latitude=${latitude}&longitude=${longitude}&hourly=precipitation&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&models=ecmwf_aifs025&timezone=Asia%2FAden&forecast_days=7`;
-    const read=async url=>{const r=await fetch(url);if(!r.ok)throw new Error('models');return r.json();};
+    const read=async url=>{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),25000);try{const r=await fetch(url,{signal:controller.signal});if(!r.ok)throw new Error('models');return await r.json();}finally{clearTimeout(timer);}};
     const responses=await Promise.allSettled([models?read(url):Promise.resolve(null),MODEL_LIST.some(x=>x[1]===aifsModel)?read(ensembleUrl):Promise.resolve(null)]);
     const available=responses.map(r=>r.status==='fulfilled'?r.value:null);
     if(!available.some(Boolean))throw new Error('models');
@@ -344,11 +344,11 @@ window.loadModels=async function(){
       cards.push(`<div class="model-item"><span>${name}</span><strong>🌧️ فرصة المطر: ${chance}</strong><br>💧 كمية المطر المتوقعة: ${rain===null?'غير متوفرة':rain.toFixed(1)+' ملم'}<br>📅 الموعد: ${probability.index>=0||rainfall.index>=0?day(i):'غير متوفر'}<br>🌡️ الحرارة: ${temperature(maxs[i],mins[i])}<br>🌬️ الرياح: ${fmt(winds[i],' كم/س')}</div>`);
     }
     grid.innerHTML=cards.join('');
-    const note=document.querySelector?.('#modelsModal .modal-pad > .small-note');if(note)note.textContent='هذه توقعات وقد تتغير.';
+    const note=document.querySelector?.('#modelsModal .modal-pad > .small-note');if(note)note.textContent='هذه توقعات وقد تتغير. قيم AIFS متوسط 51 عضوًا؛ فرصة المطر نسبة الأعضاء التي تتوقع أكثر من 0.1 ملم في الساعة، وأعلى نسبة ساعية خلال اليوم.';
     ranked.sort((a,b)=>b.amount-a.amount);
     const high=rainSignals.filter(v=>v>=50).length;
     summary.textContent=!ranked.length?'لا تتوفر فرص المطر حاليًا؛ راجع كميات المطر في البطاقات.':high>=3?'🌧️ أغلب الموديلات تشير إلى فرصة مطر مرتفعة.':high>0?`☁️ الموديلات تختلف حول المطر؛ ${ranked[0].name} يعطي أعلى احتمال.`:'☀️ فرص المطر منخفضة في الموديلات التي توفر النسبة.';
-    window.modelsLoaded=true;
+    window.modelsLoaded=true;window.modelsLastSuccess=Date.now();
   }catch(e){console.error(e);summary.textContent='تعذر تحميل مقارنة الموديلات حاليًا.';grid.innerHTML='';}finally{window.modelsLoading=false;}
 };
 
@@ -377,7 +377,7 @@ window.enableWeatherNotifications=function(){
 };
 function updateNotificationButton(OneSignal){const b=document.getElementById('notificationButton');if(!b)return;const granted=OneSignal?.Notifications?.permission===true;b.textContent=granted?'✅ التنبيهات مفعلة':'🔔 تفعيل تنبيهات الطقس';}
 function initOneSignal(){
-  if(document.getElementById('oneSignalPageSdk'))return;
+  if(location.hostname.endsWith('.pages.dev')||document.getElementById('oneSignalPageSdk'))return;
   window.OneSignalDeferred=window.OneSignalDeferred||[];
   const sc=document.createElement('script');sc.id='oneSignalPageSdk';sc.src='https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';sc.defer=true;document.head.appendChild(sc);
   OneSignalDeferred.push(async function(OneSignal){try{await OneSignal.init({appId:DUST_APP_ID,serviceWorkerPath:'sw.js',notifyButton:{enable:false}});updateNotificationButton(OneSignal);OneSignal.Notifications.addEventListener('permissionChange',()=>updateNotificationButton(OneSignal));}catch(e){console.error('OneSignal',e);}});

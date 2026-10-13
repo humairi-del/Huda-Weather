@@ -17,8 +17,10 @@ function fmtTime(t){return t?new Date(t).toLocaleString('ar-YE',{timeZone:'Asia/
 
 async function seaPoint(p){
   const u=`https://api.open-meteo.com/v1/forecast?latitude=${p[1]}&longitude=${p[2]}&hourly=pressure_msl,precipitation,cloud_cover,relative_humidity_2m,wind_speed_10m,wind_direction_10m&timezone=Asia%2FAden&forecast_days=3&cell_selection=sea`;
-  const r=await fetch(u);if(!r.ok)throw Error('sea');
-  const d=await r.json(),h=d.hourly||{};let best=null;
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);let r;try{r=await fetch(u,{signal:controller.signal});if(!r.ok)throw Error('sea');const payload=await r.json();return bestSeaPoint(p,payload);}finally{clearTimeout(timer);}
+}
+function bestSeaPoint(p,d){
+  const h=d.hourly||{};let best=null;
   for(let i=0;i<(h.time||[]).length;i++){
     const pressure=Number(h.pressure_msl?.[i]),rain=Number(h.precipitation?.[i]||0),cloud=Number(h.cloud_cover?.[i]||0),humidity=Number(h.relative_humidity_2m?.[i]||0),wind=Number(h.wind_speed_10m?.[i]||0),direction=Number(h.wind_direction_10m?.[i]||0);
     if(!Number.isFinite(pressure))continue;
@@ -59,13 +61,14 @@ function ensureSeaUI(){
 }
 
 window.loadSea=async function(){
+  if(window.seaLoading||window.seaLastSuccess&&Date.now()-window.seaLastSuccess<300000)return;window.seaLoading=true;
   const s=ensureSeaUI();if(s)s.innerHTML='🔄 جاري فحص مؤشرات بحر العرب...';
   try{
     const out=[];
-    for(let i=0;i<seaPoints.length;i+=4){const rows=await Promise.all(seaPoints.slice(i,i+4).map(seaPoint));out.push(...rows.filter(Boolean));}
+    for(let i=0;i<seaPoints.length;i+=4){const rows=await Promise.allSettled(seaPoints.slice(i,i+4).map(seaPoint));out.push(...rows.filter(x=>x.status==='fulfilled'&&x.value).map(x=>x.value));}
     if(!out.length)throw Error('empty sea data');
     const a=out.reduce((x,y)=>y.score>x.score?y:x),dist=window.haversine(LAT,LON,a.lat,a.lon),level=modelLevel(a);
-    if(s)s.innerHTML=`${level.icon} <strong>${level.title}</strong><br><span class="sea-small">${level.note}</span>`;
+    if(s)s.innerHTML=`${level.icon} <strong>${level.title}</strong><br><span class="sea-small">${level.note} • توفرت بيانات ${out.length} من ${seaPoints.length} نقطة.</span>`;
     const area=document.getElementById('seaSimpleAreaValue'),meta=document.getElementById('seaSimpleAreaMeta'),impact=document.getElementById('seaSimpleImpactValue');
     if(area)area.textContent=a.name;
     if(meta)meta.textContent=`${a.lat.toFixed(1)}°N ، ${a.lon.toFixed(1)}°E • نحو ${Math.round(dist)} كم من هدى • ${fmtTime(a.time)}\nضغط ${Math.round(a.pressure)} hPa • رياح ${Math.round(a.wind)} كم/س ${dir(a.direction)} • مطر ${a.rain.toFixed(1)} ملم/س`;
@@ -73,8 +76,8 @@ window.loadSea=async function(){
 
     /* تحديث الحقول القديمة إن وجدت، من نفس النقطة/الوقت لتجنب خلط قمم من أماكن مختلفة. */
     set('seaArea',a.name);set('seaTime',fmtTime(a.time));set('seaCoords',`${a.lat.toFixed(1)}°N ، ${a.lon.toFixed(1)}°E`);set('seaDistance',`نحو ${Math.round(dist)} كم`);set('seaPressure',`${Math.round(a.pressure)} hPa`);set('seaWind',`${Math.round(a.wind)} كم/س`);set('seaRain',`${a.rain.toFixed(1)} ملم/ساعة`);set('seaCloud',`${Math.round(a.cloud)}%`);set('seaHumidity',`${Math.round(a.humidity)}%`);set('seaDirection',dir(a.direction));set('seaYemen',impactText(a,dist,level));set('seaImpact',impactText(a,dist,level));
-    window.seaLoaded=true;
-  }catch(e){console.error(e);if(s)s.textContent='تعذر تحميل بيانات بحر العرب حاليًا. حاول مرة أخرى.';}
+    window.seaLoaded=true;window.seaLastSuccess=Date.now();
+  }catch(e){console.error(e);if(s)s.textContent='تعذر تحميل بيانات بحر العرب حاليًا. حاول مرة أخرى.';set('seaSimpleAreaValue','غير متوفر');set('seaSimpleImpactValue','لا تتوفر بيانات كافية للتقييم.');}finally{window.seaLoading=false;}
 };
 window.openSea=function(){oldSea?.();window.loadSea();};
 })();
