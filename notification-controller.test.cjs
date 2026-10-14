@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),vm=require(
 const html=fs.readFileSync(__dirname+'/preview-redesign.html','utf8');
 const code=html.slice(html.indexOf('// HADA_NOTIFICATION_CONTROLLER_START'),html.indexOf('// HADA_NOTIFICATION_CONTROLLER_END'));
 function fixture({host='hada-weather.com',permission='default',supported=true,initError=false,subscribeError=false,complete=true}={}){
-  const elements={},timers=new Map();let next=1,requests=0,optins=0,inits=0;
+  const elements={},timers=new Map();let next=1,requests=0,optins=0,inits=0,initOptions;
   const action={disabled:false,textContent:''},pad={appendChild(e){elements[e.id]=e;}};
   elements.notificationModal={style:{},querySelector(s){return s==='.modal-pad'?pad:action;}};
   elements.notificationButton={disabled:false,textContent:''};
@@ -10,8 +10,8 @@ function fixture({host='hada-weather.com',permission='default',supported=true,in
   const context={document,location:{hostname:host},navigator:{serviceWorker:{}},Notification:{permission},PushManager:function(){},isSecureContext:true,DUST_APP_ID:'test-app',setTimeout(fn){const id=next++;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);},addEventListener(){},console};
   context.window=context;vm.createContext(context);vm.runInContext(code,context);
   const push={id:null,token:null,optedIn:false,addEventListener(){},async optIn(){optins++;if(subscribeError)throw Error('failure');if(complete){push.id='test';push.token='token';push.optedIn=true;}}};
-  const sdk={async init(){inits++;if(initError)throw Error('init');},User:{PushSubscription:push},Notifications:{permission:permission==='granted',isPushSupported(){return supported;},addEventListener(){},async requestPermission(){requests++;this.permission=true;context.Notification.permission='granted';}}};
-  return {context,sdk,action,elements,timers,counts:()=>({requests,optins,inits}),status:()=>elements.notificationStatus?.textContent,async boot(){vm.runInContext('initOneSignal()',context);if(context.OneSignalDeferred)await context.OneSignalDeferred[0](sdk);}};
+  const sdk={async init(options){initOptions=options;inits++;if(initError)throw Error('init');},User:{PushSubscription:push},Notifications:{permission:permission==='granted',isPushSupported(){return supported;},addEventListener(){},async requestPermission(){requests++;this.permission=true;context.Notification.permission='granted';}}};
+  return {context,sdk,action,elements,timers,counts:()=>({requests,optins,inits}),initOptions:()=>initOptions,status:()=>elements.notificationStatus?.textContent,async boot(){vm.runInContext('initOneSignal()',context);if(context.OneSignalDeferred)await context.OneSignalDeferred[0](sdk);}};
 }
 test('preview opens an explanation and never initializes production OneSignal',async()=>{const f=fixture({host:'test.pages.dev'});await f.boot();f.context.openNotificationPrompt();await f.context.enableWeatherNotifications();assert.match(f.status(),/ربطًا مستقلًا/);assert.equal(f.counts().inits,0);assert.equal(f.elements.notificationButton.disabled,false);});
 test('waiting for SDK gives a visible response',async()=>{const f=fixture();vm.runInContext('initOneSignal()',f.context);await f.context.enableWeatherNotifications();assert.match(f.status(),/لم تجهز/);assert.equal(f.counts().requests,0);});
@@ -26,3 +26,6 @@ test('double click cannot trigger duplicate optIn',async()=>{const f=fixture({pe
 test('SDK timeout gives feedback and late readiness can recover',async()=>{const f=fixture();vm.runInContext('initOneSignal()',f.context);for(const fn of [...f.timers.values()])fn();assert.match(f.status(),/تأخر/);await f.context.OneSignalDeferred[0](f.sdk);await f.context.enableWeatherNotifications();assert.match(f.elements.notificationButton.textContent,/مكتمل/);});
 test('unsupported browsers do not request permission',async()=>{const f=fixture({supported:false});await f.boot();await f.context.enableWeatherNotifications();assert.match(f.status(),/غير مدعومة/);assert.equal(f.counts().requests,0);});
 test('all inline scripts remain syntactically valid',()=>{for(const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)){if(match[1].trim())new vm.Script(match[1]);}});
+
+test('configured preview initializes only its separate test app',async()=>{const f=fixture({host:'redesign-hada-2026-10.hada-weather-aifs-preview.pages.dev'});await f.boot();assert.equal(f.initOptions().appId,'9fedd24f-9a4d-4445-9a60-af736cb71c89');assert.equal(f.initOptions().serviceWorkerPath,'sw.js');assert.equal(f.initOptions().welcomeNotification.disable,true);});
+test('temporary local subscription IDs never count as complete',async()=>{const f=fixture({permission:'granted'});await f.boot();f.sdk.User.PushSubscription.id='local-pending';f.sdk.User.PushSubscription.token='token';f.sdk.User.PushSubscription.optedIn=true;assert.equal(f.context.actualPushSubscription(f.sdk),false);});

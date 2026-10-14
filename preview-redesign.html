@@ -1476,6 +1476,10 @@ window.loadQuakes=async function(){
 };
 
 // HADA_NOTIFICATION_CONTROLLER_START
+// onesignal:managed v1 — separate preview app, exact origin only
+const HADA_TEST_PUSH_HOST='redesign-hada-2026-10.hada-weather-aifs-preview.pages.dev';
+const HADA_TEST_PUSH_APP_ID='9fedd24f-9a4d-4445-9a60-af736cb71c89';
+function notificationAppId(){return location.hostname==='hada-weather.com'?DUST_APP_ID:location.hostname===HADA_TEST_PUSH_HOST?HADA_TEST_PUSH_APP_ID:null;}
 const hadaPush={sdk:null,phase:'idle',busy:false,timer:null};
 function notificationStatus(message){
   const modal=document.getElementById('notificationModal');
@@ -1490,10 +1494,10 @@ function notificationAction(busy){
 }
 function actualPushSubscription(sdk){
   const push=sdk?.User?.PushSubscription;
-  return sdk?.Notifications?.permission===true&&push?.optedIn===true&&!!push.id&&!!push.token;
+  return sdk?.Notifications?.permission===true&&push?.optedIn===true&&!!push.id&&!push.id.startsWith('local-')&&!!push.token;
 }
 function notificationUnavailable(){
-  if(location.hostname!=='hada-weather.com')return 'هذه معاينة للتصميم. استقبال الإشعارات يحتاج ربطًا مستقلًا لنطاق المعاينة، ولم يُجهّز بعد.';
+  if(!notificationAppId())return 'هذه معاينة للتصميم. استقبال الإشعارات يحتاج ربطًا مستقلًا لنطاق المعاينة، ولم يُجهّز بعد.';
   if(!window.isSecureContext||!('Notification' in window)||!('serviceWorker' in navigator)||!('PushManager' in window))return 'هذا المتصفح لا يدعم تفعيل الإشعارات هنا. افتح الموقع في متصفح مدعوم وباتصال آمن.';
   return '';
 }
@@ -1549,7 +1553,7 @@ function initOneSignal(){
   hadaPush.timer=setTimeout(()=>{if(hadaPush.phase==='loading'){hadaPush.phase='error';notificationStatus('تأخر الاتصال بخدمة الإشعارات. تحقق من الإنترنت وأعد تحميل الصفحة.');}},15000);
   OneSignalDeferred.push(async function(sdk){
     try{
-      await sdk.init({appId:DUST_APP_ID,serviceWorkerPath:'sw.js',notifyButton:{enable:false},welcomeNotification:{disable:true}});
+      await sdk.init({appId:notificationAppId(),serviceWorkerPath:'sw.js',notifyButton:{enable:false},welcomeNotification:{disable:true}});
       clearTimeout(hadaPush.timer);hadaPush.sdk=sdk;hadaPush.phase='ready';
       const refresh=()=>{updateNotificationButton(sdk);if(actualPushSubscription(sdk))notificationStatus('تم إكمال الاشتراك على هذا الجهاز.');};
       sdk.Notifications.addEventListener('permissionChange',refresh);
@@ -2067,9 +2071,9 @@ function start(){
  for(const [label,mode] of [['الساعات القادمة','hours'],['اليوم وغدًا','two'],['7 أيام','week']]){const b=make('button','redesign-btn',label);b.type='button';b.dataset.mode=mode;b.setAttribute('role','tab');b.onclick=()=>show(mode);forecastTabs.appendChild(b);}forecasts.append(forecastTabs,hours,weekly);show('hours');new MutationObserver(()=>show(selection)).observe(weekly.querySelector('#weeklyForecast'),{childList:true});
  const app=make('section','card','<h2 class="card-title">📱 التطبيق وإشعارات الطقس</h2>');app.id='appSection';const appButtons=make('div','app-actions');for(const id of ['installButton','notificationButton']){const b=document.getElementById(id);if(b)appButtons.appendChild(b);}app.appendChild(appButtons);const help=make('p','app-help');help.textContent=location.hostname.endsWith('.pages.dev')?'يمكن مراجعة زر التنبيهات هنا؛ استقبال الإشعارات يحتاج ربط نطاق اختبار مستقل.':'ثبت الموقع للوصول السريع، وفعّل إشعارات الطقس عند توفر دعم المتصفح.';app.appendChild(help);
  const aboutText='<p>موقع طقس محلي لخدمة أهالي قرية هدى والقرى المجاورة بمديرية حبان، محافظة شبوة.</p><p>يجمع توقعات الطقس وفرص الأمطار والتنبيهات في مكان واحد.</p><p>نسعى لتقديم معلومات واضحة وسهلة تساعد الأهالي على متابعة أجواء منطقتهم.</p><p><strong>إخلاء المسؤولية:</strong> التوقعات تقديرات قابلة للتغيّر، ولا تضمن هطول المطر. وعند وجود مخاطر جوية، تُقدَّم تحذيرات الجهات الرسمية.</p>';
- const ad=Array.from(root.querySelectorAll('section')).find(x=>x.querySelector('.ad-space'));ad.id='advertisingSection';const about=root.querySelector('.whats-new-wrap'),footer=root.querySelector('footer'),aboutCard=make('section','card about-footer','<h2 class="card-title">عن طقس هدى وما جاورها</h2>'+aboutText);aboutCard.id='aboutSection';aboutCard.append(about,footer);footer.textContent='نسخة تطوير التصميم • 2.3.4-preview';
+ const ad=Array.from(root.querySelectorAll('section')).find(x=>x.querySelector('.ad-space'));ad.id='advertisingSection';const about=root.querySelector('.whats-new-wrap'),footer=root.querySelector('footer'),aboutCard=make('section','card about-footer','<h2 class="card-title">عن طقس هدى وما جاورها</h2>'+aboutText);aboutCard.id='aboutSection';aboutCard.append(about,footer);footer.textContent='نسخة تطوير التصميم • 2.3.5-preview';
  root.append(header,pair,sponsor,weather,prayer,monitor,map,alerts,forecasts,app,ad,aboutCard);renderCards();oldButtons.remove();const headerStar=document.getElementById('headerStar');if(headerStar)headerStar.hidden=true;
- document.querySelector('#whatsNewModal .modal-pad').innerHTML=aboutText+'<p class="source-note">الإصدار 2.3.4-preview</p>';
+ document.querySelector('#whatsNewModal .modal-pad').innerHTML=aboutText+'<p class="source-note">الإصدار 2.3.5-preview</p>';
  const isPreview=location.hostname.endsWith('.pages.dev');if(isPreview){document.body.prepend(make('div','preview-banner','معاينة التصميم الجديد — فرع التطوير فقط — الموقع الرسمي دون تغيير'));const b=document.getElementById('notificationButton');if(b){b.disabled=false;b.textContent='🔔 معاينة التنبيهات';}}
  const tick=()=>{clock.textContent=new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true}).format(new Date());document.getElementById('hijriDate').textContent=new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura',{timeZone:'Asia/Aden',day:'numeric',month:'long',year:'numeric'}).format(new Date());};tick();setInterval(tick,1000);setInterval(()=>{renderCards();loadDate();},60000);
  window.openStars=()=>openTable(active);window.showHeaderStar=()=>{};
