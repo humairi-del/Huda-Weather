@@ -1475,22 +1475,94 @@ window.loadQuakes=async function(){
   try{const end=new Date(),start=new Date(Date.now()-30*86400000),iso=x=>x.toISOString().slice(0,10),url=`https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=${iso(start)}&endtime=${iso(end)}&latitude=${latitude}&longitude=${longitude}&maxradiuskm=1500&minmagnitude=3&orderby=time&limit=8`;const r=await fetch(url);if(!r.ok)throw new Error('usgs');const d=await r.json(),f=d.features||[];summary.textContent=f.length?`آخر 30 يومًا: ${f.length} من أحدث الزلازل بقوة 3.0 فأعلى ضمن نطاق 1500 كم.`:'لم يسجل الاستعلام زلازل بقوة 3.0 فأعلى ضمن النطاق المحدد خلال 30 يومًا.';grid.innerHTML=f.map(q=>{const c=q.geometry?.coordinates||[],dist=haversine(latitude,longitude,c[1],c[0]),dt=new Date(q.properties.time).toLocaleString('ar-YE',{timeZone:'Asia/Aden',day:'numeric',month:'numeric',hour:'numeric',minute:'2-digit',hour12:true}),place=quakePlaceArabic(Number(c[1]),Number(c[0]),q.properties.place);return`<div class="quake-item"><span>${dt}</span><strong>قوة ${Number(q.properties.mag).toFixed(1)}</strong><br>${place}<br>يبعد نحو ${Math.round(dist)} كم • العمق ${Math.round(Number(c[2]||0))} كم</div>`;}).join('');window.quakesLoaded=true;}catch(e){console.error(e);summary.textContent='تعذر تحميل رصد الزلازل حاليًا.';grid.innerHTML='';}
 };
 
+// HADA_NOTIFICATION_CONTROLLER_START
+const hadaPush={sdk:null,phase:'idle',busy:false,timer:null};
+function notificationStatus(message){
+  const modal=document.getElementById('notificationModal');
+  let status=document.getElementById('notificationStatus');
+  if(!status&&modal){status=document.createElement('div');status.id='notificationStatus';status.className='small-note';status.setAttribute('role','status');status.setAttribute('aria-live','polite');modal.querySelector('.modal-pad').appendChild(status);}
+  if(status)status.textContent=message;
+}
+function notificationAction(busy){
+  const modal=document.getElementById('notificationModal');
+  const action=modal?.querySelector('[onclick="enableWeatherNotifications()"]');
+  if(action){action.disabled=busy;action.textContent=busy?'جاري إكمال الاشتراك…':'تفعيل التنبيهات';}
+}
+function actualPushSubscription(sdk){
+  const push=sdk?.User?.PushSubscription;
+  return sdk?.Notifications?.permission===true&&push?.optedIn===true&&!!push.id&&!!push.token;
+}
+function notificationUnavailable(){
+  if(location.hostname!=='hada-weather.com')return 'هذه معاينة للتصميم. استقبال الإشعارات يحتاج ربطًا مستقلًا لنطاق المعاينة، ولم يُجهّز بعد.';
+  if(!window.isSecureContext||!('Notification' in window)||!('serviceWorker' in navigator)||!('PushManager' in window))return 'هذا المتصفح لا يدعم تفعيل الإشعارات هنا. افتح الموقع في متصفح مدعوم وباتصال آمن.';
+  return '';
+}
 window.openNotificationPrompt=function(){
-  const b=document.getElementById('notificationButton');if(b?.textContent.includes('مفعلة'))return;
   const m=document.getElementById('notificationModal');if(m){m.style.display='block';document.body.style.overflow='hidden';}
+  const reason=notificationUnavailable();
+  if(reason)notificationStatus(reason);
+  else if(actualPushSubscription(hadaPush.sdk))notificationStatus('الاشتراك مكتمل على هذا الجهاز. وصول الإشعارات يحتاج اختبار إرسال مستقل.');
+  else if(hadaPush.phase==='loading')notificationStatus('جاري الاتصال بخدمة الإشعارات. انتظر حتى تظهر جاهزيتها ثم اضغط تفعيل.');
+  else if(hadaPush.phase==='error')notificationStatus('تعذر تجهيز خدمة الإشعارات. أعد تحميل الصفحة وتحقق من الاتصال.');
+  else notificationStatus('اضغط تفعيل لإكمال الاشتراك على هذا الجهاز.');
 };
 window.closeNotificationPrompt=function(){const m=document.getElementById('notificationModal');if(m){m.style.display='none';document.body.style.overflow='';}};
-window.enableWeatherNotifications=function(){
-  window.OneSignalDeferred=window.OneSignalDeferred||[];
-  OneSignalDeferred.push(async function(OneSignal){try{await OneSignal.Notifications.requestPermission();updateNotificationButton(OneSignal);closeNotificationPrompt();}catch(e){console.error(e);alert('تعذر تفعيل التنبيهات حاليًا. تحقق من سماح الإشعارات في المتصفح.');}});
-};
-function updateNotificationButton(OneSignal){const b=document.getElementById('notificationButton');if(!b)return;const granted=OneSignal?.Notifications?.permission===true;b.textContent=granted?'✅ التنبيهات مفعلة':'🔔 تفعيل تنبيهات الطقس';}
-function initOneSignal(){
-  if(location.hostname.endsWith('.pages.dev')||document.getElementById('oneSignalPageSdk'))return;
-  window.OneSignalDeferred=window.OneSignalDeferred||[];
-  const sc=document.createElement('script');sc.id='oneSignalPageSdk';sc.src='https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';sc.defer=true;document.head.appendChild(sc);
-  OneSignalDeferred.push(async function(OneSignal){try{await OneSignal.init({appId:DUST_APP_ID,serviceWorkerPath:'sw.js',notifyButton:{enable:false}});updateNotificationButton(OneSignal);OneSignal.Notifications.addEventListener('permissionChange',()=>updateNotificationButton(OneSignal));}catch(e){console.error('OneSignal',e);}});
+function updateNotificationButton(sdk){
+  const b=document.getElementById('notificationButton');if(!b)return;
+  b.disabled=false;
+  b.textContent=notificationUnavailable()?'🔔 معاينة التنبيهات':actualPushSubscription(sdk)?'✅ الاشتراك في التنبيهات مكتمل':'🔔 تفعيل تنبيهات الطقس';
 }
+window.enableWeatherNotifications=async function(){
+  if(hadaPush.busy)return;
+  const reason=notificationUnavailable();if(reason){notificationStatus(reason);return;}
+  if(hadaPush.phase!=='ready'||!hadaPush.sdk){
+    notificationStatus(hadaPush.phase==='error'?'تعذر الاتصال بخدمة الإشعارات. أعد تحميل الصفحة وحاول مجددًا.':'خدمة الإشعارات لم تجهز بعد. انتظر قليلًا ثم اضغط تفعيل.');return;
+  }
+  const sdk=hadaPush.sdk;
+  if(!sdk.Notifications.isPushSupported()){notificationStatus('الإشعارات غير مدعومة في هذا المتصفح.');return;}
+  if(actualPushSubscription(sdk)){notificationStatus('الاشتراك مكتمل على هذا الجهاز.');return;}
+  if(Notification.permission==='denied'){notificationStatus('إذن الإشعارات محظور. اسمح بإشعارات طقس هدى من إعدادات الهاتف أو المتصفح ثم أعد تحميل الموقع.');return;}
+  hadaPush.busy=true;notificationAction(true);notificationStatus('جاري طلب الإذن وإكمال الاشتراك…');
+  let timeout;
+  try{
+    const subscribe=(async()=>{
+      // Start the browser prompt in the user's click, before awaiting anything.
+      if(sdk.Notifications.permission!==true)await sdk.Notifications.requestPermission();
+      if(sdk.Notifications.permission!==true)return;
+      await sdk.User.PushSubscription.optIn();
+    })();
+    await Promise.race([subscribe,new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('push-timeout')),15000);})]);
+    updateNotificationButton(sdk);
+    if(actualPushSubscription(sdk))notificationStatus('تم إكمال الاشتراك على هذا الجهاز. لم يُرسل إشعار تجريبي.');
+    else if(sdk.Notifications.permission!==true)notificationStatus('لم يُمنح إذن الإشعارات. يمكنك المحاولة لاحقًا.');
+    else notificationStatus('الإذن مسموح، لكن الاشتراك لم يكتمل بعد. انتظر تحديث الحالة؛ وإذا استمر ذلك أعد تحميل الصفحة.');
+  }catch(error){
+    notificationStatus('تعذر إكمال الاشتراك أو انتهت مهلة الاتصال. تحقق من الإنترنت ثم أعد تحميل الصفحة.');
+  }finally{clearTimeout(timeout);hadaPush.busy=false;notificationAction(false);}
+};
+function initOneSignal(){
+  const reason=notificationUnavailable();
+  if(reason){hadaPush.phase='unavailable';updateNotificationButton(null);return;}
+  if(hadaPush.phase!=='idle')return;
+  hadaPush.phase='loading';
+  window.OneSignalDeferred=window.OneSignalDeferred||[];
+  hadaPush.timer=setTimeout(()=>{if(hadaPush.phase==='loading'){hadaPush.phase='error';notificationStatus('تأخر الاتصال بخدمة الإشعارات. تحقق من الإنترنت وأعد تحميل الصفحة.');}},15000);
+  OneSignalDeferred.push(async function(sdk){
+    try{
+      await sdk.init({appId:DUST_APP_ID,serviceWorkerPath:'sw.js',notifyButton:{enable:false},welcomeNotification:{disable:true}});
+      clearTimeout(hadaPush.timer);hadaPush.sdk=sdk;hadaPush.phase='ready';
+      const refresh=()=>{updateNotificationButton(sdk);if(actualPushSubscription(sdk))notificationStatus('تم إكمال الاشتراك على هذا الجهاز.');};
+      sdk.Notifications.addEventListener('permissionChange',refresh);
+      sdk.User.PushSubscription.addEventListener('change',refresh);
+      refresh();if(!actualPushSubscription(sdk))notificationStatus('خدمة الإشعارات جاهزة. اضغط تفعيل لإكمال الاشتراك.');
+    }catch(error){clearTimeout(hadaPush.timer);hadaPush.phase='error';notificationStatus('تعذر تجهيز خدمة الإشعارات. تحقق من الاتصال وإعدادات ربط الموقع.');}
+  });
+  const sc=document.createElement('script');sc.id='oneSignalPageSdk';sc.src='https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';sc.defer=true;
+  sc.onerror=()=>{clearTimeout(hadaPush.timer);hadaPush.phase='error';notificationStatus('تعذر تحميل خدمة الإشعارات. تحقق من الاتصال وأعد تحميل الصفحة.');};
+  document.head.appendChild(sc);
+  window.addEventListener('focus',()=>updateNotificationButton(hadaPush.sdk));
+}
+// HADA_NOTIFICATION_CONTROLLER_END
 
 function refreshPatchedViews(){
   setupStaticUI();showHeaderStar();initOneSignal();
@@ -1993,12 +2065,12 @@ function start(){
  const hours=document.getElementById('hourlyForecast').closest('section'),weekly=document.getElementById('weeklyForecast').closest('section'),forecasts=make('section','card forecast-section','<h2 class="card-title">التوقعات القادمة</h2>');forecasts.id='forecastSection';const forecastTabs=make('div','forecast-tabs');forecastTabs.setAttribute('role','tablist');hours.id='forecastHours';weekly.id='forecastDays';let selection='hours';
  function show(mode){selection=mode;hours.hidden=mode!=='hours';weekly.hidden=mode==='hours';for(const b of forecastTabs.children)b.setAttribute('aria-selected',String(b.dataset.mode===mode));const wraps=weekly.querySelectorAll('.day-wrap');wraps.forEach((el,i)=>{el.hidden=mode==='two'&&i>1;const d=el.querySelector('.day');if(d&&!d.hasAttribute('role')){d.setAttribute('role','button');d.tabIndex=0;d.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();d.click();}});}});weekly.querySelector('.card-title').textContent=mode==='two'?'📅 اليوم وغدًا':'📅 توقعات 7 أيام';}
  for(const [label,mode] of [['الساعات القادمة','hours'],['اليوم وغدًا','two'],['7 أيام','week']]){const b=make('button','redesign-btn',label);b.type='button';b.dataset.mode=mode;b.setAttribute('role','tab');b.onclick=()=>show(mode);forecastTabs.appendChild(b);}forecasts.append(forecastTabs,hours,weekly);show('hours');new MutationObserver(()=>show(selection)).observe(weekly.querySelector('#weeklyForecast'),{childList:true});
- const app=make('section','card','<h2 class="card-title">📱 التطبيق وإشعارات الطقس</h2>');app.id='appSection';const appButtons=make('div','app-actions');for(const id of ['installButton','notificationButton']){const b=document.getElementById(id);if(b)appButtons.appendChild(b);}app.appendChild(appButtons);const help=make('p','app-help');help.textContent=location.hostname.endsWith('.pages.dev')?'الإشعارات غير مفعلة في المعاينة. التثبيت والإشعارات في الموقع الرسمي يحتفظان بالنظام الحالي.':'ثبت الموقع للوصول السريع، وفعّل إشعارات الطقس عند توفر دعم المتصفح.';app.appendChild(help);
+ const app=make('section','card','<h2 class="card-title">📱 التطبيق وإشعارات الطقس</h2>');app.id='appSection';const appButtons=make('div','app-actions');for(const id of ['installButton','notificationButton']){const b=document.getElementById(id);if(b)appButtons.appendChild(b);}app.appendChild(appButtons);const help=make('p','app-help');help.textContent=location.hostname.endsWith('.pages.dev')?'يمكن مراجعة زر التنبيهات هنا؛ استقبال الإشعارات يحتاج ربط نطاق اختبار مستقل.':'ثبت الموقع للوصول السريع، وفعّل إشعارات الطقس عند توفر دعم المتصفح.';app.appendChild(help);
  const aboutText='<p>موقع طقس محلي لخدمة أهالي قرية هدى والقرى المجاورة بمديرية حبان، محافظة شبوة.</p><p>يجمع توقعات الطقس وفرص الأمطار والتنبيهات في مكان واحد.</p><p>نسعى لتقديم معلومات واضحة وسهلة تساعد الأهالي على متابعة أجواء منطقتهم.</p><p><strong>إخلاء المسؤولية:</strong> التوقعات تقديرات قابلة للتغيّر، ولا تضمن هطول المطر. وعند وجود مخاطر جوية، تُقدَّم تحذيرات الجهات الرسمية.</p>';
- const ad=Array.from(root.querySelectorAll('section')).find(x=>x.querySelector('.ad-space'));ad.id='advertisingSection';const about=root.querySelector('.whats-new-wrap'),footer=root.querySelector('footer'),aboutCard=make('section','card about-footer','<h2 class="card-title">عن طقس هدى وما جاورها</h2>'+aboutText);aboutCard.id='aboutSection';aboutCard.append(about,footer);footer.textContent='نسخة تطوير التصميم • 2.3.3-preview';
+ const ad=Array.from(root.querySelectorAll('section')).find(x=>x.querySelector('.ad-space'));ad.id='advertisingSection';const about=root.querySelector('.whats-new-wrap'),footer=root.querySelector('footer'),aboutCard=make('section','card about-footer','<h2 class="card-title">عن طقس هدى وما جاورها</h2>'+aboutText);aboutCard.id='aboutSection';aboutCard.append(about,footer);footer.textContent='نسخة تطوير التصميم • 2.3.4-preview';
  root.append(header,pair,sponsor,weather,prayer,monitor,map,alerts,forecasts,app,ad,aboutCard);renderCards();oldButtons.remove();const headerStar=document.getElementById('headerStar');if(headerStar)headerStar.hidden=true;
- document.querySelector('#whatsNewModal .modal-pad').innerHTML=aboutText+'<p class="source-note">الإصدار 2.3.3-preview</p>';
- const isPreview=location.hostname.endsWith('.pages.dev');if(isPreview){document.body.prepend(make('div','preview-banner','معاينة التصميم الجديد — فرع التطوير فقط — الموقع الرسمي دون تغيير'));const b=document.getElementById('notificationButton');if(b){b.disabled=true;b.textContent='الإشعارات غير مفعلة في المعاينة';}}
+ document.querySelector('#whatsNewModal .modal-pad').innerHTML=aboutText+'<p class="source-note">الإصدار 2.3.4-preview</p>';
+ const isPreview=location.hostname.endsWith('.pages.dev');if(isPreview){document.body.prepend(make('div','preview-banner','معاينة التصميم الجديد — فرع التطوير فقط — الموقع الرسمي دون تغيير'));const b=document.getElementById('notificationButton');if(b){b.disabled=false;b.textContent='🔔 معاينة التنبيهات';}}
  const tick=()=>{clock.textContent=new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true}).format(new Date());document.getElementById('hijriDate').textContent=new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura',{timeZone:'Asia/Aden',day:'numeric',month:'long',year:'numeric'}).format(new Date());};tick();setInterval(tick,1000);setInterval(()=>{renderCards();loadDate();},60000);
  window.openStars=()=>openTable(active);window.showHeaderStar=()=>{};
  document.querySelectorAll('.modal .close').forEach(b=>b.setAttribute('aria-label','إغلاق'));document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const open=Array.from(document.querySelectorAll('.modal')).filter(x=>x.style.display==='block');const last=open[open.length-1];if(last){last.querySelector('.close')?.click();}});
@@ -2091,3 +2163,4 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 </script></body>
 </html>
+

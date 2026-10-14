@@ -1,0 +1,28 @@
+const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const html=fs.readFileSync(__dirname+'/preview-redesign.html','utf8');
+const code=html.slice(html.indexOf('// HADA_NOTIFICATION_CONTROLLER_START'),html.indexOf('// HADA_NOTIFICATION_CONTROLLER_END'));
+function fixture({host='hada-weather.com',permission='default',supported=true,initError=false,subscribeError=false,complete=true}={}){
+  const elements={},timers=new Map();let next=1,requests=0,optins=0,inits=0;
+  const action={disabled:false,textContent:''},pad={appendChild(e){elements[e.id]=e;}};
+  elements.notificationModal={style:{},querySelector(s){return s==='.modal-pad'?pad:action;}};
+  elements.notificationButton={disabled:false,textContent:''};
+  const document={getElementById(id){return elements[id]||null;},createElement(){return {setAttribute(){}};},head:{appendChild(e){elements[e.id]=e;}},body:{style:{}}};
+  const context={document,location:{hostname:host},navigator:{serviceWorker:{}},Notification:{permission},PushManager:function(){},isSecureContext:true,DUST_APP_ID:'test-app',setTimeout(fn){const id=next++;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);},addEventListener(){},console};
+  context.window=context;vm.createContext(context);vm.runInContext(code,context);
+  const push={id:null,token:null,optedIn:false,addEventListener(){},async optIn(){optins++;if(subscribeError)throw Error('failure');if(complete){push.id='test';push.token='token';push.optedIn=true;}}};
+  const sdk={async init(){inits++;if(initError)throw Error('init');},User:{PushSubscription:push},Notifications:{permission:permission==='granted',isPushSupported(){return supported;},addEventListener(){},async requestPermission(){requests++;this.permission=true;context.Notification.permission='granted';}}};
+  return {context,sdk,action,elements,timers,counts:()=>({requests,optins,inits}),status:()=>elements.notificationStatus?.textContent,async boot(){vm.runInContext('initOneSignal()',context);if(context.OneSignalDeferred)await context.OneSignalDeferred[0](sdk);}};
+}
+test('preview opens an explanation and never initializes production OneSignal',async()=>{const f=fixture({host:'test.pages.dev'});await f.boot();f.context.openNotificationPrompt();await f.context.enableWeatherNotifications();assert.match(f.status(),/ربطًا مستقلًا/);assert.equal(f.counts().inits,0);assert.equal(f.elements.notificationButton.disabled,false);});
+test('waiting for SDK gives a visible response',async()=>{const f=fixture();vm.runInContext('initOneSignal()',f.context);await f.context.enableWeatherNotifications();assert.match(f.status(),/لم تجهز/);assert.equal(f.counts().requests,0);});
+test('SDK load error is visible',()=>{const f=fixture();vm.runInContext('initOneSignal()',f.context);f.elements.oneSignalPageSdk.onerror();assert.match(f.status(),/تعذر تحميل/);assert.equal(f.timers.size,0);});
+test('SDK init failure is visible',async()=>{const f=fixture({initError:true});await f.boot();await f.context.enableWeatherNotifications();assert.match(f.status(),/تعذر الاتصال/);});
+test('blocked permission gives settings guidance',async()=>{const f=fixture({permission:'denied'});await f.boot();await f.context.enableWeatherNotifications();assert.match(f.status(),/محظور/);assert.equal(f.counts().requests,0);});
+test('permission alone never counts as subscribed',async()=>{const f=fixture({permission:'granted',complete:false});await f.boot();assert.match(f.elements.notificationButton.textContent,/تفعيل/);await f.context.enableWeatherNotifications();assert.match(f.status(),/لم يكتمل/);assert.match(f.elements.notificationButton.textContent,/تفعيل/);});
+test('permission plus optedIn id and token completes subscription',async()=>{const f=fixture();await f.boot();await f.context.enableWeatherNotifications();assert.match(f.elements.notificationButton.textContent,/مكتمل/);assert.match(f.status(),/لم يُرسل/);assert.deepEqual(f.counts(),{requests:1,optins:1,inits:1});assert.equal(f.action.disabled,false);assert.equal(f.timers.size,0);});
+test('existing allowed permission calls optIn without another permission prompt',async()=>{const f=fixture({permission:'granted'});await f.boot();await f.context.enableWeatherNotifications();assert.equal(f.counts().requests,0);assert.equal(f.counts().optins,1);});
+test('subscription error restores button and gives feedback',async()=>{const f=fixture({subscribeError:true});await f.boot();await f.context.enableWeatherNotifications();assert.match(f.status(),/تعذر إكمال/);assert.equal(f.action.disabled,false);});
+test('double click cannot trigger duplicate optIn',async()=>{const f=fixture({permission:'granted'});await f.boot();await Promise.all([f.context.enableWeatherNotifications(),f.context.enableWeatherNotifications()]);assert.equal(f.counts().optins,1);});
+test('SDK timeout gives feedback and late readiness can recover',async()=>{const f=fixture();vm.runInContext('initOneSignal()',f.context);for(const fn of [...f.timers.values()])fn();assert.match(f.status(),/تأخر/);await f.context.OneSignalDeferred[0](f.sdk);await f.context.enableWeatherNotifications();assert.match(f.elements.notificationButton.textContent,/مكتمل/);});
+test('unsupported browsers do not request permission',async()=>{const f=fixture({supported:false});await f.boot();await f.context.enableWeatherNotifications();assert.match(f.status(),/غير مدعومة/);assert.equal(f.counts().requests,0);});
+test('all inline scripts remain syntactically valid',()=>{for(const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)){if(match[1].trim())new vm.Script(match[1]);}});
