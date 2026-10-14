@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hada-daily-bulletin-preview",
+  "main": "daily-bulletin-worker.mjs",
+  "compatibility_date": "2026-10-14",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "triggers": { "crons": ["0 4 * * *"] },
+  "kv_namespaces": [{ "binding": "BULLETINS", "id": "1a6aa0f45b524acfbe84fae99d941bf0" }],
+  "vars": {
+    "DAILY_ENABLED": "0",
+    "ONESIGNAL_APP_ID": "9fedd24f-9a4d-4445-9a60-af736cb71c89",
+    "TEST_SUBSCRIPTION_ID": "",
+    "TEST_USER_ID": ""
+  }
+}
