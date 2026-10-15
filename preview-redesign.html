@@ -918,8 +918,8 @@ async function loadWeather(){
 
     const url =
       `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
-      `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m` +
-      `&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cape,visibility` +
+      `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,is_day` +
+      `&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cape,visibility,is_day` +
       `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,precipitation_hours,wind_speed_10m_max,wind_gusts_10m_max` +
       `&timezone=Asia%2FAden&forecast_days=7`;
 
@@ -981,7 +981,7 @@ function showCurrentWeather(data){
     weatherText(c.weather_code);
 
   document.getElementById("currentIcon").textContent=
-    weatherIcon(c.weather_code);
+    weatherIcon(c.weather_code,c.is_day);
 }
 
 
@@ -1011,7 +1011,7 @@ function showHourlyWeather(data){
     const code=data.hourly.weather_code[i];
     const item=document.createElement("div");
     item.className="hour";
-    item.innerHTML=`<div class="hour-time">${time}</div><div class="hour-icon">${weatherIcon(code)}</div><div class="hour-rain">💧 ${rain}%</div><div class="hour-temp">${temp}°</div>`;
+    item.innerHTML=`<div class="hour-time">${time}</div><div class="hour-icon">${weatherIcon(code,data.hourly.is_day?.[i])}</div><div class="hour-rain">💧 ${rain}%</div><div class="hour-temp">${temp}°</div>`;
     box.appendChild(item);
   }
 }
@@ -1085,7 +1085,7 @@ function showWeatherAlerts(data){
 
 function windDirection(deg){const dirs=['شمالية','شمالية شرقية','شرقية','جنوبية شرقية','جنوبية','جنوبية غربية','غربية','شمالية غربية'];return dirs[Math.round(Number(deg||0)/45)%8];}
 function weatherText(code){if(code===0)return'صحو';if(code<=3)return'غائم جزئيًا';if(code<=48)return'ضباب';if(code<=67)return'أمطار';if(code<=77)return'ثلوج';if(code<=82)return'زخات مطر';if(code<=86)return'زخات ثلج';if(code>=95)return'عواصف رعدية';return'طقس متغير';}
-function weatherIcon(code){if(code===0)return'☀️';if(code<=3)return'⛅';if(code<=48)return'🌫️';if(code<=67)return'🌧️';if(code<=77)return'❄️';if(code<=82)return'🌦️';if(code<=86)return'🌨️';if(code>=95)return'⛈️';return'🌤️';}
+function weatherIcon(code,isDay){if(code===0)return isDay===0?'🌙':isDay===1?'☀️':'🌤️';if(code<=3)return isDay===0?'☁️':'⛅';if(code<=48)return'🌫️';if(code<=67)return'🌧️';if(code<=77)return'❄️';if(code<=82)return'🌦️';if(code<=86)return'🌨️';if(code>=95)return'⛈️';return'🌤️';}
 
 function openMap(){document.getElementById('mapModal').style.display='block';document.body.style.overflow='hidden'}function closeMap(){document.getElementById('mapModal').style.display='none';document.body.style.overflow=''}
 function openSea(){document.getElementById('seaModal').style.display='block';document.body.style.overflow='hidden'}function closeSea(){document.getElementById('seaModal').style.display='none';document.body.style.overflow=''}
@@ -2099,9 +2099,9 @@ function start(){
  for(const [label,mode] of [['الساعات القادمة','hours'],['اليوم وغدًا','two'],['7 أيام','week']]){const b=make('button','redesign-btn',label);b.type='button';b.dataset.mode=mode;b.setAttribute('role','tab');b.onclick=()=>show(mode);forecastTabs.appendChild(b);}forecasts.append(forecastTabs,hours,weekly);show('hours');new MutationObserver(()=>show(selection)).observe(weekly.querySelector('#weeklyForecast'),{childList:true});
  const app=make('section','card','<h2 class="card-title">📱 التطبيق وإشعارات الطقس</h2>');app.id='appSection';const appButtons=make('div','app-actions');for(const id of ['installButton','notificationButton']){const b=document.getElementById(id);if(b)appButtons.appendChild(b);}app.appendChild(appButtons);const help=make('p','app-help');help.textContent=location.hostname==='redesign-hada-2026-10.hada-weather-aifs-preview.pages.dev'?'هذه نسخة اختبار مستقلة. فعّل التنبيهات هنا للتحقق من اشتراك هاتفك قبل تجربة الإرسال.':location.hostname.endsWith('.pages.dev')?'يمكن مراجعة زر التنبيهات هنا؛ استقبال الإشعارات يحتاج ربط نطاق اختبار مستقل.':'ثبت الموقع للوصول السريع، وفعّل إشعارات الطقس عند توفر دعم المتصفح.';app.appendChild(help);
  const aboutText='<p>موقع طقس محلي لخدمة أهالي قرية هدى والقرى المجاورة بمديرية حبان، محافظة شبوة.</p><p>يجمع توقعات الطقس وفرص الأمطار والتنبيهات في مكان واحد.</p><p>نسعى لتقديم معلومات واضحة وسهلة تساعد الأهالي على متابعة أجواء منطقتهم.</p><p><strong>إخلاء المسؤولية:</strong> التوقعات تقديرات قابلة للتغيّر، ولا تضمن هطول المطر. وعند وجود مخاطر جوية، تُقدَّم تحذيرات الجهات الرسمية.</p>';
- const ad=Array.from(root.querySelectorAll('section')).find(x=>x.querySelector('.ad-space'));ad.id='advertisingSection';const about=root.querySelector('.whats-new-wrap'),footer=root.querySelector('footer'),aboutCard=make('section','card about-footer','<h2 class="card-title">عن طقس هدى وما جاورها</h2>'+aboutText);aboutCard.id='aboutSection';aboutCard.append(about,footer);footer.textContent='نسخة تطوير التصميم • 2.4.0-preview';
+ const ad=Array.from(root.querySelectorAll('section')).find(x=>x.querySelector('.ad-space'));ad.id='advertisingSection';const about=root.querySelector('.whats-new-wrap'),footer=root.querySelector('footer'),aboutCard=make('section','card about-footer','<h2 class="card-title">عن طقس هدى وما جاورها</h2>'+aboutText);aboutCard.id='aboutSection';aboutCard.append(about,footer);footer.textContent='نسخة تطوير التصميم • 2.4.1-preview';
  root.append(header,pair,sponsor,weather,prayer,monitor,map,alerts,forecasts,app,ad,aboutCard);renderCards();oldButtons.remove();const headerStar=document.getElementById('headerStar');if(headerStar)headerStar.hidden=true;
- document.querySelector('#whatsNewModal .modal-pad').innerHTML=aboutText+'<p class="source-note">الإصدار 2.4.0-preview</p>';
+ document.querySelector('#whatsNewModal .modal-pad').innerHTML=aboutText+'<p class="source-note">الإصدار 2.4.1-preview</p>';
  const isPreview=location.hostname.endsWith('.pages.dev');if(isPreview){document.body.prepend(make('div','preview-banner','معاينة التصميم الجديد — فرع التطوير فقط — الموقع الرسمي دون تغيير'));const b=document.getElementById('notificationButton');if(b){b.disabled=false;b.textContent=location.hostname==='redesign-hada-2026-10.hada-weather-aifs-preview.pages.dev'?'🔔 تفعيل تنبيهات الطقس':'🔔 معاينة التنبيهات';}}
  const tick=()=>{clock.textContent=new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true}).format(new Date());document.getElementById('hijriDate').textContent=new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura',{timeZone:'Asia/Aden',day:'numeric',month:'long',year:'numeric'}).format(new Date());};tick();setInterval(tick,1000);setInterval(()=>{renderCards();loadDate();},60000);
  window.openStars=()=>openTable(active);window.showHeaderStar=()=>{};
@@ -2193,6 +2193,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   else initial();
 })();
 
-</script><script src="/daily-bulletin.js?v=20261014-1"></script></body>
+</script><script src="/daily-bulletin.js?v=20261015-1"></script></body>
 </html>
 
