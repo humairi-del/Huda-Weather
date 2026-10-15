@@ -13,3 +13,7 @@ Reports and links fetched on opening, user refresh, and every 15 minutes while t
 Text interpretation is deliberately conservative, deterministic and bounded: daily Arabian Sea section for an active depression/storm; operational extended forecast bullets mentioning Arabian Sea/Gulf of Aden for potential low formation/direction. Bay of Bengal, climatology, past verification and model-only tracks cannot become an active Arabian Sea classification. Full evidence and original links available in details. Ambiguous/new wording may require original-source reading. No automatic claim of impact, arrival or rain in Huda/Shabwa.
 
 Document proxy accepts only three fixed kinds, discovers allowed official links itself, rejects redirects, enforces timeout, 4 MiB and PDF signature. PDF parsing refuses >12 pages and limits image size. API responses no-store. Rendering failure has explicit original-source fallback.
+
+## 15 October — document-fetch repair
+
+Cloudflare Workers rejects `redirect: 'error'` at runtime, even though Node's fetch accepts it. Replaced it with `manual`; the existing non-success check rejects redirects without following them. Added a regression test for the supported mode and redirect rejection. Saved the Pages preview gateway as `preview-worker.mjs` with safe error codes and no notification, secret, database or scheduled-job bindings. Serve the existing `preview-redesign.html` as the deployed `index.html`; retain the current client assets and preview hostname.

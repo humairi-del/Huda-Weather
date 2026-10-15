@@ -33,7 +33,9 @@ export async function officialDocument(kind,io=fetch,now=new Date()){
  if(!['outlook','extended','track'].includes(kind))throw Error('invalid_report');
  const data=await officialSources(io,now),report=data.reports.find(r=>r.id===kind);
  if(!report||report.noTrackFile)throw Error('report_unavailable');
- const response=await io(report.url,{signal:AbortSignal.timeout(18000),redirect:'error'});
+ // Workers supports follow/manual, not redirect:error. Manual keeps redirects
+ // rejected by the !response.ok check below without following another URL.
+ const response=await io(report.url,{signal:AbortSignal.timeout(18000),redirect:'manual'});
  if(!response.ok)throw Error('report_fetch_failed');
  const reader=response.body.getReader(),chunks=[];let length=0;
  try{while(true){const {done,value}=await reader.read();if(done)break;length+=value.length;if(length>4194304)throw Error('report_too_large');chunks.push(value);}}finally{await reader.cancel();}
