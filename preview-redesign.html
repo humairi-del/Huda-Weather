@@ -482,6 +482,10 @@ footer{color:#789da7}
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#07111f">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+
+<style>
+.cyclone-desk{border:1px solid #c3a14b;border-radius:16px;padding:14px;margin-bottom:20px;background:#102f3d;color:#eaf5fa}.cyclone-desk h3{font-size:20px;margin:0 0 8px;color:#f1cf76}.cyclone-desk h4{font-size:16px;margin:0 0 10px}.cyclone-panel{border:1px solid #34596b;border-radius:12px;background:#0b2431;padding:13px;margin:12px 0}.cyclone-panel p{line-height:1.85;overflow-wrap:anywhere}.cyclone-panel .small-note{font-size:13px;color:#b9d0dc}.cyclone-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.cyclone-report{min-width:0}.cyclone-link{display:block;min-height:44px;box-sizing:border-box;line-height:1.5;font-size:14px;margin:8px 0;text-align:center}.cyclone-panel summary{cursor:pointer;min-height:32px;font-weight:bold;line-height:1.7}.cyclone-desk .action-btn{min-height:44px;width:100%;font-size:14px}.cyclone-desk .sea-note{font-size:13px;line-height:1.8}.sea-short-title{font-size:17px;margin:15px 0 10px}@media(max-width:600px){.cyclone-links{grid-template-columns:1fr}.cyclone-desk{padding:11px}.cyclone-panel{padding:11px}}
+</style>
 </head>
 
 <body>
@@ -766,6 +770,7 @@ footer{color:#789da7}
 
     <div class="sea-content">
 
+      <h3 class="sea-short-title">مؤشرات الموديلات خلال 72 ساعة</h3>
       <div class="sea-status" id="seaSummary">
         جاري فحص مؤشرات بحر العرب...
       </div>
@@ -2099,9 +2104,9 @@ function start(){
  for(const [label,mode] of [['الساعات القادمة','hours'],['اليوم وغدًا','two'],['7 أيام','week']]){const b=make('button','redesign-btn',label);b.type='button';b.dataset.mode=mode;b.setAttribute('role','tab');b.onclick=()=>show(mode);forecastTabs.appendChild(b);}forecasts.append(forecastTabs,hours,weekly);show('hours');new MutationObserver(()=>show(selection)).observe(weekly.querySelector('#weeklyForecast'),{childList:true});
  const app=make('section','card','<h2 class="card-title">📱 التطبيق وإشعارات الطقس</h2>');app.id='appSection';const appButtons=make('div','app-actions');for(const id of ['installButton','notificationButton']){const b=document.getElementById(id);if(b)appButtons.appendChild(b);}app.appendChild(appButtons);const help=make('p','app-help');help.textContent=location.hostname==='redesign-hada-2026-10.hada-weather-aifs-preview.pages.dev'?'هذه نسخة اختبار مستقلة. فعّل التنبيهات هنا للتحقق من اشتراك هاتفك قبل تجربة الإرسال.':location.hostname.endsWith('.pages.dev')?'يمكن مراجعة زر التنبيهات هنا؛ استقبال الإشعارات يحتاج ربط نطاق اختبار مستقل.':'ثبت الموقع للوصول السريع، وفعّل إشعارات الطقس عند توفر دعم المتصفح.';app.appendChild(help);
  const aboutText='<p>موقع طقس محلي لخدمة أهالي قرية هدى والقرى المجاورة بمديرية حبان، محافظة شبوة.</p><p>يجمع توقعات الطقس وفرص الأمطار والتنبيهات في مكان واحد.</p><p>نسعى لتقديم معلومات واضحة وسهلة تساعد الأهالي على متابعة أجواء منطقتهم.</p><p><strong>إخلاء المسؤولية:</strong> التوقعات تقديرات قابلة للتغيّر، ولا تضمن هطول المطر. وعند وجود مخاطر جوية، تُقدَّم تحذيرات الجهات الرسمية.</p>';
- const ad=Array.from(root.querySelectorAll('section')).find(x=>x.querySelector('.ad-space'));ad.id='advertisingSection';const about=root.querySelector('.whats-new-wrap'),footer=root.querySelector('footer'),aboutCard=make('section','card about-footer','<h2 class="card-title">عن طقس هدى وما جاورها</h2>'+aboutText);aboutCard.id='aboutSection';aboutCard.append(about,footer);footer.textContent='نسخة تطوير التصميم • 2.4.1-preview';
+ const ad=Array.from(root.querySelectorAll('section')).find(x=>x.querySelector('.ad-space'));ad.id='advertisingSection';const about=root.querySelector('.whats-new-wrap'),footer=root.querySelector('footer'),aboutCard=make('section','card about-footer','<h2 class="card-title">عن طقس هدى وما جاورها</h2>'+aboutText);aboutCard.id='aboutSection';aboutCard.append(about,footer);footer.textContent='نسخة تطوير التصميم • 2.5.0-preview';
  root.append(header,pair,sponsor,weather,prayer,monitor,map,alerts,forecasts,app,ad,aboutCard);renderCards();oldButtons.remove();const headerStar=document.getElementById('headerStar');if(headerStar)headerStar.hidden=true;
- document.querySelector('#whatsNewModal .modal-pad').innerHTML=aboutText+'<p class="source-note">الإصدار 2.4.1-preview</p>';
+ document.querySelector('#whatsNewModal .modal-pad').innerHTML=aboutText+'<p class="source-note">الإصدار 2.5.0-preview</p>';
  const isPreview=location.hostname.endsWith('.pages.dev');if(isPreview){document.body.prepend(make('div','preview-banner','معاينة التصميم الجديد — فرع التطوير فقط — الموقع الرسمي دون تغيير'));const b=document.getElementById('notificationButton');if(b){b.disabled=false;b.textContent=location.hostname==='redesign-hada-2026-10.hada-weather-aifs-preview.pages.dev'?'🔔 تفعيل تنبيهات الطقس':'🔔 معاينة التنبيهات';}}
  const tick=()=>{clock.textContent=new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true}).format(new Date());document.getElementById('hijriDate').textContent=new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura',{timeZone:'Asia/Aden',day:'numeric',month:'long',year:'numeric'}).format(new Date());};tick();setInterval(tick,1000);setInterval(()=>{renderCards();loadDate();},60000);
  window.openStars=()=>openTable(active);window.showHeaderStar=()=>{};
@@ -2193,6 +2198,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   else initial();
 })();
 
-</script><script src="/daily-bulletin.js?v=20261015-1"></script></body>
+</script><script src="/daily-bulletin.js?v=20261015-1"></script><script src="/cyclone-season.js?v=20261015-1"></script></body>
 </html>
 
