@@ -46,7 +46,7 @@ function start(){
    }catch{picture.append(el('p','تعذر عرض صورة النشرة. افتح الخريطة من المصدر.','cyclone-image-error'),link('فتح الخريطة ↗',imageReport.url));}
    const issued=daily.issuedAt;status.textContent='النشرة: '+(issued?date(issued):daily.date||'راجع تاريخها داخل المصدر')+' • آخر تحقق: '+date(source.checkedAt)+(daily.stale?' • النشرة قديمة، يلزم تحديث المصدر.':'')+(!dailyPdf?' • تعذرت قراءة النشرة اليومية.':'')+(!extendedPdf?' • تعذرت قراءة توقعات الأسبوعين.':'');last=Date.now();
   }catch{if(!last){state.textContent='تعذر التحقق من الحالة الآن';text.textContent='لا تتوفر بيانات حديثة كافية لتحديد التصنيف أو المسار.';direction.textContent='';impact.textContent='';picture.replaceChildren();content.replaceChildren(link('فتح المركز الرسمي ↗','https://rsmcnewdelhi.imd.gov.in/'));}status.textContent='فشل التحديث'+(last?'؛ المعروض آخر قراءة ناجحة: '+date(new Date(last).toISOString()):'')+'؛ تعذر الاتصال لا يعني انتهاء الحالة.';}
-  finally{await Promise.allSettled(docs.map(p=>p.destroy()));busy=false;refresh.disabled=false;}
+  finally{busy=false;refresh.disabled=false;void Promise.allSettled(docs.map(p=>p.destroy()));}
  }
  refresh.onclick=()=>load(true);window.loadSea=()=>load();window.openSea=function(){document.getElementById('seaModal').style.display='block';document.body.style.overflow='hidden';void load();};
  setInterval(()=>{if(visible())void load();},60000);document.addEventListener('visibilitychange',()=>{if(visible())void load();});
