@@ -27,3 +27,17 @@ export async function officialSources(io=fetch,now=new Date()){
  const bytes=new Uint8Array(size);let pos=0;for(const chunk of chunks){bytes.set(chunk,pos);pos+=chunk.length;}
  return parseSources(new TextDecoder().decode(bytes),now);
 }
+
+// Fixed report kinds only: the client cannot supply a destination URL.
+export async function officialDocument(kind,io=fetch,now=new Date()){
+ if(!['outlook','extended','track'].includes(kind))throw Error('invalid_report');
+ const data=await officialSources(io,now),report=data.reports.find(r=>r.id===kind);
+ if(!report||report.noTrackFile)throw Error('report_unavailable');
+ const response=await io(report.url,{signal:AbortSignal.timeout(18000),redirect:'error'});
+ if(!response.ok)throw Error('report_fetch_failed');
+ const reader=response.body.getReader(),chunks=[];let length=0;
+ try{while(true){const {done,value}=await reader.read();if(done)break;length+=value.length;if(length>4194304)throw Error('report_too_large');chunks.push(value);}}finally{await reader.cancel();}
+ const bytes=new Uint8Array(length);let at=0;for(const c of chunks){bytes.set(c,at);at+=c.length;}
+ if(new TextDecoder().decode(bytes.slice(0,5))!=='%PDF-')throw Error('invalid_pdf');
+ return new Response(bytes,{headers:{'Content-Type':'application/pdf','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Hada-Source':report.url}});
+}
