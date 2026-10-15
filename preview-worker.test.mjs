@@ -1,6 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import worker from './preview-worker.mjs';
+import {buildPreview} from './build-preview.mjs';
+
+test('actual deployment bundle serves the unchanged page, PDF modules and push worker without asset bindings', async () => {
+  const code = await buildPreview();
+  const {default:bundle} = await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+  for(const [path,mime,marker] of [['/','text/html','2.6.0-preview'],['/cyclone-pdf.mjs','application/javascript','getDocument'],['/OneSignalSDKWorker.js','application/javascript','OneSignalSDK.sw.js']]) {
+    const response=await bundle.fetch(new Request('https://preview.invalid'+path));
+    assert.equal(response.status,200);
+    assert.ok(response.headers.get('content-type').startsWith(mime));
+    assert.ok((await response.text()).includes(marker));
+  }
+  assert.equal((await bundle.fetch(new Request('https://preview.invalid/not-a-file'))).status,404);
+});
 
 test('Pages gateway actually returns a verified official PDF and source header', async () => {
   const previous = globalThis.fetch;

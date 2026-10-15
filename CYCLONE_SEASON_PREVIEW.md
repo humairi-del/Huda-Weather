@@ -17,3 +17,5 @@ Document proxy accepts only three fixed kinds, discovers allowed official links 
 ## 15 October — document-fetch repair
 
 Cloudflare Workers rejects `redirect: 'error'` at runtime, even though Node's fetch accepts it. Replaced it with `manual`; the existing non-success check rejects redirects without following them. Added a regression test for the supported mode and redirect rejection. Saved the Pages preview gateway as `preview-worker.mjs` with safe error codes and no notification, secret, database or scheduled-job bindings. Serve the existing `preview-redesign.html` as the deployed `index.html`; retain the current client assets and preview hostname.
+
+Packaging is reproducible with `node build-preview.mjs <output-file>`. It embeds only the existing public client assets, including the preview push service worker. No asset-store binding, credential, scheduler or external preview fallback is required. A packaged-worker test verifies the page, PDF module and push worker are served.
