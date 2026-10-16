@@ -13,6 +13,9 @@ export function analyseReports(daily='',extended=''){
  const disagreement=/large variation|large uncertainty|significant divergence/i.test(e.split(/Operational extended range forecast/i)[0]||'');
  let state=active?(storm?'إعصار مداري قيد المتابعة':'منخفض مداري قيد المتابعة'):low?'احتمال تشكّل منطقة ضغط منخفض':circulation?'دوران جوي قيد المتابعة':'لم يتضح التصنيف من النشرة';
  let detail=active?'تُتابع الحالة وفق أحدث نشرة ومسار رسمي.':low?'تشير نشرة الأسبوعين إلى احتمال تشكّل منطقة ضغط منخفض في بحر العرب؛ لم يُثبت تطورها إلى إعصار.':circulation?'تذكر النشرة دورانًا جويًا في بحر العرب؛ لا يكفي ذلك لتسميته منخفضًا مداريًا أو إعصارًا.':'افتح النشرة للاطلاع على تفاصيل الحالة.';
- const direction=relevant.some(s=>/Gulf of Aden/i.test(s))?'تشير النشرة إلى حركة دوران جوي غربًا نحو خليج عدن؛ هذا اتجاه عام وليس مسار إعصار مؤكد.':'المسار لم يتحدد من البيانات المقروءة؛ راجع الخريطة الرسمية.';
- return {state,detail,direction,active,storm,low,circulation,nil,disagreement,evidence:relevant.join(' ').trim(),impact:'أمطار شبوة وهدى: التأثير والتوقيت لم يتأكدا بعد.',nearTerm:nil?'النشرة اليومية لا تتوقع تشكّل منخفض مداري خلال ٧ أيام؛ مؤشرات الأسبوع الثاني أولية.':null};
+ // A circulation's destination must never become the separate low's track.
+ const adenCirculation=relevant.some(s=>/circulation/i.test(s)&&!/low[ -]pressure area/i.test(s)&&/Gulf of Aden/i.test(s)&&/\b(?:move|moves|moving|westwards|westward)\b/i.test(s));
+ const direction=low&&!active?'مسار المنخفض المحتمل: لم يتحدد من البيانات المقروءة؛ لا يُنسب إليه اتجاه الدوران الجوي الآخر.':'المسار لم يتحدد من البيانات المقروءة؛ راجع الخريطة الرسمية.';
+ const circulationNote=!active&&adenCirculation?(low?'بشكل منفصل، تذكر النشرة دورانًا جويًا آخر يتحرك نحو خليج عدن؛ هذا ليس مسار المنخفض المحتمل.':'تذكر النشرة حركة دوران جوي نحو خليج عدن؛ هذا ليس مسار إعصار مؤكد.'):null;
+ return {state,detail,direction,circulationNote,active,storm,low,circulation,nil,disagreement,evidence:relevant.join(' ').trim(),impact:'أمطار شبوة وهدى: التأثير والتوقيت لم يتأكدا بعد.',nearTerm:nil?'النشرة اليومية لا تتوقع تشكّل منخفض مداري خلال ٧ أيام؛ مؤشرات الأسبوع الثاني أولية.':null};
 }

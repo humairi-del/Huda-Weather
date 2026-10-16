@@ -4,13 +4,14 @@
 if(location.hostname!=='redesign-hada-2026-10.hada-weather-aifs-preview.pages.dev')return;
 const el=(tag,text,cls)=>{const e=document.createElement(tag);if(text)e.textContent=text;if(cls)e.className=cls;return e;};
 const date=v=>Number.isFinite(Date.parse(v))?new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',month:'long',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(v)):'وقت الإصدار غير ظاهر';
+const reportDate=r=>r.issuedAt?date(r.issuedAt):r.date?new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',year:'numeric',month:'long',day:'numeric'}).format(new Date(r.date+'T00:00:00Z')):'غير ظاهر؛ راجعه داخل المصدر';
 const link=(text,url)=>{const a=el('a',text,'official-btn cyclone-link');a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;};
 function start(){
  const sea=document.querySelector('#seaModal .sea-content');if(!sea)return;
  const desk=el('section','','cyclone-desk');desk.id='cycloneSeason';desk.setAttribute('aria-label','متابعة المنخفضات والأعاصير');
- const title=el('h3','🌀 متابعة المنخفضات والأعاصير'),state=el('h4','جاري التحقق…'),text=el('p'),direction=el('p'),impact=el('p'),status=el('p');status.setAttribute('role','status');
+ const title=el('h3','🌀 متابعة المنخفضات والأعاصير'),state=el('h4','جاري التحقق…'),text=el('p'),direction=el('p'),circulation=el('p'),impact=el('p'),status=el('p');status.setAttribute('role','status');
  const picture=el('div'),caption=el('p','','small-note'),details=el('details');details.append(el('summary','تفاصيل الحالة'));const content=el('div');details.append(content);
- const refresh=el('button','تحديث الحالة','action-btn');refresh.type='button';desk.append(title,state,text,direction,impact,picture,caption,status,refresh,details);sea.replaceChildren(desk);
+ const refresh=el('button','تحديث الحالة','action-btn');refresh.type='button';desk.append(title,state,text,direction,circulation,impact,picture,caption,status,refresh,details);sea.replaceChildren(desk);
  let busy=false,last=0,modules,objectURL;
  const visible=()=>document.getElementById('seaModal').style.display==='block'&&!document.hidden;
  async function documentPdf(kind,report,pdfjs,tasks){
@@ -31,7 +32,7 @@ function start(){
    const dailyPdf=results[0].status==='fulfilled'?results[0].value:null,extendedPdf=results[1].status==='fulfilled'?results[1].value:null;docs=[dailyPdf,extendedPdf].filter(Boolean);
    const texts=await Promise.all(docs.map(read));const dailyText=dailyPdf?texts[0]:'',extendedText=extendedPdf?texts[dailyPdf?1:0]:'';
    if(!dailyText&&!extendedText)throw Error('unreadable');const a=analysis.analyseReports(dailyText,extendedText);
-   state.textContent=(daily.stale?'نشرة سابقة — ':'')+a.state;text.textContent=a.detail;direction.textContent=a.direction;impact.textContent=a.impact;
+   state.textContent=(daily.stale?'نشرة سابقة — ':'')+a.state;text.textContent=a.detail;direction.textContent=a.direction;circulation.textContent=a.circulationNote||'';impact.textContent=a.impact;
    content.replaceChildren();if(a.nearTerm)content.append(el('p',a.nearTerm));if(a.disagreement)content.append(el('p','الموديلات مختلفة في التشكّل والمسار والشدة؛ اتجاه اليمن أو عُمان في أحد الموديلات لا يثبت وصول الحالة أو أمطارها إلى شبوة.'));
    content.append(el('p','متابعة حتى ١٤ يومًا وفق نشرة الأسبوعين، مع استمرار تحديث الحالة طوال عمرها. الأيام البعيدة أقل ثقة.','small-note'));
    if(a.evidence){const raw=el('details');raw.append(el('summary','النص الأصلي الذي بُني عليه الملخص'),el('p',a.evidence));content.append(raw);}
@@ -41,11 +42,12 @@ function start(){
    if(track){try{imagePdf=await documentPdf('track',track,pdfjs,tasks);docs.push(imagePdf);imageReport=track;}catch{}}
    if(!imagePdf){imagePdf=extendedPdf||dailyPdf;imageReport=extendedPdf?extended:daily;}
    picture.replaceChildren();caption.textContent=track&&imageReport===track?'أحدث خريطة للمسار من المصدر الرسمي؛ التوقع قابل للتغير.':'المسار الرسمي غير متاح؛ المعروض خريطة/نشرة توقعات، وليس مسارًا مؤكدًا.';
+   caption.textContent+=' • مصدر الصورة: '+imageReport.label+' • تاريخ إصدار الصورة: '+reportDate(imageReport)+(imageReport.stale?' • مصدر الصورة قديم، يلزم تحديثه.':'');
    try{const page=await imagePdf.getPage(1),view=page.getViewport({scale:1.6}),canvas=document.createElement('canvas');canvas.width=Math.ceil(view.width);canvas.height=Math.ceil(view.height);await page.render({canvasContext:canvas.getContext('2d'),viewport:view}).promise;
     const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('render');if(objectURL)URL.revokeObjectURL(objectURL);objectURL=URL.createObjectURL(blob);const img=el('img','','cyclone-image');img.alt=imageReport===track?'أحدث المسار الرسمي':'أحدث نشرة توقعات الأسبوعين — ليست مسارًا رسميًا';img.src=objectURL;const anchor=link('تكبير الخريطة ↗',imageReport.url);picture.append(img,anchor);img.onclick=()=>anchor.click();
    }catch{picture.append(el('p','تعذر عرض صورة النشرة. افتح الخريطة من المصدر.','cyclone-image-error'),link('فتح الخريطة ↗',imageReport.url));}
-   const issued=daily.issuedAt;status.textContent='النشرة: '+(issued?date(issued):daily.date||'راجع تاريخها داخل المصدر')+' • آخر تحقق: '+date(source.checkedAt)+(daily.stale?' • النشرة قديمة، يلزم تحديث المصدر.':'')+(!dailyPdf?' • تعذرت قراءة النشرة اليومية.':'')+(!extendedPdf?' • تعذرت قراءة توقعات الأسبوعين.':'');last=Date.now();
-  }catch{if(!last){state.textContent='تعذر التحقق من الحالة الآن';text.textContent='لا تتوفر بيانات حديثة كافية لتحديد التصنيف أو المسار.';direction.textContent='';impact.textContent='';picture.replaceChildren();content.replaceChildren(link('فتح المركز الرسمي ↗','https://rsmcnewdelhi.imd.gov.in/'));}status.textContent='فشل التحديث'+(last?'؛ المعروض آخر قراءة ناجحة: '+date(new Date(last).toISOString()):'')+'؛ تعذر الاتصال لا يعني انتهاء الحالة.';}
+   status.textContent='إصدار النشرة اليومية: '+reportDate(daily)+' • آخر تحقق: '+date(source.checkedAt)+(daily.stale?' • النشرة قديمة، يلزم تحديث المصدر.':'')+(!dailyPdf?' • تعذرت قراءة النشرة اليومية.':'')+(!extendedPdf?' • تعذرت قراءة توقعات الأسبوعين.':'');last=Date.now();
+  }catch{if(!last){state.textContent='تعذر التحقق من الحالة الآن';text.textContent='لا تتوفر بيانات حديثة كافية لتحديد التصنيف أو المسار.';direction.textContent='';circulation.textContent='';impact.textContent='';picture.replaceChildren();caption.textContent='';content.replaceChildren(link('فتح المركز الرسمي ↗','https://rsmcnewdelhi.imd.gov.in/'));}status.textContent='فشل التحديث'+(last?'؛ المعروض آخر قراءة ناجحة: '+date(new Date(last).toISOString()):'')+'؛ تعذر الاتصال لا يعني انتهاء الحالة.';}
   finally{busy=false;refresh.disabled=false;void Promise.allSettled(tasks.map(task=>Promise.resolve().then(()=>task.destroy())));}
  }
  refresh.onclick=()=>load(true);window.loadSea=()=>load();window.openSea=function(){document.getElementById('seaModal').style.display='block';document.body.style.overflow='hidden';void load();};

@@ -6,7 +6,7 @@ import {buildPreview} from './build-preview.mjs';
 test('actual deployment bundle serves the unchanged page, PDF modules and push worker without asset bindings', async () => {
   const code = await buildPreview();
   const {default:bundle} = await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
-  for(const [path,mime,marker] of [['/','text/html','2.6.0-preview'],['/cyclone-pdf.mjs','application/javascript','getDocument'],['/OneSignalSDKWorker.js','application/javascript','OneSignalSDK.sw.js']]) {
+  for(const [path,mime,marker] of [['/','text/html','2.6.1-preview'],['/cyclone-pdf.mjs','application/javascript','getDocument'],['/OneSignalSDKWorker.js','application/javascript','OneSignalSDK.sw.js']]) {
     const response=await bundle.fetch(new Request('https://preview.invalid'+path));
     assert.equal(response.status,200);
     assert.ok(response.headers.get('content-type').startsWith(mime));
