@@ -7,39 +7,42 @@ const date=v=>Number.isFinite(Date.parse(v))?new Intl.DateTimeFormat('ar-YE',{ti
 const reportDate=r=>r.issuedAt?date(r.issuedAt):r.date?new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',year:'numeric',month:'long',day:'numeric'}).format(new Date(r.date+'T00:00:00Z')):'غير ظاهر؛ راجعه داخل المصدر';
 const link=(text,url)=>{const a=el('a',text,'official-btn cyclone-link');a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;};
 
-// Only ECMWF is verified for the free Windy map embed. Never relabel it as another model.
+// A finite, dated editorial bulletin. Source terms do not permit a persistent live mirror.
+const seaEdition={runAt:'2026-10-16T00:00:00Z',validAt:'2026-10-20T00:00:00Z',folder:'/sea-charts/2026-10-16/'};
 const seaModels=[
- {id:'ecmwf',name:'الأوروبي ECMWF',chart:'euro',embed:true},
- {id:'gfs',name:'الأمريكي GFS',chart:'standard'},
- {id:'cmc',name:'الكندي CMC / GEM',chart:'can'},
- {id:'icon',name:'الألماني ICON',chart:'german'},
- {id:'aifs',name:'الأوروبي بالذكاء الاصطناعي AIFS',chart:'euro-ai'}
+ {id:'ecmwf',name:'الأوروبي ECMWF'},
+ {id:'gfs',name:'الأمريكي GFS'},
+ {id:'cmc',name:'الكندي CMC / GEM'},
+ {id:'icon',name:'الألماني ICON'},
+ {id:'aifs',name:'الأوروبي بالذكاء الاصطناعي AIFS'}
 ];
 function modelMaps(){
  const box=el('section','','cyclone-panel cyclone-models');box.id='seaModelMaps';box.hidden=true;
- const heading=el('h3','توقعات الموديلات لمسار الحالة'),intro=el('p','قارن موقع النشاط المتوقع في الأوقات القادمة. قد تختلف الموديلات في الاتجاه والشدة؛ الخريطة توقع وليست مسارًا مؤكدًا.','small-note');
+ const heading=el('h3','توقعات الموديلات لمسار الحالة'),edition=el('p','نشرة صور محفوظة • إصدار ١٦ أكتوبر ٢٠٢٦ • لا تتحدث تلقائيًا','cyclone-edition');
+ const intro=el('p','اختر الموديل لتشاهد صورته مباشرة. الصور تعرض مجموع الأمطار المتوقع من ١٦ إلى ٢٠ أكتوبر، وليس أمطار يوم واحد. اختلاف الألوان يوضح اختلاف التوقعات؛ هذه الخرائط ليست مسارًا رسميًا للحالة.','small-note');
  const label=el('label','اختر الموديل');label.htmlFor='seaModelChoice';const select=el('select');select.id='seaModelChoice';
  for(const m of seaModels){const o=el('option',m.name);o.value=m.id;select.append(o);}
- const tools=el('div','','cyclone-map-tools');const rain=el('button','الأمطار المتوقعة'),wind=el('button','الرياح والضغط'),reload=el('button','إعادة تحميل الخريطة'),close=el('button','إغلاق خرائط الموديلات');
- for(const b of [rain,wind,reload,close])b.type='button';tools.append(rain,wind,reload,close);
- const mapTitle=el('h4'),help=el('p','','small-note'),view=el('div'),fallback=el('p','','small-note'),source=el('div');
- help.textContent='الألوان تبيّن شدة المطر أو الرياح. استخدم زر التشغيل وشريط الوقت أسفل الخريطة لمشاهدة تغير التوقع. ظهور دوران لا يثبت وصوله إلى شبوة.';
- const status=el('p','','small-note');status.setAttribute('role','status');let layer='rain',timer;
+ const tools=el('div','','cyclone-map-tools'),zoom=el('button','تكبير الصورة داخل الموقع'),retry=el('button','إعادة عرض الصورة'),close=el('button','إغلاق صور الموديلات');for(const b of [zoom,retry,close])b.type='button';tools.append(zoom,retry,close);
+ const mapTitle=el('h4'),timing=el('p','','small-note'),age=el('p','','cyclone-edition'),view=el('div'),summary=el('p'),status=el('p','','small-note');status.setAttribute('role','status');
+ const source=el('p','','small-note');source.append(document.createTextNode('المصدر: '),link('Tropical Tidbits — Levi Cowan','https://www.tropicaltidbits.com/analysis/models/'));
+ const dialog=el('dialog','','cyclone-image-dialog'),dialogTitle=el('h3'),dismiss=el('button','إغلاق الصورة المكبّرة'),full=el('img');dismiss.type='button';dismiss.onclick=()=>dialog.close();dialog.append(dismiss,dialogTitle,full);
+ let image;
  function render(){
-  clearTimeout(timer);const m=seaModels.find(x=>x.id===select.value)||seaModels[0];mapTitle.textContent='توقعات الموديل '+m.name;
-  rain.setAttribute('aria-pressed',String(layer==='rain'));wind.setAttribute('aria-pressed',String(layer==='wind'));
-  rain.disabled=wind.disabled=reload.disabled=!m.embed;help.hidden=!m.embed;view.replaceChildren();source.replaceChildren();
-  if(!m.embed){status.textContent='خريطة هذا الموديل غير متاحة للعرض داخل الموقع حاليًا.';fallback.textContent='يمكنك مشاهدة خرائطه الأصلية عبر الزر أدناه. اختر الأمطار أو الرياح والوقت المطلوب في صفحة المصدر؛ تشغيل الحركة قد يتطلب اشتراكًا لدى المصدر.';source.append(link('فتح خرائط '+m.name+' ↗','https://meteologix.com/ye/model-charts/'+m.chart));return;}
-  status.textContent='جاري فتح الخريطة…';fallback.textContent='وقت التوقع يظهر على شريط الخريطة حسب إعدادات المصدر. تاريخ تحديث تشغيل الموديل غير متاح هنا؛ لا يُستبدل بوقت فتح الصفحة.';
-  const frame=el('iframe');frame.id='seaForecastFrame';frame.title='خريطة توقعات الموديل '+m.name+(layer==='rain'?' — الأمطار':' — الرياح والضغط');frame.loading='eager';frame.referrerPolicy='strict-origin-when-cross-origin';
-  const url=new URL('https://embed.windy.com/embed.html');for(const [k,v] of Object.entries({type:'map',location:'coordinates',metricRain:'mm',metricWind:'km/h',metricTemp:'°C',zoom:'5',overlay:layer,product:'ecmwf',level:'surface',lat:'15',lon:'59',pressure:'true'}))url.searchParams.set(k,v);
-  frame.src=url.href;frame.onload=()=>{clearTimeout(timer);status.textContent='المصدر: Windy • إذا بقيت الخريطة فارغة، افتحها من المصدر.';};frame.onerror=()=>{clearTimeout(timer);status.textContent='تعذر تحميل الخريطة؛ يمكنك فتحها من المصدر.';};
-  timer=setTimeout(()=>{status.textContent='قد يتأخر تحميل الخريطة مع ضعف الاتصال؛ يمكنك فتحها من المصدر.';},18000);view.append(frame);source.append(link('تكبير الخريطة في Windy ↗','https://www.windy.com/?'+layer+',15.000,59.000,5'));
+  if(dialog.open)dialog.close();const m=seaModels.find(x=>x.id===select.value)||seaModels[0];mapTitle.textContent='توقعات الموديل '+m.name;
+  timing.textContent='تشغيل الموديل: '+date(seaEdition.runAt)+' • نهاية فترة التوقع: '+date(seaEdition.validAt)+' • بتوقيت اليمن';
+  const expired=Date.now()>Date.parse(seaEdition.validAt),old=Date.now()-Date.parse(seaEdition.runAt)>36*3600000;
+  age.hidden=!old;age.textContent=expired?'انتهت فترة هذه النشرة؛ الصور للأرشيف ولا تمثل التوقع الحالي.':'هذه نشرة سابقة؛ لا تمثل أحدث تشغيل للموديلات.';
+  summary.textContent='الألوان تبيّن مجموع المطر المتوقع بالمليمتر خلال الفترة الموضحة. الصورة تشمل بحر العرب والمحيط الهندي؛ توزيع المطر وحده لا يؤكد اتجاه الحالة أو وصول أمطارها إلى شبوة وهدى.';
+  view.replaceChildren();status.textContent='جاري تحميل صورة '+m.name+'…';zoom.disabled=true;image=el('img','','cyclone-image');image.id='seaForecastImage';image.alt='توقعات '+m.name+' لمجموع الأمطار من ١٦ إلى ٢٠ أكتوبر ٢٠٢٦';image.decoding='async';
+  const current=image;image.onload=()=>{if(image!==current)return;status.textContent='صورة النشرة المحفوظة جاهزة • اختر موديلًا آخر للمقارنة.';zoom.disabled=false;};image.onerror=()=>{if(image!==current)return;status.textContent='تعذر تحميل صورة هذا الموديل. اضغط إعادة عرض الصورة للمحاولة مجددًا.';zoom.disabled=true;};
+  image.src=seaEdition.folder+m.id+'.png';view.append(image);image.onclick=()=>{if(!zoom.disabled)zoom.click();};
  }
- select.onchange=render;rain.onclick=()=>{layer='rain';render();};wind.onclick=()=>{layer='wind';render();};reload.onclick=render;
- box.append(heading,intro,label,select,tools,mapTitle,help,status,view,fallback,source);
+ zoom.onclick=()=>{const m=seaModels.find(x=>x.id===select.value)||seaModels[0];dialogTitle.textContent='توقعات الموديل '+m.name;full.src=image.src;full.alt=image.alt;dialog.showModal();};
+ select.onchange=render;retry.onclick=render;
+ box.append(heading,edition,intro,label,select,mapTitle,timing,age,view,status,summary,tools,source,dialog);
  box.open=()=>{box.hidden=false;render();box.scrollIntoView({block:'start',behavior:'smooth'});select.focus({preventScroll:true});};
- box.stop=()=>{clearTimeout(timer);view.replaceChildren();};close.onclick=()=>{box.hidden=true;box.stop();const b=document.getElementById('seaModelsButton');b?.setAttribute('aria-expanded','false');b?.focus();};return box;
+ box.stop=()=>{if(dialog.open)dialog.close();view.replaceChildren();image=null;};
+ close.onclick=()=>{box.hidden=true;box.stop();const b=document.getElementById('seaModelsButton');b?.setAttribute('aria-expanded','false');b?.focus();};return box;
 }
 
 function start(){

@@ -1,0 +1,70 @@
+{
+  "edition": "2026-10-16",
+  "publishedAt": "2026-10-16T10:02:11.275469+00:00",
+  "mode": "dated-bulletin",
+  "source": "Tropical Tidbits / Levi Cowan",
+  "sourceTerms": "https://www.tropicaltidbits.com/analysis/models/",
+  "models": [
+    {
+      "id": "ecmwf",
+      "sourceModel": "ecmwf",
+      "runAt": "2026-10-16T00:00:00Z",
+      "validAt": "2026-10-20T00:00:00Z",
+      "forecastHours": 96,
+      "image": "/sea-charts/2026-10-16/ecmwf.png",
+      "sourcePage": "https://www.tropicaltidbits.com/analysis/models/?model=ecmwf&region=io&pkg=apcpn&runtime=2026101600&fh=96",
+      "sourceImage": "https://www.tropicaltidbits.com/analysis/models/ecmwf/2026101600/ecmwf_apcpn_io_32.png",
+      "sha256": "ed18203c16c44ca90831f54db2baaec5169e1b5e2e668894fb748a1c0a2ec909",
+      "bytes": 207705
+    },
+    {
+      "id": "gfs",
+      "sourceModel": "gfs",
+      "runAt": "2026-10-16T00:00:00Z",
+      "validAt": "2026-10-20T00:00:00Z",
+      "forecastHours": 96,
+      "image": "/sea-charts/2026-10-16/gfs.png",
+      "sourcePage": "https://www.tropicaltidbits.com/analysis/models/?model=gfs&region=io&pkg=apcpn&runtime=2026101600&fh=96",
+      "sourceImage": "https://www.tropicaltidbits.com/analysis/models/gfs/2026101600/gfs_apcpn_io_16.png",
+      "sha256": "560fc806f3db39fb8d5ed37097c1f9bfce7e4905f3f77d3100e79e4990bc0c80",
+      "bytes": 193887
+    },
+    {
+      "id": "cmc",
+      "sourceModel": "gem",
+      "runAt": "2026-10-16T00:00:00Z",
+      "validAt": "2026-10-20T00:00:00Z",
+      "forecastHours": 96,
+      "image": "/sea-charts/2026-10-16/cmc.png",
+      "sourcePage": "https://www.tropicaltidbits.com/analysis/models/?model=gem&region=io&pkg=apcpn&runtime=2026101600&fh=96",
+      "sourceImage": "https://www.tropicaltidbits.com/analysis/models/gem/2026101600/gem_apcpn_io_16.png",
+      "sha256": "05ac5ef0f7ea96b945c311639e264956e03875f28cba1f35721e154d34e4013f",
+      "bytes": 233735
+    },
+    {
+      "id": "icon",
+      "sourceModel": "icon",
+      "runAt": "2026-10-16T00:00:00Z",
+      "validAt": "2026-10-20T00:00:00Z",
+      "forecastHours": 96,
+      "image": "/sea-charts/2026-10-16/icon.png",
+      "sourcePage": "https://www.tropicaltidbits.com/analysis/models/?model=icon&region=io&pkg=apcpn&runtime=2026101600&fh=96",
+      "sourceImage": "https://www.tropicaltidbits.com/analysis/models/icon/2026101600/icon_apcpn_io_32.png",
+      "sha256": "0eac68c01081b0a527e93769427cc74a8d2ef774574c124f658962c3fc787636",
+      "bytes": 210270
+    },
+    {
+      "id": "aifs",
+      "sourceModel": "ec-aifs",
+      "runAt": "2026-10-16T00:00:00Z",
+      "validAt": "2026-10-20T00:00:00Z",
+      "forecastHours": 96,
+      "image": "/sea-charts/2026-10-16/aifs.png",
+      "sourcePage": "https://www.tropicaltidbits.com/analysis/models/?model=ec-aifs&region=io&pkg=apcpn&runtime=2026101600&fh=96",
+      "sourceImage": "https://www.tropicaltidbits.com/analysis/models/ec-aifs/2026101600/ec-aifs_apcpn_io_16.png",
+      "sha256": "151d4ecdfed5d3056d5f27ed5d89b6fbfab61d0e47e94dea43896aba419981a4",
+      "bytes": 162284
+    }
+  ],
+  "parameter": "Total accumulated precipitation (mm)"
+}
