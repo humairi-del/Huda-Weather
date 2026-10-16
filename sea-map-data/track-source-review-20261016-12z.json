@@ -1,0 +1,419 @@
+{
+  "inspectedAt": "2026-10-16T19:24:04.719498+00:00",
+  "cycle": "2026-10-16T12:00:00+00:00",
+  "requestedPeriod": {
+    "startAt": "2026-10-17T00:00:00+03:00",
+    "endAt": "2026-10-24T00:00:00+03:00"
+  },
+  "decision": "Do not publish a combined center track: no cross-model matched system is established in the inspected run. This is not evidence of no weather hazard.",
+  "limitations": [
+    "ICON track source not established.",
+    "BUFR coordinates select cyclone centers, excluding observed fix and wind-maximum positions.",
+    "Synthetic genesis identifiers cannot establish system identity across models or cycles.",
+    "IFS 70A ends at +144 h, shorter than the requested period.",
+    "No new automated track collection or website behavior was enabled."
+  ],
+  "sources": [
+    {
+      "model": "ifs",
+      "url": "https://data.ecmwf.int/forecasts/20261016/12z/ifs/0p25/oper/20261016120000-360h-oper-tf.bufr",
+      "sha256": "8cb9e3e7e7ffa6fc4a4160124a98f6ea9468c4c2c89c7abcca1dc2893d4deb61",
+      "bytes": 47805,
+      "messages": 15,
+      "arabianSeaTracks": [
+        {
+          "id": "70A",
+          "syntheticGenesisIdentifier": true,
+          "points": [
+            {
+              "leadHours": 0,
+              "validAt": "2026-10-16T12:00:00+00:00",
+              "lat": 7.6,
+              "lon": 56.0
+            },
+            {
+              "leadHours": 6,
+              "validAt": "2026-10-16T18:00:00+00:00",
+              "lat": 7.4,
+              "lon": 55.0
+            },
+            {
+              "leadHours": 12,
+              "validAt": "2026-10-17T00:00:00+00:00",
+              "lat": 7.2,
+              "lon": 54.2
+            },
+            {
+              "leadHours": 18,
+              "validAt": "2026-10-17T06:00:00+00:00",
+              "lat": 7.2,
+              "lon": 55.1
+            },
+            {
+              "leadHours": 24,
+              "validAt": "2026-10-17T12:00:00+00:00",
+              "lat": 6.9,
+              "lon": 56.2
+            },
+            {
+              "leadHours": 30,
+              "validAt": "2026-10-17T18:00:00+00:00",
+              "lat": 6.6,
+              "lon": 57.0
+            },
+            {
+              "leadHours": 36,
+              "validAt": "2026-10-18T00:00:00+00:00",
+              "lat": 6.4,
+              "lon": 57.6
+            },
+            {
+              "leadHours": 42,
+              "validAt": "2026-10-18T06:00:00+00:00",
+              "lat": 6.5,
+              "lon": 58.0
+            },
+            {
+              "leadHours": 48,
+              "validAt": "2026-10-18T12:00:00+00:00",
+              "lat": 6.0,
+              "lon": 58.4
+            },
+            {
+              "leadHours": 54,
+              "validAt": "2026-10-18T18:00:00+00:00",
+              "lat": 5.9,
+              "lon": 58.4
+            },
+            {
+              "leadHours": 60,
+              "validAt": "2026-10-19T00:00:00+00:00",
+              "lat": 5.4,
+              "lon": 58.5
+            },
+            {
+              "leadHours": 66,
+              "validAt": "2026-10-19T06:00:00+00:00",
+              "lat": 5.3,
+              "lon": 59.4
+            },
+            {
+              "leadHours": 72,
+              "validAt": "2026-10-19T12:00:00+00:00",
+              "lat": 5.0,
+              "lon": 59.1
+            },
+            {
+              "leadHours": 78,
+              "validAt": "2026-10-19T18:00:00+00:00",
+              "lat": 5.2,
+              "lon": 59.7
+            },
+            {
+              "leadHours": 84,
+              "validAt": "2026-10-20T00:00:00+00:00",
+              "lat": 5.7,
+              "lon": 59.9
+            },
+            {
+              "leadHours": 90,
+              "validAt": "2026-10-20T06:00:00+00:00",
+              "lat": 6.1,
+              "lon": 59.9
+            },
+            {
+              "leadHours": 96,
+              "validAt": "2026-10-20T12:00:00+00:00",
+              "lat": 6.0,
+              "lon": 60.1
+            },
+            {
+              "leadHours": 114,
+              "validAt": "2026-10-21T06:00:00+00:00",
+              "lat": 7.4,
+              "lon": 58.1
+            },
+            {
+              "leadHours": 120,
+              "validAt": "2026-10-21T12:00:00+00:00",
+              "lat": 7.8,
+              "lon": 57.3
+            },
+            {
+              "leadHours": 126,
+              "validAt": "2026-10-21T18:00:00+00:00",
+              "lat": 7.9,
+              "lon": 56.4
+            },
+            {
+              "leadHours": 132,
+              "validAt": "2026-10-22T00:00:00+00:00",
+              "lat": 8.6,
+              "lon": 55.6
+            },
+            {
+              "leadHours": 138,
+              "validAt": "2026-10-22T06:00:00+00:00",
+              "lat": 8.1,
+              "lon": 54.4
+            },
+            {
+              "leadHours": 144,
+              "validAt": "2026-10-22T12:00:00+00:00",
+              "lat": 9.3,
+              "lon": 53.7
+            }
+          ]
+        },
+        {
+          "id": "72A",
+          "syntheticGenesisIdentifier": true,
+          "points": [
+            {
+              "leadHours": 126,
+              "validAt": "2026-10-21T18:00:00+00:00",
+              "lat": 12.4,
+              "lon": 74.9
+            },
+            {
+              "leadHours": 132,
+              "validAt": "2026-10-22T00:00:00+00:00",
+              "lat": 13.6,
+              "lon": 73.7
+            },
+            {
+              "leadHours": 150,
+              "validAt": "2026-10-22T18:00:00+00:00",
+              "lat": 11.0,
+              "lon": 71.8
+            },
+            {
+              "leadHours": 156,
+              "validAt": "2026-10-23T00:00:00+00:00",
+              "lat": 11.3,
+              "lon": 71.0
+            },
+            {
+              "leadHours": 162,
+              "validAt": "2026-10-23T06:00:00+00:00",
+              "lat": 11.4,
+              "lon": 70.1
+            },
+            {
+              "leadHours": 168,
+              "validAt": "2026-10-23T12:00:00+00:00",
+              "lat": 11.9,
+              "lon": 70.4
+            },
+            {
+              "leadHours": 174,
+              "validAt": "2026-10-23T18:00:00+00:00",
+              "lat": 10.6,
+              "lon": 68.9
+            },
+            {
+              "leadHours": 180,
+              "validAt": "2026-10-24T00:00:00+00:00",
+              "lat": 10.3,
+              "lon": 69.4
+            },
+            {
+              "leadHours": 186,
+              "validAt": "2026-10-24T06:00:00+00:00",
+              "lat": 10.5,
+              "lon": 69.0
+            },
+            {
+              "leadHours": 192,
+              "validAt": "2026-10-24T12:00:00+00:00",
+              "lat": 10.2,
+              "lon": 68.9
+            },
+            {
+              "leadHours": 198,
+              "validAt": "2026-10-24T18:00:00+00:00",
+              "lat": 10.3,
+              "lon": 68.4
+            },
+            {
+              "leadHours": 204,
+              "validAt": "2026-10-25T00:00:00+00:00",
+              "lat": 10.0,
+              "lon": 67.9
+            },
+            {
+              "leadHours": 210,
+              "validAt": "2026-10-25T06:00:00+00:00",
+              "lat": 9.8,
+              "lon": 68.0
+            },
+            {
+              "leadHours": 216,
+              "validAt": "2026-10-25T12:00:00+00:00",
+              "lat": 10.2,
+              "lon": 68.0
+            },
+            {
+              "leadHours": 222,
+              "validAt": "2026-10-25T18:00:00+00:00",
+              "lat": 10.3,
+              "lon": 67.6
+            },
+            {
+              "leadHours": 228,
+              "validAt": "2026-10-26T00:00:00+00:00",
+              "lat": 10.7,
+              "lon": 68.1
+            },
+            {
+              "leadHours": 234,
+              "validAt": "2026-10-26T06:00:00+00:00",
+              "lat": 10.9,
+              "lon": 67.4
+            },
+            {
+              "leadHours": 240,
+              "validAt": "2026-10-26T12:00:00+00:00",
+              "lat": 11.0,
+              "lon": 67.5
+            },
+            {
+              "leadHours": 246,
+              "validAt": "2026-10-26T18:00:00+00:00",
+              "lat": 11.8,
+              "lon": 67.3
+            },
+            {
+              "leadHours": 252,
+              "validAt": "2026-10-27T00:00:00+00:00",
+              "lat": 11.4,
+              "lon": 67.0
+            },
+            {
+              "leadHours": 258,
+              "validAt": "2026-10-27T06:00:00+00:00",
+              "lat": 12.4,
+              "lon": 66.2
+            },
+            {
+              "leadHours": 264,
+              "validAt": "2026-10-27T12:00:00+00:00",
+              "lat": 12.8,
+              "lon": 65.8
+            },
+            {
+              "leadHours": 270,
+              "validAt": "2026-10-27T18:00:00+00:00",
+              "lat": 12.9,
+              "lon": 65.5
+            },
+            {
+              "leadHours": 276,
+              "validAt": "2026-10-28T00:00:00+00:00",
+              "lat": 13.6,
+              "lon": 65.3
+            },
+            {
+              "leadHours": 282,
+              "validAt": "2026-10-28T06:00:00+00:00",
+              "lat": 14.5,
+              "lon": 65.4
+            },
+            {
+              "leadHours": 288,
+              "validAt": "2026-10-28T12:00:00+00:00",
+              "lat": 15.7,
+              "lon": 65.8
+            },
+            {
+              "leadHours": 294,
+              "validAt": "2026-10-28T18:00:00+00:00",
+              "lat": 16.4,
+              "lon": 66.1
+            },
+            {
+              "leadHours": 300,
+              "validAt": "2026-10-29T00:00:00+00:00",
+              "lat": 17.1,
+              "lon": 65.9
+            },
+            {
+              "leadHours": 306,
+              "validAt": "2026-10-29T06:00:00+00:00",
+              "lat": 17.8,
+              "lon": 65.8
+            },
+            {
+              "leadHours": 312,
+              "validAt": "2026-10-29T12:00:00+00:00",
+              "lat": 18.5,
+              "lon": 65.8
+            },
+            {
+              "leadHours": 318,
+              "validAt": "2026-10-29T18:00:00+00:00",
+              "lat": 19.4,
+              "lon": 66.0
+            },
+            {
+              "leadHours": 324,
+              "validAt": "2026-10-30T00:00:00+00:00",
+              "lat": 19.9,
+              "lon": 65.8
+            },
+            {
+              "leadHours": 330,
+              "validAt": "2026-10-30T06:00:00+00:00",
+              "lat": 20.2,
+              "lon": 65.6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "model": "aifs-single",
+      "url": "https://data.ecmwf.int/forecasts/20261016/12z/aifs-single/0p25/oper/20261016120000-360h-oper-tf.bufr",
+      "sha256": "093f6e6d5dc503d2f1300683ca4166a090a92017b3e89862fd246a58f1d8d3e4",
+      "bytes": 29385,
+      "messages": 13,
+      "arabianSeaTracks": []
+    },
+    {
+      "model": "gfs",
+      "kind": "genesis",
+      "url": "https://nomads.ncep.noaa.gov/pub/data/nccf/com/ens_tracker/v1.3/gfs.20261016/12/genesis/storms.gfso.atcf_gen.altg.2026101612",
+      "sha256": "9b1310b09fd83aa9a42872f0b540dde937997eea0d3d2c55198288952ed12fc4",
+      "bytes": 26190,
+      "rows": 90,
+      "arabianSeaPoints": []
+    },
+    {
+      "model": "gfs",
+      "kind": "tctrack",
+      "url": "https://nomads.ncep.noaa.gov/pub/data/nccf/com/ens_tracker/v1.3/gfs.20261016/12/tctrack/avno.t12z.cyclone.trackatcfunix",
+      "sha256": "bcd7b94484f31370c295a2d0487f10f467769b1c97f3576d5711c998584027a0",
+      "bytes": 22600,
+      "rows": 200,
+      "arabianSeaPoints": []
+    },
+    {
+      "model": "cmce",
+      "kind": "genesis",
+      "url": "https://nomads.ncep.noaa.gov/pub/data/nccf/com/ens_tracker/v1.3/cmce.20261016/12/genesis/storms.cmc.atcf_gen.altg.2026101612",
+      "sha256": "2b60604762c543a92807495eaa95c5bc734fbf5e8fdde4c545e3f9164f6a90c9",
+      "bytes": 32592,
+      "rows": 112,
+      "arabianSeaPoints": []
+    },
+    {
+      "model": "cmce",
+      "kind": "tctrack",
+      "url": "https://nomads.ncep.noaa.gov/pub/data/nccf/com/ens_tracker/v1.3/cmce.20261016/12/tctrack/cmc.t12z.cyclone.trackatcfunix",
+      "sha256": "d203de186b34145809200956f207438c91d22b9fdcff45d1c247814a4737c171",
+      "bytes": 12672,
+      "rows": 132,
+      "arabianSeaPoints": []
+    }
+  ]
+}
