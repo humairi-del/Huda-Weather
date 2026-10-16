@@ -4,17 +4,17 @@ export const GRID={west:42,east:60,south:9,north:21,step:0.75,nx:25,ny:17};
 export const PLACES=[{name:'عتق — مؤشر لشبوة',lat:14.537,lon:46.832},{name:'حبان',lat:14.3541,lon:47.0765},{name:'هدى',lat:14.230586,lon:47.199415}];
 export function points(){const a=[];for(let y=0;y<GRID.ny;y++)for(let x=0;x<GRID.nx;x++)a.push({lat:GRID.north-y*GRID.step,lon:GRID.west+x*GRID.step});return [...a,...PLACES];}
 export function period(now=new Date()){
- // Three complete future calendar days, always on Yemen's UTC+3 day boundary.
+ // Seven complete future calendar days, always on Yemen's UTC+3 day boundary.
  const d=new Date(now.getTime()+3*3600000);d.setUTCHours(0,0,0,0);d.setUTCDate(d.getUTCDate()+1);
- const start=d.toISOString().slice(0,10);d.setUTCDate(d.getUTCDate()+2);const end=d.toISOString().slice(0,10);d.setUTCDate(d.getUTCDate()+1);
+ const start=d.toISOString().slice(0,10);d.setUTCDate(d.getUTCDate()+6);const end=d.toISOString().slice(0,10);d.setUTCDate(d.getUTCDate()+1);
  return {start,end,until:d.toISOString().slice(0,10),startAt:start+'T00:00:00+03:00',endAt:d.toISOString().slice(0,10)+'T00:00:00+03:00'};
 }
 export function requestURL(batch,p){return 'https://api.open-meteo.com/v1/forecast?'+new URLSearchParams({latitude:batch.map(v=>v.lat).join(','),longitude:batch.map(v=>v.lon).join(','),models:MODELS.join(','),daily:'precipitation_sum',timezone:'Asia/Aden',cell_selection:'nearest',elevation:batch.map(()=>'nan').join(','),start_date:p.start,end_date:p.end});}
 export function median(a){const s=[...a].sort((a,b)=>a-b),n=s.length;if(!n)return null;return n%2?s[n>>1]:(s[n/2-1]+s[n/2])/2;}
 export function aggregate(row,p){
- const dates=[p.start,new Date(Date.parse(p.start+'T00:00:00Z')+86400000).toISOString().slice(0,10),p.end];
+ const dates=Array.from({length:7},(_,i)=>new Date(Date.parse(p.start+'T00:00:00Z')+i*86400000).toISOString().slice(0,10));
  if(JSON.stringify(row?.daily?.time)!==JSON.stringify(dates)||row.utc_offset_seconds!==10800)throw Error('period_mismatch');
- const totals={},daily={};for(const model of MODELS){const key='precipitation_sum_'+model,a=row.daily[key];if(row.daily_units?.[key]!=='mm')throw Error('unit_mismatch');if(Array.isArray(a)&&a.length===3&&a.every(x=>Number.isFinite(x)&&x>=0&&x<3000)){daily[model]=a;totals[model]=Math.round(a.reduce((s,x)=>s+x,0)*100)/100;}}
+ const totals={},daily={};for(const model of MODELS){const key='precipitation_sum_'+model,a=row.daily[key];if(row.daily_units?.[key]!=='mm')throw Error('unit_mismatch');if(Array.isArray(a)&&a.length===7&&a.every(x=>Number.isFinite(x)&&x>=0&&x<3000)){daily[model]=a;totals[model]=Math.round(a.reduce((s,x)=>s+x,0)*100)/100;}}
  const v=Object.values(totals);if(v.length<3)throw Error('insufficient_models');
  const m=median(v),spread=Math.max(...v)-Math.min(...v);
  return {value:Math.round(m*100)/100,min:Math.min(...v),max:Math.max(...v),count:v.length,disagreement:spread>=20&&spread>m,totals,daily};
