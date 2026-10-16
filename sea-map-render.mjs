@@ -33,3 +33,11 @@ export function localSummary(place){
  const strength=amount<10?'خفيفة':amount<30?'متوسطة':'غزيرة';
  return {text:'أمطار '+strength+' محتملة؛ مجموعها التقريبي '+Math.round(amount*10)/10+' ملم خلال ثلاثة أيام.'+(place.disagreement?' الموديلات مختلفة بوضوح، وقد تتغير الكمية.':'')};
 }
+
+export function satelliteOutline(){
+ const x=lon=>(lon-40)*50,y=lat=>(23-lat)*50;
+ const shape=g=>rings(g).map(r=>r.map(([lon,lat],i)=>(i?'L':'M')+x(lon).toFixed(1)+','+y(lat).toFixed(1)).join('')+'Z').join('');
+ const path=(g,color,width)=>`<path d="${shape(g)}" fill="none" stroke="${color}" stroke-width="${width}"/>`;
+ const labels=[['شبوة',47,15.25],['حبان',47.08,14.35],['هدى',47.2,14.23],['خليج عدن',48.5,12.4],['بحر العرب',56,15.5]];
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 750" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">${countries.features.map(f=>path(f.geometry,'#f8df86',1.6)).join('')}${provinces.features.map(f=>path(f.geometry,'#f8df86',0.7)).join('')}${labels.map(([name,lon,lat],i)=>`<circle cx="${x(lon)}" cy="${y(lat)}" r="3" fill="#ffdf74"/><text x="${x(lon)+(i===1?-45:i===2?30:0)}" y="${y(lat)+(i===1?-10:i===2?22:-12)}" fill="white" stroke="#142b35" stroke-width="3" paint-order="stroke" font-family="Arial,sans-serif" font-size="20" text-anchor="middle">${name}</text>`).join('')}</svg>`;
+}

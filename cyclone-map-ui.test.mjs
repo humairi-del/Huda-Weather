@@ -26,5 +26,5 @@ test('three choices reveal only one panel, without raw maps or external navigati
   const button=ui.byId('seaChoice'+i);assert.ok(button);button.onclick();
   for(let j=0;j<3;j++){assert.equal(ui.byId('seaPane'+j).hidden,j!==i);assert.equal(ui.byId('seaChoice'+j).attrs['aria-expanded'],String(j===i));}
  }
- assert.equal(ui.find(e=>e.tagName==='iframe'),undefined);assert.equal(ui.find(e=>e.tagName==='select'),undefined);assert.equal(ui.find(e=>e.tagName==='a'),undefined);
+ assert.equal(ui.find(e=>e.tagName==='iframe'),undefined);assert.equal(ui.find(e=>e.tagName==='select'),undefined);const link=ui.find(e=>e.tagName==='a');assert.equal(link.textContent,'متابعة العواصف المدارية');assert.equal(link.href,'https://zoom.earth/storms/93s-2027/#map=precipitation/model=gfs/overlays=wind,fires,crosshair');assert.equal(link.rel,'noopener noreferrer');
 });

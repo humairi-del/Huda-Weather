@@ -13,8 +13,10 @@ export async function buildPreview() {
   for (const file of clientFiles) assets['/'+file] = [(await readFile(path.join(root,file))).toString('base64'),mime(file)];
   assets['/'] = assets['/index.html'] = assets['/preview-redesign.html'];
   const server = (await readFile(path.join(root,'cyclone-season-server.mjs'),'utf8')).replace(/^export /gm,'');
-  const gateway = (await readFile(path.join(root,'preview-worker.mjs'),'utf8')).replace(/^import[^\n]*\n/,'').replace('export default {','const gateway = {');
-  return server+'\n'+gateway+'\nconst clientAssets='+JSON.stringify(assets)+`;\nexport default {async fetch(request){return gateway.fetch(request,{ASSETS:{async fetch(request){
+  const gateway = (await readFile(path.join(root,'preview-worker.mjs'),'utf8')).replace(/^import[^\n]*\n/gm,'').replace('export default {','const gateway = {');
+  const weather=(await readFile(path.join(root,'weather-gateway.mjs'),'utf8')).replace(/^export /gm,'');
+  const satellite=(await readFile(path.join(root,'satellite-gateway.mjs'),'utf8')).replace(/^import[^\n]*\n/gm,'').replace(/^export /gm,'');
+  return server+'\n'+weather+'\n'+satellite+'\n'+gateway+'\nconst clientAssets='+JSON.stringify(assets)+`;\nexport default {async fetch(request){return gateway.fetch(request,{ASSETS:{async fetch(request){
     if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405});
     const asset=clientAssets[new URL(request.url).pathname];
     if(!asset)return new Response('Not found',{status:404});
