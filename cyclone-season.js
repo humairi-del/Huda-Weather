@@ -13,21 +13,21 @@ function start(){
  const refresh=el('button','تحديث الحالة','action-btn');refresh.type='button';desk.append(title,state,text,direction,impact,picture,caption,status,refresh,details);sea.replaceChildren(desk);
  let busy=false,last=0,modules,objectURL;
  const visible=()=>document.getElementById('seaModal').style.display==='block'&&!document.hidden;
- async function documentPdf(kind,report,pdfjs){
+ async function documentPdf(kind,report,pdfjs,tasks){
   const r=await fetch('/api/cyclone-document?kind='+kind,{cache:'no-store',signal:AbortSignal.timeout(25000)});if(!r.ok||r.headers.get('X-Hada-Source')!==report.url)throw Error('source_changed');
   const bytes=new Uint8Array(await r.arrayBuffer());if(bytes.length>4194304)throw Error('pdf_size');
-  return pdfjs.getDocument({data:bytes,isEvalSupported:false,maxImageSize:4000000,stopAtErrors:true}).promise;
+  const task=pdfjs.getDocument({data:bytes,isEvalSupported:false,maxImageSize:4000000,stopAtErrors:true});tasks.push(task);return task.promise;
  }
  async function read(pdf){if(pdf.numPages>12)throw Error('too_many_pages');let parts=[];for(let n=1;n<=pdf.numPages;n++){const p=await pdf.getPage(n);const t=await p.getTextContent();parts.push(t.items.map(i=>i.str).join(' '));}return parts.join(' ');}
  async function load(force=false){if(busy||!force&&Date.now()-last<900000)return;busy=true;refresh.disabled=true;status.textContent='جاري قراءة أحدث النشرات…';
-  let docs=[];
+  let docs=[],tasks=[];
   try{
    const r=await fetch('/api/cyclone-sources',{cache:'no-store',signal:AbortSignal.timeout(16000)});if(!r.ok)throw Error('source');const source=await r.json();
    const safe=source.reports.filter(x=>{try{const u=new URL(x.url);return u.protocol==='https:'&&['rsmcnewdelhi.imd.gov.in','dss.imd.gov.in'].includes(u.hostname);}catch{return false;}});
    const daily=safe.find(x=>x.id==='outlook'),extended=safe.find(x=>x.id==='extended'),track=safe.find(x=>x.id==='track'&&!x.noTrackFile);
    if(!daily)throw Error('daily_missing');
    modules??=Promise.all([import('/cyclone-pdf.mjs'),import('/cyclone-analysis.mjs')]);const [pdfjs,analysis]=await modules;pdfjs.GlobalWorkerOptions.workerSrc='/cyclone-pdf-worker.mjs';
-   const results=await Promise.allSettled([documentPdf('outlook',daily,pdfjs),extended?documentPdf('extended',extended,pdfjs):Promise.reject(Error('no_extended'))]);
+   const results=await Promise.allSettled([documentPdf('outlook',daily,pdfjs,tasks),extended?documentPdf('extended',extended,pdfjs,tasks):Promise.reject(Error('no_extended'))]);
    const dailyPdf=results[0].status==='fulfilled'?results[0].value:null,extendedPdf=results[1].status==='fulfilled'?results[1].value:null;docs=[dailyPdf,extendedPdf].filter(Boolean);
    const texts=await Promise.all(docs.map(read));const dailyText=dailyPdf?texts[0]:'',extendedText=extendedPdf?texts[dailyPdf?1:0]:'';
    if(!dailyText&&!extendedText)throw Error('unreadable');const a=analysis.analyseReports(dailyText,extendedText);
@@ -38,7 +38,7 @@ function start(){
    for(const report of safe.filter(x=>['outlook','extended','track'].includes(x.id)&&!x.noTrackFile))content.append(link(report.label+' ↗',report.url));
    content.append(link('المسار التفاعلي الرسمي ↗','https://dss.imd.gov.in/dwr_img/GIS/cyclone.html'));
    let imagePdf,imageReport;
-   if(track){try{imagePdf=await documentPdf('track',track,pdfjs);docs.push(imagePdf);imageReport=track;}catch{}}
+   if(track){try{imagePdf=await documentPdf('track',track,pdfjs,tasks);docs.push(imagePdf);imageReport=track;}catch{}}
    if(!imagePdf){imagePdf=extendedPdf||dailyPdf;imageReport=extendedPdf?extended:daily;}
    picture.replaceChildren();caption.textContent=track&&imageReport===track?'أحدث خريطة للمسار من المصدر الرسمي؛ التوقع قابل للتغير.':'المسار الرسمي غير متاح؛ المعروض خريطة/نشرة توقعات، وليس مسارًا مؤكدًا.';
    try{const page=await imagePdf.getPage(1),view=page.getViewport({scale:1.6}),canvas=document.createElement('canvas');canvas.width=Math.ceil(view.width);canvas.height=Math.ceil(view.height);await page.render({canvasContext:canvas.getContext('2d'),viewport:view}).promise;
@@ -46,7 +46,7 @@ function start(){
    }catch{picture.append(el('p','تعذر عرض صورة النشرة. افتح الخريطة من المصدر.','cyclone-image-error'),link('فتح الخريطة ↗',imageReport.url));}
    const issued=daily.issuedAt;status.textContent='النشرة: '+(issued?date(issued):daily.date||'راجع تاريخها داخل المصدر')+' • آخر تحقق: '+date(source.checkedAt)+(daily.stale?' • النشرة قديمة، يلزم تحديث المصدر.':'')+(!dailyPdf?' • تعذرت قراءة النشرة اليومية.':'')+(!extendedPdf?' • تعذرت قراءة توقعات الأسبوعين.':'');last=Date.now();
   }catch{if(!last){state.textContent='تعذر التحقق من الحالة الآن';text.textContent='لا تتوفر بيانات حديثة كافية لتحديد التصنيف أو المسار.';direction.textContent='';impact.textContent='';picture.replaceChildren();content.replaceChildren(link('فتح المركز الرسمي ↗','https://rsmcnewdelhi.imd.gov.in/'));}status.textContent='فشل التحديث'+(last?'؛ المعروض آخر قراءة ناجحة: '+date(new Date(last).toISOString()):'')+'؛ تعذر الاتصال لا يعني انتهاء الحالة.';}
-  finally{busy=false;refresh.disabled=false;void Promise.allSettled(docs.map(p=>p.destroy()));}
+  finally{busy=false;refresh.disabled=false;void Promise.allSettled(tasks.map(task=>Promise.resolve().then(()=>task.destroy())));}
  }
  refresh.onclick=()=>load(true);window.loadSea=()=>load();window.openSea=function(){document.getElementById('seaModal').style.display='block';document.body.style.overflow='hidden';void load();};
  setInterval(()=>{if(visible())void load();},60000);document.addEventListener('visibilitychange',()=>{if(visible())void load();});
