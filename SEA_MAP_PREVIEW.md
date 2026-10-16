@@ -1,3 +1,18 @@
+# Current development map: 2.9.0-preview
+
+Seven complete future Yemen days replace the former three-day product. Each model must supply all seven daily amounts, identical dates and mm units; require at least three models at every grid cell. No seventh-day gaps become zero. The end date shown is the exclusive midnight boundary after day seven.
+
+Shabwa overview uses regional grid samples inside its actual ADM1 polygon; Atq is retained only as an internal legacy sample and is not used to represent the governorate. Habban and Huda retain local point summaries. The regional grid remains coarse (0.75 degrees); source metadata retains this practical limit.
+
+Visitor wording follows the owner's decision: «توقعات تطوّر الحالة ومسارها — ٧ أيام», a colored multi-model rainfall background, no hatching or hatching explanation, compact dates and the credit «صُممت بواسطة طقس هدى بمساعدة الذكاء الاصطناعي». No center track is drawn because this implementation has no verified center-track feed. It explicitly says that the track is undetermined; rainfall contours are not presented as a center trajectory. Keep the approved external follow-storm button unchanged.
+
+Transient network failures receive one retry. Initial full-map collection uses temporary batch checkpoints for recovery; these are not public endpoints. Scheduled updates remain on the independent map preview worker every six hours, preserving the last complete edition on failure.
+
+90 tests pass, including the seven-day boundary, missing model coverage, province-vs-Atq behavior, and transient timeout recovery. General publication/source requirements remain unchanged. Production, Rasid, Neon and daily bulletin recipients/schedules are outside this change.
+
+---
+## Historical implementation notes
+
 # Hada regional multi-model map — preview 2.8.0
 
 Scope: `redesign-hada-2026-10` and its separate Pages preview. The new `hada-sea-map-preview` Worker and its own KV namespace are independent of Rasid and the existing daily bulletin. Main, public website, Neon, recipients and notification schedules are unchanged.

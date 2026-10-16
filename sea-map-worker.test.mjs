@@ -19,3 +19,5 @@ test('province overview uses regional grid cells rather than the Atq point',asyn
  data.cells.forEach(c=>c.value=12);
  assert.match(provinceSummary(data).text,/12 إلى 12/);
 });
+
+test('seven-day renderer rejects a cached old three-day map instead of relabelling it',()=>{const old=structuredClone(s);old.period.endAt=new Date(Date.parse(old.period.startAt)+72*3600000).toISOString();assert.throws(()=>renderMap(old),/seven_day_period_required/);});

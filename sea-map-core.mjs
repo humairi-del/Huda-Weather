@@ -20,6 +20,7 @@ export function aggregate(row,p){
  return {value:Math.round(m*100)/100,min:Math.min(...v),max:Math.max(...v),count:v.length,disagreement:spread>=20&&spread>m,totals,daily};
 }
 export function validateSnapshot(s){
+ if(Date.parse(s?.period?.endAt)-Date.parse(s?.period?.startAt)!==168*3600000)throw Error('seven_day_period_required');
  if(s?.schema!==1||s.cells?.length!==GRID.nx*GRID.ny||s.local?.length!==3||!Number.isFinite(Date.parse(s.fetchedAt))||!Number.isFinite(Date.parse(s.period?.endAt)))throw Error('invalid_snapshot');
  for(const c of [...s.cells,...s.local]){if(!Number.isFinite(c.value)||c.value<0||c.count<3||!c.totals||Object.values(c.totals).some(v=>!Number.isFinite(v)||v<0))throw Error('invalid_cell');}
  return s;
@@ -32,7 +33,7 @@ export async function collect(fetcher=fetch,now=new Date(),pause=ms=>new Promise
   if(Date.now()>deadline)throw Error('collection_deadline');
   const batch=all.slice(i,i+24);let rows;
   for(let attempt=0;attempt<2;attempt++){
-   const r=await fetcher(requestURL(batch,p),{signal:AbortSignal.timeout(25000)});
+   let r;try{r=await fetcher(requestURL(batch,p),{signal:AbortSignal.timeout(25000)});}catch(error){if(attempt===0){await pause(30000);continue;}throw error;}
    if(!r.ok){await r.body?.cancel();if(attempt===0){await pause(30000);continue;}throw Error('forecast_http_'+r.status);}
    const text=await r.text();if(text.length>400000)throw Error('forecast_size');rows=JSON.parse(text);break;
   }
