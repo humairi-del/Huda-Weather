@@ -17,7 +17,7 @@ The visitor sees exactly three choices: Arabian Sea status (official IMD interpr
 
 ## Scheduled refresh
 
-Independent Worker `hada-sea-map-preview.humairi855.workers.dev`, KV `hada-sea-map-preview`, binding `SEA_MAP`. Cron `0 */6 * * *` (UTC), i.e. 3am,9am,3pm,9pm Yemen. 18 batches of <=24 locations, 4 models each, 16-second pause; one bounded retry. Maximum data-query timeout 25s. <=50 external subrequests and <15-minute scheduled wall time. Writes one complete latest JSON only after successful full validation; failure records an attempt without replacing the map. Public endpoints GET `/data` and `/health` only; no public refresh/write endpoint. Pages proxy has one fixed upstream and a 300KB cap. No visitor-generated paid queries.
+Independent Worker `hada-sea-map-preview.humairi855.workers.dev`, KV `hada-sea-map-preview`, binding `SEA_MAP`. Cron `0 */6 * * *` (UTC), i.e. 3am,9am,3pm,9pm Yemen. 18 batches of <=24 locations, 4 models each, 16-second pause; one bounded retry. Maximum data-query timeout 25s. <=50 external subrequests and a 12-minute collection deadline within the 15-minute scheduled wall-time limit. Writes one complete latest JSON only after successful full validation; failure records an attempt without replacing the map. Public endpoints GET `/data` and `/health` only; no public refresh/write endpoint. Pages proxy has one fixed upstream and a 300KB cap. No visitor-generated paid queries.
 
 Data is visibly marked delayed after nine hours and expired after its forecast period. Fetching every six hours does not mean all providers issue a new model run every six hours. First initial snapshot is fetched with the same requests and aggregate/validation functions; scheduled configuration is verified separately from an observed future cron execution.
 
@@ -30,3 +30,11 @@ Data is visibly marked delayed after nine hours and expired after its forecast p
 - Map caption: متابعة وتجميع ورسم: طقس هدى — بمساعدة ChatGPT .
 
 Build renderer: install `d3-contour@4.0.2`, `esbuild@0.28.2` (or compatible pinned versions), bundle `sea-map-render.mjs` with JSON loader for GeoJSON. The checked-in `sea-map-browser.mjs` is self-contained and is used directly by preview packaging. Worker uses only standard Fetch/KV APIs.
+
+
+## Verified 16 October 2026, 12:10 UTC
+
+- Initial real edition has all 425 grid cells and all three local places, with all four models complete at every point. 72-hour interval: 17 October 00:00 to 20 October 00:00 Yemen. Retrieved at 12:09:57 UTC. Initial numeric snapshot archived in sea-map-data/initial-2026-10-16.json.
+- All 43 tests pass, including fixed source handling, period/units/null rejection, median/disagreement, complete coverage, cache read-only endpoints, all 22 labels, three exclusive visitor choices, and packaged page/modules.
+- Pages deployment 2ed277f5-9dff-44a7-aecc-3c0b74e0e8f2 succeeded on the development branch. Browser verified official classification, all three choices, live map load (1200 x 1160), and preview version 2.8.0.
+- The six-hour cron registration is confirmed. The next scheduled event is 18:00 UTC (9pm Yemen); it has not yet occurred. Do not describe the initial seed upload as an observed cron execution.
