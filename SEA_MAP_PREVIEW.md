@@ -38,3 +38,5 @@ Build renderer: install `d3-contour@4.0.2`, `esbuild@0.28.2` (or compatible pinn
 - All 43 tests pass, including fixed source handling, period/units/null rejection, median/disagreement, complete coverage, cache read-only endpoints, all 22 labels, three exclusive visitor choices, and packaged page/modules.
 - Pages deployment 2ed277f5-9dff-44a7-aecc-3c0b74e0e8f2 succeeded on the development branch. Browser verified official classification, all three choices, live map load (1200 x 1160), and preview version 2.8.0.
 - The six-hour cron registration is confirmed. The next scheduled event is 18:00 UTC (9pm Yemen); it has not yet occurred. Do not describe the initial seed upload as an observed cron execution.
+
+Final deployment ecab5e79-8e33-43ff-b356-a60b758cde21 succeeded at 12:13:05 UTC, from 802ba59475bdee79b94e0b5f0f63a4053fdbf8e8. It contains the same verified dataset gateway, with simpler local visitor text.
