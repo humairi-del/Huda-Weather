@@ -24,7 +24,7 @@ export function validateSnapshot(s){
  for(const c of [...s.cells,...s.local]){if(!Number.isFinite(c.value)||c.value<0||c.count<3||!c.totals||Object.values(c.totals).some(v=>!Number.isFinite(v)||v<0))throw Error('invalid_cell');}
  return s;
 }
-export async function collect(fetcher=fetch,now=new Date(),pause=ms=>new Promise(r=>setTimeout(r,ms))){
+export async function collect(fetcher=fetch,now=new Date(),pause=ms=>new Promise(r=>setTimeout(r,ms)),onBatch=()=>{}){
  const p=period(now),all=points(),cells=[],deadline=Date.now()+12*60000;
  // 24 locations x 4 models = 96 equivalent requests per batch; <= 384/min.
  for(let i=0;i<all.length;i+=24){
@@ -37,7 +37,7 @@ export async function collect(fetcher=fetch,now=new Date(),pause=ms=>new Promise
    const text=await r.text();if(text.length>400000)throw Error('forecast_size');rows=JSON.parse(text);break;
   }
   if(!Array.isArray(rows)||rows.length!==batch.length)throw Error('batch_length');
-  cells.push(...rows.map(row=>aggregate(row,p)));
+  cells.push(...rows.map(row=>aggregate(row,p)));onBatch({completed:cells.length,total:all.length});
  }
  return validateSnapshot({schema:1,fetchedAt:new Date().toISOString(),startedAt:now.toISOString(),period:p,grid:GRID,models:MODELS,cells:cells.slice(0,GRID.nx*GRID.ny),local:cells.slice(GRID.nx*GRID.ny).map((v,i)=>({...v,...PLACES[i]})),method:'median-model-total',track:null});
 }

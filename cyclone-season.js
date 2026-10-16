@@ -18,10 +18,14 @@ function start(){
  panes.forEach((p,i)=>{p.id='seaPane'+i;p.hidden=i!==0;choices[i].setAttribute('aria-expanded',String(i===0));});
  panes[0].append(el('h3',headings[0]),state,text,direction,circulation,impact,status,refresh);
  const local=el('div'),localPeriod=el('p','','small-note');panes[1].append(el('h3',headings[1]),localPeriod,local,el('p','توقع إرشادي لثلاثة أيام؛ عتق مؤشر محلي لشبوة، وتختلف الأمطار داخل المحافظة.','small-note'));
- const mapStatus=el('p','','small-note'),mapView=el('div'),mapTime=el('p','','small-note'),zoom=el('button','تكبير الخريطة','action-btn'),dialog=el('dialog','','cyclone-image-dialog'),dismiss=el('button','إغلاق الخريطة'),full=el('img');zoom.type=dismiss.type='button';zoom.disabled=true;dismiss.onclick=()=>dialog.close();dialog.append(dismiss,full);
- panes[2].append(el('h3',headings[2]),el('p','خريطة واحدة تجمع توقعات الأمطار. لن نرسم مسارًا للحالة قبل توفر بيانات موثوقة له.','small-note'),mapTime,mapView,mapStatus,zoom,dialog);
+ const mapStatus=el('p','','small-note'),mapView=el('div'),mapTime=el('p','','small-note'),zoom=el('button','تكبير الخريطة','action-btn'),download=el('button','تحميل الخريطة PNG للمشاركة','action-btn'),downloadStatus=el('p','','small-note'),dialog=el('dialog','','cyclone-image-dialog'),dismiss=el('button','إغلاق الخريطة'),full=el('img'),stage=el('div','','cyclone-zoom-stage'),toolbar=el('div','','cyclone-zoom-toolbar'),plus=el('button','＋ تكبير'),minus=el('button','− تصغير'),fit=el('button','عرض الخريطة كاملة');
+ for(const button of [zoom,download,dismiss,plus,minus,fit])button.type='button';zoom.disabled=download.disabled=true;downloadStatus.setAttribute('role','status');stage.setAttribute('tabindex','0');stage.setAttribute('aria-label','الخريطة المكبرة؛ اسحب للتحريك أو استخدم أزرار التكبير');full.draggable=false;dismiss.onclick=()=>dialog.close();toolbar.append(dismiss,plus,minus,fit);stage.append(full);dialog.append(toolbar,el('p','اسحب الخريطة للتحريك، واستخدم زر التكبير لقراءة التفاصيل.','small-note'),stage);
+ let zoomScale=1;
+ function setScale(value,reset=false){const old=zoomScale;zoomScale=Math.max(1,Math.min(6,value));const width=stage.clientWidth||320;full.style.width=Math.round(width*zoomScale)+'px';if(reset){stage.scrollLeft=Math.max(0,width*zoomScale*.3-width/2);stage.scrollTop=0;}else{stage.scrollLeft=Math.max(0,(stage.scrollLeft+width/2)*zoomScale/old-width/2);}plus.disabled=zoomScale>=6;minus.disabled=zoomScale<=1;}
+ plus.onclick=()=>setScale(zoomScale*1.5);minus.onclick=()=>setScale(zoomScale/1.5);fit.onclick=()=>setScale(1,true);
+ panes[2].append(el('h3',headings[2]),el('p','خريطة واحدة تجمع توقعات الأمطار. لن نرسم مسارًا للحالة قبل توفر بيانات موثوقة له.','small-note'),mapTime,mapView,mapStatus,zoom,download,downloadStatus,dialog);
  desk.append(title,tabs,...panes);sea.replaceChildren(desk);
- let mapBusy=false,mapLast=0,mapURL,mapModule,mapData;
+ let mapBusy=false,mapLast=0,mapURL,mapModule,mapData,mapSVG,exportBusy=false;
  async function loadMap(){
   if(mapBusy)return;
   if(mapLast&&Date.now()-mapLast<300000)return;
@@ -29,11 +33,12 @@ function start(){
   try{
    const r=await fetch('/api/sea-map',{cache:'no-store',signal:AbortSignal.timeout(25000)});if(!r.ok)throw Error('unavailable');const s=await r.json();
    mapModule??=import('/sea-map-browser.mjs');const render=await mapModule;const svg=render.renderMap(s);
-   const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));if(mapURL)URL.revokeObjectURL(mapURL);mapURL=url;mapData=s;
-   const image=el('img','','cyclone-image');image.id='seaForecastImage';image.alt='خريطة طقس هدى المجمعة للأمطار مع حدود محافظات اليمن';image.src=url;image.onclick=()=>zoom.click();mapView.replaceChildren(image);zoom.disabled=false;full.src=url;full.alt=image.alt;
+   const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));if(mapURL)URL.revokeObjectURL(mapURL);mapURL=url;mapData=s;mapSVG=svg;
+   const image=el('img','','cyclone-image');image.id='seaForecastImage';image.alt='خريطة طقس هدى المجمعة للأمطار مع حدود محافظات اليمن';image.src=url;image.onclick=()=>zoom.click();mapView.replaceChildren(image);zoom.disabled=false;download.disabled=false;full.src=url;full.alt=image.alt;
    const stale=Date.now()-Date.parse(s.fetchedAt)>9*3600000,expired=Date.now()>Date.parse(s.period.endAt);
    mapTime.textContent='الفترة: '+date(s.period.startAt)+' إلى '+date(s.period.endAt)+' • بتوقيت اليمن';
-   mapStatus.textContent=(expired?'انتهت فترة هذه الخريطة؛ لا تمثل التوقع الحالي. ':stale?'تأخر التحديث؛ هذه آخر خريطة ناجحة. ':'')+'جمع البيانات: '+date(s.fetchedAt)+' • تحديث مجدول كل ٦ ساعات. التهشير يعني اختلافًا كبيرًا بين الموديلات.';
+   const failed=s.refresh?.lastAttempt?.ok===false&&Date.parse(s.refresh.lastAttempt.startedAt)>Date.parse(s.fetchedAt);
+   mapStatus.textContent=(failed?'تعذر آخر تحديث آلي؛ المعروض آخر خريطة ناجحة. ':'')+(expired?'انتهت فترة هذه الخريطة؛ لا تمثل التوقع الحالي. ':stale?'تأخر التحديث؛ هذه آخر خريطة ناجحة. ':'')+'جمع البيانات: '+date(s.fetchedAt)+' • تحديث مجدول كل ٦ ساعات. التهشير يعني اختلافًا كبيرًا بين الموديلات.';
    localPeriod.textContent=mapTime.textContent+(stale?' • بيانات سابقة، تأخر التحديث.':'');local.replaceChildren();
    if(expired)local.append(el('p','انتهت فترة التوقع؛ ننتظر بيانات جديدة.'));
    else for(const place of s.local){const card=el('div','','sea-local-place');card.append(el('h4',place.name),el('p',render.localSummary(place).text));local.append(card);}
@@ -41,7 +46,13 @@ function start(){
   }catch{mapStatus.textContent=mapData?'تعذر التحديث؛ المعروض آخر خريطة ناجحة، جمع بياناتها: '+date(mapData.fetchedAt):'تعذر جلب الخريطة الآن؛ لا توجد بيانات كافية لرسم توقع موثوق.';if(!mapData)local.replaceChildren(el('p','تعذر جلب التوقع المحلي الآن.'));}
   finally{mapBusy=false;}
  }
- zoom.onclick=()=>{if(mapURL)dialog.showModal();};
+ zoom.onclick=()=>{if(!mapURL)return;dialog.showModal();setScale(Math.max(1,900/(stage.clientWidth||320)),true);};
+ download.onclick=async()=>{
+  if(exportBusy||!mapSVG||!mapData)return;exportBusy=true;download.disabled=true;downloadStatus.textContent='جاري تجهيز الصورة بجودة عالية…';const svg=mapSVG,period=mapData.period;
+  try{const {mapPNG}=await import('/sea-map-export.mjs');const blob=await mapPNG(svg);const url=URL.createObjectURL(blob),anchor=el('a');anchor.href=url;anchor.download='Hada-Weather-'+period.start+'-to-'+period.until+'.png';document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);downloadStatus.textContent='الصورة جاهزة؛ إذا لم تبدأ تلقائيًا، راجع التنزيلات في متصفحك. أرسلها في واتساب كصورة HD أو مستند للحفاظ على الجودة.';}
+  catch{downloadStatus.textContent='تعذر تجهيز الصورة. حاول مرة أخرى بعد اكتمال تحميل الخريطة.';}
+  finally{exportBusy=false;download.disabled=false;}
+ };
  let busy=false,last=0,modules;
  const visible=()=>document.getElementById('seaModal').style.display==='block'&&!document.hidden;
  async function documentPdf(kind,report,pdfjs,tasks){

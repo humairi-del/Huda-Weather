@@ -44,3 +44,11 @@ Final deployment ecab5e79-8e33-43ff-b356-a60b758cde21 succeeded at 12:13:05 UTC,
 
 ## 2.8.1-preview — map label cleanup
 Moved the Gulf of Aden label from 49E,11N (over northern Somalia) to 48.5E,12.4N in open water. Removed other Yemeni governorate labels and Atq from the map; only Shabwa, Habban and Huda are labelled, with larger type and separated local callouts. All 22 governorate geometries remain. Country/sea context, rainfall values, source timestamps and six-hour schedule are retained. This is a renderer correction, not a fresh weather-data collection.
+
+
+## 2.8.2-preview — zoom, PNG export and refresh diagnostics
+- Mobile map modal starts at 900 px, has bounded zoom and horizontal panning, plus fit-to-stage control.
+- PNG download exports the SVG at 2400 x 2320 with a white background and preserved attribution; checked in the real browser.
+- Refresh pipeline records starting/success/failure status, publishes only complete datasets, and preserves the previous map on failure. Read-only /data exposes the last attempt. Client reports a newer failed attempt. Tests verify success/failure; scheduled runtime execution remains unobserved before the first 18:00 UTC event.
+- Windy satellite instability was not resolved by updated embed options or hidden-frame removal. Preview starts on the verified rainfall layer and explicitly marks embedded satellite unavailable instead of mislabelling wind as satellite.
+- 83 tests pass. Data publication review remains a pre-production decision; no production data source, alerts, recipients or schedules changed.
