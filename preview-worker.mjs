@@ -4,10 +4,18 @@ import {officialSources, officialDocument} from './cyclone-season-server.mjs';
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if(url.pathname==='/api/sea-map'){
+      if(request.method!=='GET')return new Response('Method not allowed',{status:405});
+      try{const r=await fetch('https://hada-sea-map-preview.humairi855.workers.dev/data',{signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error('map_unavailable');const data=await r.text();if(data.length>300000)throw Error('map_size');return new Response(data,{headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});}catch{return Response.json({error:'map_unavailable'},{status:503});}
+    }
     if (url.pathname === '/api/cyclone-sources' || url.pathname === '/api/cyclone-document') {
       if (request.method !== 'GET') return new Response('Method not allowed', {status:405});
       try {
-        if (url.pathname === '/api/cyclone-sources') {
+        if(url.pathname==='/api/sea-map'){
+      if(request.method!=='GET')return new Response('Method not allowed',{status:405});
+      try{const r=await fetch('https://hada-sea-map-preview.humairi855.workers.dev/data',{signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error('map_unavailable');const data=await r.text();if(data.length>300000)throw Error('map_size');return new Response(data,{headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});}catch{return Response.json({error:'map_unavailable'},{status:503});}
+    }
+    if (url.pathname === '/api/cyclone-sources') {
           return Response.json(await officialSources(), {headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
         }
         return await officialDocument(url.searchParams.get('kind'));

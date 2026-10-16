@@ -5,58 +5,44 @@ if(location.hostname!=='redesign-hada-2026-10.hada-weather-aifs-preview.pages.de
 const el=(tag,text,cls)=>{const e=document.createElement(tag);if(text)e.textContent=text;if(cls)e.className=cls;return e;};
 const date=v=>Number.isFinite(Date.parse(v))?new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',month:'long',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(v)):'وقت الإصدار غير ظاهر';
 const reportDate=r=>r.issuedAt?date(r.issuedAt):r.date?new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',year:'numeric',month:'long',day:'numeric'}).format(new Date(r.date+'T00:00:00Z')):'غير ظاهر؛ راجعه داخل المصدر';
-const link=(text,url)=>{const a=el('a',text,'official-btn cyclone-link');a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;};
-
-// A finite, dated editorial bulletin. Source terms do not permit a persistent live mirror.
-const seaEdition={runAt:'2026-10-16T00:00:00Z',validAt:'2026-10-20T00:00:00Z',folder:'/sea-charts/2026-10-16/'};
-const seaModels=[
- {id:'ecmwf',name:'الأوروبي ECMWF'},
- {id:'gfs',name:'الأمريكي GFS'},
- {id:'cmc',name:'الكندي CMC / GEM'},
- {id:'icon',name:'الألماني ICON'},
- {id:'aifs',name:'الأوروبي بالذكاء الاصطناعي AIFS'}
-];
-function modelMaps(){
- const box=el('section','','cyclone-panel cyclone-models');box.id='seaModelMaps';box.hidden=true;
- const heading=el('h3','توقعات الموديلات لمسار الحالة'),edition=el('p','نشرة صور محفوظة • إصدار ١٦ أكتوبر ٢٠٢٦ • لا تتحدث تلقائيًا','cyclone-edition');
- const intro=el('p','اختر الموديل لتشاهد صورته مباشرة. الصور تعرض مجموع الأمطار المتوقع من ١٦ إلى ٢٠ أكتوبر، وليس أمطار يوم واحد. اختلاف الألوان يوضح اختلاف التوقعات؛ هذه الخرائط ليست مسارًا رسميًا للحالة.','small-note');
- const label=el('label','اختر الموديل');label.htmlFor='seaModelChoice';const select=el('select');select.id='seaModelChoice';
- for(const m of seaModels){const o=el('option',m.name);o.value=m.id;select.append(o);}
- const tools=el('div','','cyclone-map-tools'),zoom=el('button','تكبير الصورة داخل الموقع'),retry=el('button','إعادة عرض الصورة'),close=el('button','إغلاق صور الموديلات');for(const b of [zoom,retry,close])b.type='button';tools.append(zoom,retry,close);
- const mapTitle=el('h4'),timing=el('p','','small-note'),age=el('p','','cyclone-edition'),view=el('div'),summary=el('p'),status=el('p','','small-note');status.setAttribute('role','status');
- const source=el('p','','small-note');source.append(document.createTextNode('المصدر: '),link('Tropical Tidbits — Levi Cowan','https://www.tropicaltidbits.com/analysis/models/'));
- const dialog=el('dialog','','cyclone-image-dialog'),dialogTitle=el('h3'),dismiss=el('button','إغلاق الصورة المكبّرة'),full=el('img');dismiss.type='button';dismiss.onclick=()=>dialog.close();dialog.append(dismiss,dialogTitle,full);
- let image;
- function render(){
-  if(dialog.open)dialog.close();const m=seaModels.find(x=>x.id===select.value)||seaModels[0];mapTitle.textContent='توقعات الموديل '+m.name;
-  timing.textContent='تشغيل الموديل: '+date(seaEdition.runAt)+' • نهاية فترة التوقع: '+date(seaEdition.validAt)+' • بتوقيت اليمن';
-  const expired=Date.now()>Date.parse(seaEdition.validAt),old=Date.now()-Date.parse(seaEdition.runAt)>36*3600000;
-  age.hidden=!old;age.textContent=expired?'انتهت فترة هذه النشرة؛ الصور للأرشيف ولا تمثل التوقع الحالي.':'هذه نشرة سابقة؛ لا تمثل أحدث تشغيل للموديلات.';
-  summary.textContent='الألوان تبيّن مجموع المطر المتوقع بالمليمتر خلال الفترة الموضحة. الصورة تشمل بحر العرب والمحيط الهندي؛ توزيع المطر وحده لا يؤكد اتجاه الحالة أو وصول أمطارها إلى شبوة وهدى.';
-  view.replaceChildren();status.textContent='جاري تحميل صورة '+m.name+'…';zoom.disabled=true;image=el('img','','cyclone-image');image.id='seaForecastImage';image.alt='توقعات '+m.name+' لمجموع الأمطار من ١٦ إلى ٢٠ أكتوبر ٢٠٢٦';image.decoding='async';
-  const current=image;image.onload=()=>{if(image!==current)return;status.textContent='صورة النشرة المحفوظة جاهزة • اختر موديلًا آخر للمقارنة.';zoom.disabled=false;};image.onerror=()=>{if(image!==current)return;status.textContent='تعذر تحميل صورة هذا الموديل. اضغط إعادة عرض الصورة للمحاولة مجددًا.';zoom.disabled=true;};
-  image.src=seaEdition.folder+m.id+'.png';view.append(image);image.onclick=()=>{if(!zoom.disabled)zoom.click();};
- }
- zoom.onclick=()=>{const m=seaModels.find(x=>x.id===select.value)||seaModels[0];dialogTitle.textContent='توقعات الموديل '+m.name;full.src=image.src;full.alt=image.alt;dialog.showModal();};
- select.onchange=render;retry.onclick=render;
- box.append(heading,edition,intro,label,select,mapTitle,timing,age,view,status,summary,tools,source,dialog);
- box.open=()=>{box.hidden=false;render();box.scrollIntoView({block:'start',behavior:'smooth'});select.focus({preventScroll:true});};
- box.stop=()=>{if(dialog.open)dialog.close();view.replaceChildren();image=null;};
- close.onclick=()=>{box.hidden=true;box.stop();const b=document.getElementById('seaModelsButton');b?.setAttribute('aria-expanded','false');b?.focus();};return box;
-}
 
 function start(){
  const sea=document.querySelector('#seaModal .sea-content');if(!sea)return;
  const desk=el('section','','cyclone-desk');desk.id='cycloneSeason';desk.setAttribute('aria-label','متابعة المنخفضات والأعاصير');
- const title=el('h3','🌀 متابعة المنخفضات والأعاصير'),state=el('h4','جاري التحقق…'),text=el('p'),direction=el('p'),circulation=el('p'),impact=el('p'),status=el('p');status.setAttribute('role','status');
- const picture=el('div'),caption=el('p','','small-note'),details=el('details');details.append(el('summary','المصادر وتفاصيل المتابعة'));const content=el('div');details.append(content);
+ const title=el('h3','متابعة طقس هدى'),state=el('h4','جاري التحقق…'),text=el('p'),direction=el('p'),circulation=el('p'),impact=el('p'),status=el('p');status.setAttribute('role','status');
  const refresh=el('button','تحديث الحالة','action-btn');refresh.type='button';
- const maps=modelMaps(),modelsButton=el('button','🗺️ توقعات الموديلات لمسار الحالة','action-btn');modelsButton.id='seaModelsButton';modelsButton.type='button';modelsButton.setAttribute('aria-expanded','false');modelsButton.setAttribute('aria-controls','seaModelMaps');modelsButton.onclick=()=>{const opening=maps.hidden;modelsButton.setAttribute('aria-expanded',String(opening));if(opening)maps.open();else{maps.hidden=true;maps.stop();}};
- const overview=el('div','','cyclone-panel');overview.append(el('h3','آخر المستجدات'),state,text,el('h4','الموقع والاتجاه المتوقع'),direction,circulation,el('h4','هل تتأثر شبوة وهدى؟'),impact);
- desk.append(title,overview,el('h3','خريطة المتابعة الرسمية'),picture,caption,modelsButton,maps,status,refresh,details);sea.replaceChildren(desk);
- const syncMaps=()=>{if(document.getElementById('seaModal').style.display!=='block'){maps.hidden=true;maps.stop();modelsButton.setAttribute('aria-expanded','false');}};
- new MutationObserver(syncMaps).observe(document.getElementById('seaModal'),{attributes:true,attributeFilter:['style']});
- let busy=false,last=0,modules,objectURL;
+ const tabs=el('div','','sea-three-choices');tabs.setAttribute('aria-label','خيارات المتابعة');
+ const panes=[el('section','','cyclone-panel'),el('section','','cyclone-panel'),el('section','','cyclone-panel')];
+ const headings=['حالات بحر العرب','توقعات شبوة حبان هدى','المسارات المتوقعة'];
+ const choices=headings.map((label,i)=>{const button=el('button',(i+1)+' · '+label);button.type='button';button.id='seaChoice'+i;button.setAttribute('aria-controls','seaPane'+i);button.onclick=()=>{panes.forEach((p,j)=>{p.hidden=i!==j;choices[j].setAttribute('aria-expanded',String(i===j));});if(i>0)void loadMap();};tabs.append(button);return button;});
+ panes.forEach((p,i)=>{p.id='seaPane'+i;p.hidden=i!==0;choices[i].setAttribute('aria-expanded',String(i===0));});
+ panes[0].append(el('h3',headings[0]),state,text,direction,circulation,impact,status,refresh);
+ const local=el('div'),localPeriod=el('p','','small-note');panes[1].append(el('h3',headings[1]),localPeriod,local,el('p','توقع إرشادي لثلاثة أيام؛ عتق مؤشر محلي لشبوة، وتختلف الأمطار داخل المحافظة.','small-note'));
+ const mapStatus=el('p','','small-note'),mapView=el('div'),mapTime=el('p','','small-note'),zoom=el('button','تكبير الخريطة','action-btn'),dialog=el('dialog','','cyclone-image-dialog'),dismiss=el('button','إغلاق الخريطة'),full=el('img');zoom.type=dismiss.type='button';zoom.disabled=true;dismiss.onclick=()=>dialog.close();dialog.append(dismiss,full);
+ panes[2].append(el('h3',headings[2]),el('p','خريطة واحدة تجمع توقعات الأمطار. لن نرسم مسارًا للحالة قبل توفر بيانات موثوقة له.','small-note'),mapTime,mapView,mapStatus,zoom,dialog);
+ desk.append(title,tabs,...panes);sea.replaceChildren(desk);
+ let mapBusy=false,mapLast=0,mapURL,mapModule,mapData;
+ async function loadMap(){
+  if(mapBusy)return;
+  if(mapLast&&Date.now()-mapLast<300000)return;
+  mapBusy=true;mapStatus.textContent='جاري تحميل خريطة طقس هدى…';
+  try{
+   const r=await fetch('/api/sea-map',{cache:'no-store',signal:AbortSignal.timeout(25000)});if(!r.ok)throw Error('unavailable');const s=await r.json();
+   mapModule??=import('/sea-map-browser.mjs');const render=await mapModule;const svg=render.renderMap(s);
+   const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));if(mapURL)URL.revokeObjectURL(mapURL);mapURL=url;mapData=s;
+   const image=el('img','','cyclone-image');image.id='seaForecastImage';image.alt='خريطة طقس هدى المجمعة للأمطار مع حدود محافظات اليمن';image.src=url;image.onclick=()=>zoom.click();mapView.replaceChildren(image);zoom.disabled=false;full.src=url;full.alt=image.alt;
+   const stale=Date.now()-Date.parse(s.fetchedAt)>9*3600000,expired=Date.now()>Date.parse(s.period.endAt);
+   mapTime.textContent='الفترة: '+date(s.period.startAt)+' إلى '+date(s.period.endAt)+' • بتوقيت اليمن';
+   mapStatus.textContent=(expired?'انتهت فترة هذه الخريطة؛ لا تمثل التوقع الحالي. ':stale?'تأخر التحديث؛ هذه آخر خريطة ناجحة. ':'')+'جمع البيانات: '+date(s.fetchedAt)+' • تحديث مجدول كل ٦ ساعات. التهشير يعني اختلافًا كبيرًا بين الموديلات.';
+   localPeriod.textContent=mapTime.textContent+(stale?' • بيانات سابقة، تأخر التحديث.':'');local.replaceChildren();
+   if(expired)local.append(el('p','انتهت فترة التوقع؛ ننتظر بيانات جديدة.'));
+   else for(const place of s.local){const card=el('div','','sea-local-place');card.append(el('h4',place.name),el('p',render.localSummary(place).text));local.append(card);}
+   mapLast=Date.now();
+  }catch{mapStatus.textContent=mapData?'تعذر التحديث؛ المعروض آخر خريطة ناجحة، جمع بياناتها: '+date(mapData.fetchedAt):'تعذر جلب الخريطة الآن؛ لا توجد بيانات كافية لرسم توقع موثوق.';if(!mapData)local.replaceChildren(el('p','تعذر جلب التوقع المحلي الآن.'));}
+  finally{mapBusy=false;}
+ }
+ zoom.onclick=()=>{if(mapURL)dialog.showModal();};
+ let busy=false,last=0,modules;
  const visible=()=>document.getElementById('seaModal').style.display==='block'&&!document.hidden;
  async function documentPdf(kind,report,pdfjs,tasks){
   const r=await fetch('/api/cyclone-document?kind='+kind,{cache:'no-store',signal:AbortSignal.timeout(25000)});if(!r.ok||r.headers.get('X-Hada-Source')!==report.url)throw Error('source_changed');
@@ -69,33 +55,20 @@ function start(){
   try{
    const r=await fetch('/api/cyclone-sources',{cache:'no-store',signal:AbortSignal.timeout(16000)});if(!r.ok)throw Error('source');const source=await r.json();
    const safe=source.reports.filter(x=>{try{const u=new URL(x.url);return u.protocol==='https:'&&['rsmcnewdelhi.imd.gov.in','dss.imd.gov.in'].includes(u.hostname);}catch{return false;}});
-   const daily=safe.find(x=>x.id==='outlook'),extended=safe.find(x=>x.id==='extended'),track=safe.find(x=>x.id==='track'&&!x.noTrackFile);
+   const daily=safe.find(x=>x.id==='outlook'),extended=safe.find(x=>x.id==='extended');
    if(!daily)throw Error('daily_missing');
    modules??=Promise.all([import('/cyclone-pdf.mjs'),import('/cyclone-analysis.mjs')]);const [pdfjs,analysis]=await modules;pdfjs.GlobalWorkerOptions.workerSrc='/cyclone-pdf-worker.mjs';
    const results=await Promise.allSettled([documentPdf('outlook',daily,pdfjs,tasks),extended?documentPdf('extended',extended,pdfjs,tasks):Promise.reject(Error('no_extended'))]);
    const dailyPdf=results[0].status==='fulfilled'?results[0].value:null,extendedPdf=results[1].status==='fulfilled'?results[1].value:null;docs=[dailyPdf,extendedPdf].filter(Boolean);
    const texts=await Promise.all(docs.map(read));const dailyText=dailyPdf?texts[0]:'',extendedText=extendedPdf?texts[dailyPdf?1:0]:'';
    if(!dailyText&&!extendedText)throw Error('unreadable');const a=analysis.analyseReports(dailyText,extendedText);
-   state.textContent=(daily.stale?'نشرة سابقة — ':'')+a.state;text.textContent=a.detail;direction.textContent=a.direction;circulation.textContent=a.circulationNote||'';impact.textContent=a.impact;
-   content.replaceChildren();if(a.nearTerm)content.append(el('p',a.nearTerm));if(a.disagreement)content.append(el('p','الموديلات مختلفة في التشكّل والمسار والشدة؛ اتجاه اليمن أو عُمان في أحد الموديلات لا يثبت وصول الحالة أو أمطارها إلى شبوة.'));
-   content.append(el('p','متابعة حتى ١٤ يومًا وفق نشرة الأسبوعين، مع استمرار تحديث الحالة طوال عمرها. الأيام البعيدة أقل ثقة.','small-note'));
-   // Visitor summaries remain Arabic; source documents are available through the links below.
-   for(const report of safe.filter(x=>['outlook','extended','track'].includes(x.id)&&!x.noTrackFile))content.append(link(report.label+' ↗',report.url));
-   content.append(link('المسار التفاعلي الرسمي ↗','https://dss.imd.gov.in/dwr_img/GIS/cyclone.html'));
-   let imagePdf,imageReport;
-   if(track){try{imagePdf=await documentPdf('track',track,pdfjs,tasks);docs.push(imagePdf);imageReport=track;}catch{}}
-   if(!imagePdf){imagePdf=extendedPdf||dailyPdf;imageReport=extendedPdf?extended:daily;}
-   picture.replaceChildren();caption.textContent=track&&imageReport===track?'أحدث خريطة للمسار من المصدر الرسمي؛ التوقع قابل للتغير.':'المسار الرسمي غير متاح؛ المعروض خريطة/نشرة توقعات، وليس مسارًا مؤكدًا.';
-   caption.textContent+=' • مصدر الصورة: '+imageReport.label+' • تاريخ إصدار الصورة: '+reportDate(imageReport)+(imageReport.stale?' • مصدر الصورة قديم، يلزم تحديثه.':'');
-   try{const page=await imagePdf.getPage(1),view=page.getViewport({scale:1.6}),canvas=document.createElement('canvas');canvas.width=Math.ceil(view.width);canvas.height=Math.ceil(view.height);await page.render({canvasContext:canvas.getContext('2d'),viewport:view}).promise;
-    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('render');if(objectURL)URL.revokeObjectURL(objectURL);objectURL=URL.createObjectURL(blob);const img=el('img','','cyclone-image');img.alt=imageReport===track?'أحدث المسار الرسمي':imageReport.label+' — ليست مسارًا رسميًا';img.src=objectURL;const anchor=link('تكبير الخريطة ↗',imageReport.url);picture.append(img,anchor);img.onclick=()=>anchor.click();
-   }catch{picture.append(el('p','تعذر عرض صورة النشرة. افتح الخريطة من المصدر.','cyclone-image-error'),link('فتح الخريطة ↗',imageReport.url));}
+   state.textContent=(daily.stale?'نشرة سابقة — ':'')+a.state;text.textContent=a.detail;direction.textContent=a.direction;circulation.textContent=a.circulationNote||'';impact.textContent='';
    status.textContent='إصدار النشرة اليومية: '+reportDate(daily)+' • آخر تحقق: '+date(source.checkedAt)+(daily.stale?' • النشرة قديمة، يلزم تحديث المصدر.':'')+(!dailyPdf?' • تعذرت قراءة النشرة اليومية.':'')+(!extendedPdf?' • تعذرت قراءة توقعات الأسبوعين.':'');last=Date.now();
-  }catch{if(!last){state.textContent='تعذر التحقق من الحالة الآن';text.textContent='لا تتوفر بيانات حديثة كافية لتحديد التصنيف أو المسار.';direction.textContent='';circulation.textContent='';impact.textContent='';picture.replaceChildren();caption.textContent='';content.replaceChildren(link('فتح المركز الرسمي ↗','https://rsmcnewdelhi.imd.gov.in/'));}status.textContent='فشل التحديث'+(last?'؛ المعروض آخر قراءة ناجحة: '+date(new Date(last).toISOString()):'')+'؛ تعذر الاتصال لا يعني انتهاء الحالة.';}
+  }catch{if(!last){state.textContent='تعذر التحقق من الحالة الآن';text.textContent='لا تتوفر بيانات حديثة كافية لتحديد التصنيف أو المسار.';direction.textContent='';circulation.textContent='';impact.textContent='';}status.textContent='فشل التحديث'+(last?'؛ المعروض آخر قراءة ناجحة: '+date(new Date(last).toISOString()):'')+'؛ تعذر الاتصال لا يعني انتهاء الحالة.';}
   finally{busy=false;refresh.disabled=false;void Promise.allSettled(tasks.map(task=>Promise.resolve().then(()=>task.destroy())));}
  }
- refresh.onclick=()=>load(true);window.loadSea=()=>load();window.openSea=function(){document.getElementById('seaModal').style.display='block';document.body.style.overflow='hidden';void load();};
- setInterval(()=>{if(visible())void load();},60000);document.addEventListener('visibilitychange',()=>{if(visible())void load();});
+ refresh.onclick=()=>load(true);window.loadSea=()=>{void load();void loadMap();};window.openSea=function(){document.getElementById('seaModal').style.display='block';document.body.style.overflow='hidden';void load();void loadMap();};
+ setInterval(()=>{if(visible()){void load();void loadMap();}},60000);document.addEventListener('visibilitychange',()=>{if(visible()){void load();void loadMap();}});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();

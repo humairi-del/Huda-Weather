@@ -3,7 +3,7 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
-export const clientFiles = ['preview-redesign.html','daily-bulletin.js','cyclone-season.js','cyclone-pdf.mjs','cyclone-pdf-worker.mjs','cyclone-analysis.mjs','icon.svg','manifest.webmanifest','sw.js','OneSignalSDKWorker.js','sponsor-albaqira.jpg','stars-fix.js','star-details.js','redesign.js','redesign.css','rain-card.js','base-2.1.1.html','patch-2.2.js','dust-view-fix.js','sections-fix.js','prayer-7day.js','sea-charts/2026-10-16/manifest.json',...['ecmwf','gfs','cmc','icon','aifs'].map(id=>'sea-charts/2026-10-16/'+id+'.png')];
+export const clientFiles = ['preview-redesign.html','daily-bulletin.js','cyclone-season.js','sea-map-browser.mjs','cyclone-pdf.mjs','cyclone-pdf-worker.mjs','cyclone-analysis.mjs','icon.svg','manifest.webmanifest','sw.js','OneSignalSDKWorker.js','sponsor-albaqira.jpg','stars-fix.js','star-details.js','redesign.js','redesign.css','rain-card.js','base-2.1.1.html','patch-2.2.js','dust-view-fix.js','sections-fix.js','prayer-7day.js'];
 const mime = p => p.endsWith('.html') ? 'text/html; charset=utf-8' : /\.m?js$/.test(p) ? 'application/javascript; charset=utf-8' : p.endsWith('.css') ? 'text/css; charset=utf-8' : p.endsWith('.png') ? 'image/png' : p.endsWith('.json') ? 'application/json; charset=utf-8' : p.endsWith('.jpg') ? 'image/jpeg' : p.endsWith('.svg') ? 'image/svg+xml' : 'application/manifest+json';
 
 // Self-contained deployment, matching the existing preview's packaging.
