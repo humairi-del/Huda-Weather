@@ -40,3 +40,7 @@ Build renderer: install `d3-contour@4.0.2`, `esbuild@0.28.2` (or compatible pinn
 - The six-hour cron registration is confirmed. The next scheduled event is 18:00 UTC (9pm Yemen); it has not yet occurred. Do not describe the initial seed upload as an observed cron execution.
 
 Final deployment ecab5e79-8e33-43ff-b356-a60b758cde21 succeeded at 12:13:05 UTC, from 802ba59475bdee79b94e0b5f0f63a4053fdbf8e8. It contains the same verified dataset gateway, with simpler local visitor text.
+
+
+## 2.8.1-preview — map label cleanup
+Moved the Gulf of Aden label from 49E,11N (over northern Somalia) to 48.5E,12.4N in open water. Removed other Yemeni governorate labels and Atq from the map; only Shabwa, Habban and Huda are labelled, with larger type and separated local callouts. All 22 governorate geometries remain. Country/sea context, rainfall values, source timestamps and six-hour schedule are retained. This is a renderer correction, not a fresh weather-data collection.
