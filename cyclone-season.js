@@ -6,12 +6,53 @@ const el=(tag,text,cls)=>{const e=document.createElement(tag);if(text)e.textCont
 const date=v=>Number.isFinite(Date.parse(v))?new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',month:'long',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(v)):'وقت الإصدار غير ظاهر';
 const reportDate=r=>r.issuedAt?date(r.issuedAt):r.date?new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',year:'numeric',month:'long',day:'numeric'}).format(new Date(r.date+'T00:00:00Z')):'غير ظاهر؛ راجعه داخل المصدر';
 const link=(text,url)=>{const a=el('a',text,'official-btn cyclone-link');a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;};
+
+// Only ECMWF is verified for the free Windy map embed. Never relabel it as another model.
+const seaModels=[
+ {id:'ecmwf',name:'الأوروبي ECMWF',chart:'euro',embed:true},
+ {id:'gfs',name:'الأمريكي GFS',chart:'standard'},
+ {id:'cmc',name:'الكندي CMC / GEM',chart:'can'},
+ {id:'icon',name:'الألماني ICON',chart:'german'},
+ {id:'aifs',name:'الأوروبي بالذكاء الاصطناعي AIFS',chart:'euro-ai'}
+];
+function modelMaps(){
+ const box=el('section','','cyclone-panel cyclone-models');box.id='seaModelMaps';box.hidden=true;
+ const heading=el('h3','توقعات الموديلات لمسار الحالة'),intro=el('p','قارن موقع النشاط المتوقع في الأوقات القادمة. قد تختلف الموديلات في الاتجاه والشدة؛ الخريطة توقع وليست مسارًا مؤكدًا.','small-note');
+ const label=el('label','اختر الموديل');label.htmlFor='seaModelChoice';const select=el('select');select.id='seaModelChoice';
+ for(const m of seaModels){const o=el('option',m.name);o.value=m.id;select.append(o);}
+ const tools=el('div','','cyclone-map-tools');const rain=el('button','الأمطار المتوقعة'),wind=el('button','الرياح والضغط'),reload=el('button','إعادة تحميل الخريطة'),close=el('button','إغلاق خرائط الموديلات');
+ for(const b of [rain,wind,reload,close])b.type='button';tools.append(rain,wind,reload,close);
+ const mapTitle=el('h4'),help=el('p','','small-note'),view=el('div'),fallback=el('p','','small-note'),source=el('div');
+ help.textContent='الألوان تبيّن شدة المطر أو الرياح. استخدم زر التشغيل وشريط الوقت أسفل الخريطة لمشاهدة تغير التوقع. ظهور دوران لا يثبت وصوله إلى شبوة.';
+ const status=el('p','','small-note');status.setAttribute('role','status');let layer='rain',timer;
+ function render(){
+  clearTimeout(timer);const m=seaModels.find(x=>x.id===select.value)||seaModels[0];mapTitle.textContent='توقعات الموديل '+m.name;
+  rain.setAttribute('aria-pressed',String(layer==='rain'));wind.setAttribute('aria-pressed',String(layer==='wind'));
+  rain.disabled=wind.disabled=reload.disabled=!m.embed;help.hidden=!m.embed;view.replaceChildren();source.replaceChildren();
+  if(!m.embed){status.textContent='خريطة هذا الموديل غير متاحة للعرض داخل الموقع حاليًا.';fallback.textContent='يمكنك مشاهدة خرائطه الأصلية عبر الزر أدناه. اختر الأمطار أو الرياح والوقت المطلوب في صفحة المصدر؛ تشغيل الحركة قد يتطلب اشتراكًا لدى المصدر.';source.append(link('فتح خرائط '+m.name+' ↗','https://meteologix.com/ye/model-charts/'+m.chart));return;}
+  status.textContent='جاري فتح الخريطة…';fallback.textContent='وقت التوقع يظهر على شريط الخريطة حسب إعدادات المصدر. تاريخ تحديث تشغيل الموديل غير متاح هنا؛ لا يُستبدل بوقت فتح الصفحة.';
+  const frame=el('iframe');frame.id='seaForecastFrame';frame.title='خريطة توقعات الموديل '+m.name+(layer==='rain'?' — الأمطار':' — الرياح والضغط');frame.loading='eager';frame.referrerPolicy='strict-origin-when-cross-origin';
+  const url=new URL('https://embed.windy.com/embed.html');for(const [k,v] of Object.entries({type:'map',location:'coordinates',metricRain:'mm',metricWind:'km/h',metricTemp:'°C',zoom:'5',overlay:layer,product:'ecmwf',level:'surface',lat:'15',lon:'59',pressure:'true'}))url.searchParams.set(k,v);
+  frame.src=url.href;frame.onload=()=>{clearTimeout(timer);status.textContent='المصدر: Windy • إذا بقيت الخريطة فارغة، افتحها من المصدر.';};frame.onerror=()=>{clearTimeout(timer);status.textContent='تعذر تحميل الخريطة؛ يمكنك فتحها من المصدر.';};
+  timer=setTimeout(()=>{status.textContent='قد يتأخر تحميل الخريطة مع ضعف الاتصال؛ يمكنك فتحها من المصدر.';},18000);view.append(frame);source.append(link('تكبير الخريطة في Windy ↗','https://www.windy.com/?'+layer+',15.000,59.000,5'));
+ }
+ select.onchange=render;rain.onclick=()=>{layer='rain';render();};wind.onclick=()=>{layer='wind';render();};reload.onclick=render;
+ box.append(heading,intro,label,select,tools,mapTitle,help,status,view,fallback,source);
+ box.open=()=>{box.hidden=false;render();box.scrollIntoView({block:'start',behavior:'smooth'});select.focus({preventScroll:true});};
+ box.stop=()=>{clearTimeout(timer);view.replaceChildren();};close.onclick=()=>{box.hidden=true;box.stop();const b=document.getElementById('seaModelsButton');b?.setAttribute('aria-expanded','false');b?.focus();};return box;
+}
+
 function start(){
  const sea=document.querySelector('#seaModal .sea-content');if(!sea)return;
  const desk=el('section','','cyclone-desk');desk.id='cycloneSeason';desk.setAttribute('aria-label','متابعة المنخفضات والأعاصير');
  const title=el('h3','🌀 متابعة المنخفضات والأعاصير'),state=el('h4','جاري التحقق…'),text=el('p'),direction=el('p'),circulation=el('p'),impact=el('p'),status=el('p');status.setAttribute('role','status');
- const picture=el('div'),caption=el('p','','small-note'),details=el('details');details.append(el('summary','تفاصيل الحالة'));const content=el('div');details.append(content);
- const refresh=el('button','تحديث الحالة','action-btn');refresh.type='button';desk.append(title,state,text,direction,circulation,impact,picture,caption,status,refresh,details);sea.replaceChildren(desk);
+ const picture=el('div'),caption=el('p','','small-note'),details=el('details');details.append(el('summary','المصادر وتفاصيل المتابعة'));const content=el('div');details.append(content);
+ const refresh=el('button','تحديث الحالة','action-btn');refresh.type='button';
+ const maps=modelMaps(),modelsButton=el('button','🗺️ توقعات الموديلات لمسار الحالة','action-btn');modelsButton.id='seaModelsButton';modelsButton.type='button';modelsButton.setAttribute('aria-expanded','false');modelsButton.setAttribute('aria-controls','seaModelMaps');modelsButton.onclick=()=>{const opening=maps.hidden;modelsButton.setAttribute('aria-expanded',String(opening));if(opening)maps.open();else{maps.hidden=true;maps.stop();}};
+ const overview=el('div','','cyclone-panel');overview.append(el('h3','آخر المستجدات'),state,text,el('h4','الموقع والاتجاه المتوقع'),direction,circulation,el('h4','هل تتأثر شبوة وهدى؟'),impact);
+ desk.append(title,overview,el('h3','خريطة المتابعة الرسمية'),picture,caption,modelsButton,maps,status,refresh,details);sea.replaceChildren(desk);
+ const syncMaps=()=>{if(document.getElementById('seaModal').style.display!=='block'){maps.hidden=true;maps.stop();modelsButton.setAttribute('aria-expanded','false');}};
+ new MutationObserver(syncMaps).observe(document.getElementById('seaModal'),{attributes:true,attributeFilter:['style']});
  let busy=false,last=0,modules,objectURL;
  const visible=()=>document.getElementById('seaModal').style.display==='block'&&!document.hidden;
  async function documentPdf(kind,report,pdfjs,tasks){
@@ -35,7 +76,7 @@ function start(){
    state.textContent=(daily.stale?'نشرة سابقة — ':'')+a.state;text.textContent=a.detail;direction.textContent=a.direction;circulation.textContent=a.circulationNote||'';impact.textContent=a.impact;
    content.replaceChildren();if(a.nearTerm)content.append(el('p',a.nearTerm));if(a.disagreement)content.append(el('p','الموديلات مختلفة في التشكّل والمسار والشدة؛ اتجاه اليمن أو عُمان في أحد الموديلات لا يثبت وصول الحالة أو أمطارها إلى شبوة.'));
    content.append(el('p','متابعة حتى ١٤ يومًا وفق نشرة الأسبوعين، مع استمرار تحديث الحالة طوال عمرها. الأيام البعيدة أقل ثقة.','small-note'));
-   if(a.evidence){const raw=el('details');raw.append(el('summary','النص الأصلي الذي بُني عليه الملخص'),el('p',a.evidence));content.append(raw);}
+   // Visitor summaries remain Arabic; source documents are available through the links below.
    for(const report of safe.filter(x=>['outlook','extended','track'].includes(x.id)&&!x.noTrackFile))content.append(link(report.label+' ↗',report.url));
    content.append(link('المسار التفاعلي الرسمي ↗','https://dss.imd.gov.in/dwr_img/GIS/cyclone.html'));
    let imagePdf,imageReport;
@@ -44,7 +85,7 @@ function start(){
    picture.replaceChildren();caption.textContent=track&&imageReport===track?'أحدث خريطة للمسار من المصدر الرسمي؛ التوقع قابل للتغير.':'المسار الرسمي غير متاح؛ المعروض خريطة/نشرة توقعات، وليس مسارًا مؤكدًا.';
    caption.textContent+=' • مصدر الصورة: '+imageReport.label+' • تاريخ إصدار الصورة: '+reportDate(imageReport)+(imageReport.stale?' • مصدر الصورة قديم، يلزم تحديثه.':'');
    try{const page=await imagePdf.getPage(1),view=page.getViewport({scale:1.6}),canvas=document.createElement('canvas');canvas.width=Math.ceil(view.width);canvas.height=Math.ceil(view.height);await page.render({canvasContext:canvas.getContext('2d'),viewport:view}).promise;
-    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('render');if(objectURL)URL.revokeObjectURL(objectURL);objectURL=URL.createObjectURL(blob);const img=el('img','','cyclone-image');img.alt=imageReport===track?'أحدث المسار الرسمي':'أحدث نشرة توقعات الأسبوعين — ليست مسارًا رسميًا';img.src=objectURL;const anchor=link('تكبير الخريطة ↗',imageReport.url);picture.append(img,anchor);img.onclick=()=>anchor.click();
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('render');if(objectURL)URL.revokeObjectURL(objectURL);objectURL=URL.createObjectURL(blob);const img=el('img','','cyclone-image');img.alt=imageReport===track?'أحدث المسار الرسمي':imageReport.label+' — ليست مسارًا رسميًا';img.src=objectURL;const anchor=link('تكبير الخريطة ↗',imageReport.url);picture.append(img,anchor);img.onclick=()=>anchor.click();
    }catch{picture.append(el('p','تعذر عرض صورة النشرة. افتح الخريطة من المصدر.','cyclone-image-error'),link('فتح الخريطة ↗',imageReport.url));}
    status.textContent='إصدار النشرة اليومية: '+reportDate(daily)+' • آخر تحقق: '+date(source.checkedAt)+(daily.stale?' • النشرة قديمة، يلزم تحديث المصدر.':'')+(!dailyPdf?' • تعذرت قراءة النشرة اليومية.':'')+(!extendedPdf?' • تعذرت قراءة توقعات الأسبوعين.':'');last=Date.now();
   }catch{if(!last){state.textContent='تعذر التحقق من الحالة الآن';text.textContent='لا تتوفر بيانات حديثة كافية لتحديد التصنيف أو المسار.';direction.textContent='';circulation.textContent='';impact.textContent='';picture.replaceChildren();caption.textContent='';content.replaceChildren(link('فتح المركز الرسمي ↗','https://rsmcnewdelhi.imd.gov.in/'));}status.textContent='فشل التحديث'+(last?'؛ المعروض آخر قراءة ناجحة: '+date(new Date(last).toISOString()):'')+'؛ تعذر الاتصال لا يعني انتهاء الحالة.';}
