@@ -16,7 +16,8 @@ export async function buildPreview() {
   for (const file of ['open-data-lab.html','open-data-lab.js','open-data-lab-qa.html']) assets['/'+file]=[(await readFile(path.join(root,file))).toString('base64'),mime(file)];
   const readSnapshot=async name=>JSON.parse(await readFile(path.join(root,'sea-map-data',name),'utf8'));
   const [local,aifs,region]=await Promise.all(['open-data-local-20261017.json','open-data-aifs-ens-20261017.json','open-data-region-20261017.json'].map(readSnapshot));
-  const openDataBundle=prepareOpenDataBundle({local,aifs,region});
+  const surface=await readSnapshot('open-data-surface-20261017.json');
+  const openDataBundle=prepareOpenDataBundle({local,aifs,region,surface});
   const mapModule=await build({entryPoints:[path.join(root,'sea-map-render.mjs')],bundle:true,write:false,format:'esm',loader:{'.geojson':'json'},minify:true});
   const {renderMap}=await import('data:text/javascript;base64,'+Buffer.from(mapModule.outputFiles[0].text).toString('base64'));
   assets['/open-data-map.svg']=[Buffer.from(renderMap(region)).toString('base64'),'image/svg+xml'];
@@ -25,8 +26,9 @@ export async function buildPreview() {
   const gateway = (await readFile(path.join(root,'preview-worker.mjs'),'utf8')).replace(/^import[^\n]*\n/gm,'').replace('export default {','const gateway = {');
   const weather=(await readFile(path.join(root,'weather-gateway.mjs'),'utf8')).replace(/^export /gm,'');
   const satellite=(await readFile(path.join(root,'satellite-gateway.mjs'),'utf8')).replace(/^import[^\n]*\n/gm,'').replace(/^export /gm,'');
-  const openBridge=(await readFile(path.join(root,'open-data-bridge.mjs'),'utf8')).replace(/^export /gm,'');
-  return server+'\n'+weather+'\n'+satellite+'\n'+openBridge+'\n'+gateway+'\nconst openDataBundle='+JSON.stringify(openDataBundle)+';\nconst clientAssets='+JSON.stringify(assets)+`;\nexport default {async fetch(request){return gateway.fetch(request,{OPEN_DATA_BUNDLE:openDataBundle,ASSETS:{async fetch(request){
+  const openSurface=(await readFile(path.join(root,'open-data-surface.mjs'),'utf8')).replace(/^export /gm,'');
+  const openBridge=(await readFile(path.join(root,'open-data-bridge.mjs'),'utf8')).replace(/^import[^\n]*\n/gm,'').replace(/^export /gm,'');
+  return server+'\n'+weather+'\n'+satellite+'\n'+openSurface+'\n'+openBridge+'\n'+gateway+'\nconst openDataBundle='+JSON.stringify(openDataBundle)+';\nconst clientAssets='+JSON.stringify(assets)+`;\nexport default {async fetch(request){return gateway.fetch(request,{OPEN_DATA_BUNDLE:openDataBundle,ASSETS:{async fetch(request){
     if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405});
     const asset=clientAssets[new URL(request.url).pathname];
     if(!asset)return new Response('Not found',{status:404});

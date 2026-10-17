@@ -66,7 +66,7 @@ test('deployment serves the isolated lab without outbound requests and correct m
  try{
   assert.match(await(await worker.fetch(new Request('https://preview.invalid/'))).text(),/2\.9\.3-preview/);
   const html=await worker.fetch(new Request('https://preview.invalid/open-data-lab.html'));assert.equal(html.status,200);assert.match(await html.text(),/إعادة قراءتها لا تجلب تشغيلًا جديدًا/);
-  const data=await(await worker.fetch(request('?kind=all'))).json();assert.equal(data.models.length,5);
+  const data=await(await worker.fetch(request('?kind=all'))).json();assert.equal(data.models.length,5);assert.equal(data.surface.models.length,5);const native=await(await worker.fetch(request('?kind=surface'))).json();assert.equal(native.surface.observation,false);assert.ok(native.surface.models.find(m=>m.key==='GFS025').points[0].series.visibility);assert.equal((await worker.fetch(request('?kind=current'))).status,409);
   const svg=await(await worker.fetch(new Request('https://preview.invalid/open-data-map.svg'))).text();
   assert.ok(svg.includes('AIFS ENS'));assert.ok(svg.includes('dynamical.org'));
   assert.ok(!svg.includes('ECMWF IFS • GFS • ICON • GEM'));

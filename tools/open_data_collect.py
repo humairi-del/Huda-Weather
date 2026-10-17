@@ -30,6 +30,9 @@ UNITS = {'temperature_2m': 'celsius', 'relative_humidity_2m': '%',
          'wind_u_component_10m': 'm/s', 'wind_v_component_10m': 'm/s',
          'wind_speed_10m': 'm/s', 'wind_direction_10m': 'degrees',
          'dust': 'ug/m3'}
+UNITS.update({**{f'cloud_cover_{level}': '%' for level in ['low', 'mid', 'high']},
+              'cape': 'J/kg', 'visibility': 'm', 'wind_gusts_10m': 'm/s',
+              'weather_code': 'wmo code'})
 
 
 def stamp(s):
@@ -197,8 +200,11 @@ def clean(variable, v):
               'cloud_cover': (0, 100), 'precipitation': (0, 3000),
               'wind_u_component_10m': (-200, 200), 'wind_v_component_10m': (-200, 200),
               'wind_speed_10m': (0, 200), 'wind_direction_10m': (0, 360), 'dust': (0, 100000)}
+    bounds.update({**{f'cloud_cover_{level}': (0, 100) for level in ['low', 'mid', 'high']},
+                   'cape': (0, 100000), 'visibility': (0, 1000000),
+                   'wind_gusts_10m': (0, 200), 'weather_code': (0, 99)})
     a, b = bounds[variable]
-    if not a <= v <= b:
+    if not a <= v <= b or (variable == 'weather_code' and not v.is_integer()):
         raise ValueError('invalid_'+variable)
     return round(v, 5)
 
