@@ -2,7 +2,7 @@ import datetime as dt
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import open_data_collect as c
 
 
@@ -49,11 +49,40 @@ class CollectorChecks(unittest.TestCase):
         d = c.rain_day([r, r+dt.timedelta(hours=1)], [None, 4], r, r, r+dt.timedelta(hours=1))
         self.assertEqual(d['mm'], 4)
 
-    def test_omitted_lead_zero_mapping(self):
-        m = {'valid_times': ['2026-10-17T00:00Z', '2026-10-17T03:00Z']}
-        self.assertEqual(c.align_axis(m, 1, 'precipitation'), [c.stamp(m['valid_times'][1])])
-        with self.assertRaisesRegex(ValueError, 'time_axis_length'):
-            c.align_axis(m, 1, 'temperature_2m')
+    def fake_reader(self, variable='dust', unit='μg/m³', hours=(0, 3, 6)):
+        run = c.stamp('2026-10-17T00:00Z')
+        meta = {'reference_time': run.isoformat(), 'valid_times':
+                [(run+dt.timedelta(hours=h)).isoformat() for h in range(7)]}
+        children = {name: MagicMock() for name in ['unit', 'forecast_reference_time', 'time', 'crs_wkt']}
+        children['unit'].read_scalar.return_value = unit
+        children['forecast_reference_time'].read_scalar.return_value = run.timestamp()
+        children['time'].__getitem__.return_value.reshape.return_value.tolist.return_value = [(run+dt.timedelta(hours=h)).timestamp() for h in hours]
+        children['crs_wkt'].read_scalar.return_value = 'GEOGCRS["WGS 84",BBOX[-90,-180,90,179.75]]'
+        reader = MagicMock()
+        reader.shape = (721, 1440, len(hours))
+        reader.get_child_by_name.side_effect = children.__getitem__
+        return reader, meta, children
+
+    def test_per_variable_time_axis_overrides_hourly_union(self):
+        reader, meta, _ = self.fake_reader()
+        times, _ = c.variable_metadata(reader, meta, 'dust')
+        self.assertEqual([t.hour for t in times], [0, 3, 6])
+
+    def test_wrong_file_units_are_rejected(self):
+        reader, meta, _ = self.fake_reader(unit='kg/m3')
+        with self.assertRaisesRegex(ValueError, 'unit_mismatch'):
+            c.variable_metadata(reader, meta, 'dust')
+
+    def test_mixed_run_files_are_rejected(self):
+        reader, meta, children = self.fake_reader()
+        children['forecast_reference_time'].read_scalar.return_value += 3600
+        with self.assertRaisesRegex(ValueError, 'file_run_mismatch'):
+            c.variable_metadata(reader, meta, 'dust')
+
+    def test_foreign_time_in_file_is_rejected(self):
+        reader, meta, _ = self.fake_reader(hours=(0, 3, 9))
+        with self.assertRaisesRegex(ValueError, 'file_time_axis'):
+            c.variable_metadata(reader, meta, 'dust')
 
     def test_nearest_grid_matches_probed_location(self):
         wkt = 'GEOGCRS["WGS 84",BBOX[-90,-180,90,179.75]]'
