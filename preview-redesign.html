@@ -811,7 +811,7 @@ function loadDate(){
    ========================================================= */
 
 async function loadWeather(){
-
+  if(window.weatherRefreshBusy)return false;window.weatherRefreshBusy=true;
   try{
 
     const url='/api/weather?kind=current';
@@ -833,11 +833,11 @@ async function loadWeather(){
     showObserverWeather(data);
     showWeatherAlerts(data);
     showWeatherSource(data);
-
+    return !data._hada?.stale;
   }catch(error){
 
     console.error(error);
-    try{const saved=JSON.parse(localStorage.getItem('hada-weather-last-good-v1')||'null');if(saved&&Date.now()-saved.at<=3*3600000&&Number.isFinite(saved.data?.current?.temperature_2m)&&saved.data?.hourly?.time?.length>=24&&saved.data?.daily?.time?.length===7){const d=saved.data;d._hada={...(d._hada||{}),stale:true,fetchedAt:d._hada?.fetchedAt||new Date(saved.at).toISOString()};weatherData=d;showCurrentWeather(d);showHourlyWeather(d);showWeeklyWeather(d);showBestRain(d);showObserverWeather(d);showWeatherAlerts(d);showWeatherSource(d);return;}}catch{}
+    try{const saved=JSON.parse(localStorage.getItem('hada-weather-last-good-v1')||'null');if(saved&&Number.isFinite(Date.parse(saved.data?._hada?.fetchedAt||new Date(saved.at).toISOString()))&&Date.now()-Date.parse(saved.data?._hada?.fetchedAt||new Date(saved.at).toISOString())>=0&&Date.now()-Date.parse(saved.data?._hada?.fetchedAt||new Date(saved.at).toISOString())<=3*3600000&&Number.isFinite(saved.data?.current?.temperature_2m)&&saved.data?.hourly?.time?.length>=24&&saved.data?.daily?.time?.length===7){const d=saved.data;d._hada={...(d._hada||{}),stale:true,fetchedAt:d._hada?.fetchedAt||new Date(saved.at).toISOString()};weatherData=d;showCurrentWeather(d);showHourlyWeather(d);showWeeklyWeather(d);showBestRain(d);showObserverWeather(d);showWeatherAlerts(d);showWeatherSource(d);return false;}}catch{}
     document.getElementById('observerSummary').textContent='تعذر تحديث الرصد؛ حاول التحديث بعد قليل.';
     document.getElementById('weatherAlerts').textContent='تعذر التحقق من التنبيهات حاليًا؛ لا يعني ذلك عدم وجود مخاطر.';
 
@@ -852,7 +852,8 @@ async function loadWeather(){
 
     document.getElementById("bestRain").innerHTML=
       '<span class="error">تعذر تحليل فرص المطر</span>';
-  }
+    return false;
+  }finally{window.weatherRefreshBusy=false;}
 }
 
 function showWeatherSource(data){
@@ -1328,7 +1329,7 @@ function summarizeAifsEnsemble(data){
 }
 
 window.loadModels=async function(){
-  const grid=document.getElementById('modelsGrid'),summary=document.getElementById('modelsSummary');if(window.modelsLoading)return;if(window.modelsLastSuccess&&Date.now()-window.modelsLastSuccess<300000)return;window.modelsLoading=true;grid.innerHTML='<div class="loading">جاري التحميل...</div>';
+  const grid=document.getElementById('modelsGrid'),summary=document.getElementById('modelsSummary');if(window.modelsLoading)return false;if(window.modelsLastSuccess&&Date.now()-window.modelsLastSuccess<300000)return true;window.modelsLoading=true;grid.innerHTML='<div class="loading">جاري التحميل...</div>';
   try{
     const aifsModel='ecmwf_aifs025_ensemble';
     const models=MODEL_LIST.filter(x=>x[1]!==aifsModel).map(x=>x[1]).join(',');
@@ -1346,9 +1347,10 @@ window.loadModels=async function(){
     const best=arr=>{let index=-1,amount=null;arr.forEach((v,i)=>{const n=value(v);if(n!==null&&(amount===null||n>amount)){index=i;amount=n;}});return {index,amount};};
     const day=i=>{const raw=daily.time?.[i];return raw?new Date(raw+'T12:00:00').toLocaleDateString('ar-YE',{weekday:'long',day:'numeric',month:'long'}):'غير متوفر';};
     const names={ecmwf_ifs025:'الأوروبي ECMWF',gfs_seamless:'الأمريكي GFS',icon_seamless:'الألماني ICON',gem_seamless:'الكندي CMC',ecmwf_aifs025_ensemble:'الأوروبي بالذكاء الاصطناعي AIFS'};
-    const ranked=[];
+    const ranked=[];let completeModels=0;
     for(const [label,model] of MODEL_LIST){
       const probs=get('precipitation_probability_max',model),sums=get('precipitation_sum',model),maxs=get('temperature_2m_max',model),mins=get('temperature_2m_min',model),winds=get('wind_speed_10m_max',model);
+      if(daily.time?.length===7&&[sums,maxs,mins,winds].every(arr=>arr.length===7&&arr.every(v=>value(v)!==null)))completeModels++;
       const probability=best(probs),rainfall=best(sums),name=names[model]||label;
       if(probability.amount!==null){rainSignals.push(probability.amount);ranked.push({name,amount:probability.amount});}
       const i=probability.index>=0?probability.index:rainfall.index>=0?rainfall.index:0;
@@ -1361,8 +1363,9 @@ window.loadModels=async function(){
     ranked.sort((a,b)=>b.amount-a.amount);
     const high=rainSignals.filter(v=>v>=50).length;
     summary.textContent=!ranked.length?'لا تتوفر فرص المطر حاليًا؛ راجع كميات المطر في البطاقات.':high>=3?'🌧️ أغلب الموديلات تشير إلى فرصة مطر مرتفعة.':high>0?`☁️ الموديلات تختلف حول المطر؛ ${ranked[0].name} يعطي أعلى احتمال.`:'☀️ فرص المطر منخفضة في الموديلات التي توفر النسبة.';
-    window.modelsLoaded=true;window.modelsLastSuccess=Date.now();
-  }catch(e){console.error(e);summary.textContent='تعذر تحميل مقارنة الموديلات حاليًا.';grid.innerHTML='';}finally{window.modelsLoading=false;}
+    let sourceStatus=document.getElementById('modelsDataStatus');if(!sourceStatus){sourceStatus=document.createElement('p');sourceStatus.id='modelsDataStatus';sourceStatus.className='small-note';summary.after(sourceStatus);}const stamps=available.filter(Boolean).map(d=>d._hada?.fetchedAt).filter(Boolean);sourceStatus.textContent=(completeModels<MODEL_LIST.length?'المقارنة غير مكتملة: '+completeModels+' من '+MODEL_LIST.length+' موديلات؛ ستتكرر المحاولة تلقائيًا. ':'')+(available.some(d=>d?._hada?.stale)?'تأخر المصدر؛ بعض القراءات محفوظة. ':'')+stamps.map(t=>'وقت جلب البيانات: '+new Date(t).toLocaleString('ar-YE',{timeZone:'Asia/Aden',day:'numeric',month:'numeric',hour:'numeric',minute:'2-digit',hour12:true})).join(' • ');
+    window.modelsLoaded=true;const complete=completeModels===MODEL_LIST.length&&!available.some(d=>d?._hada?.stale);window.modelsLastSuccess=complete?Date.now():0;return complete;
+  }catch(e){console.error(e);summary.textContent='تعذر تحميل مقارنة الموديلات حاليًا.';grid.innerHTML='';const status=document.getElementById('modelsDataStatus');if(status)status.textContent='لم تصل مقارنة حديثة؛ ستتكرر المحاولة تلقائيًا.';return false;}finally{window.modelsLoading=false;}
 };
 
 function quakePlaceArabic(lat,lon,raw){
@@ -1509,7 +1512,7 @@ function refreshPatchedViews(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refreshPatchedViews);else refreshPatchedViews();
 })();
 
-</script><script>(()=>{try{if(typeof starsData!=="undefined")window.starsData=starsData;if(typeof parseStarEntryDate==="function")window.parseStarEntryDate=parseStarEntryDate;const originalObserver=window.showObserverWeather;if(typeof originalObserver==="function")window.showObserverWeather=function(d){window.weatherData=d;return originalObserver(d)};const patchedModels=window.loadModels;if(typeof patchedModels==="function")window.loadModels=async function(){await patchedModels();if(typeof modelsLoaded!=="undefined")modelsLoaded=true};const patchedQuakes=window.loadQuakes;if(typeof patchedQuakes==="function")window.loadQuakes=async function(){await patchedQuakes();if(typeof quakesLoaded!=="undefined")quakesLoaded=true};const dustFrame=document.querySelector("#dustModal iframe");if(dustFrame)dustFrame.src=dustFrame.src.replace("overlay=dust","overlay=dustsm").replace("product=ecmwf","product=cams-global");if(typeof weatherData!=="undefined")window.weatherData=weatherData;if(typeof showHeaderStar==="function")showHeaderStar();if(typeof weatherData!=="undefined"&&weatherData){showObserverWeather(weatherData);showWeeklyWeather(weatherData);showWeatherAlerts(weatherData)}}catch(e){console.error(e)}})();</script><script>
+</script><script>(()=>{try{if(typeof starsData!=="undefined")window.starsData=starsData;if(typeof parseStarEntryDate==="function")window.parseStarEntryDate=parseStarEntryDate;const originalObserver=window.showObserverWeather;if(typeof originalObserver==="function")window.showObserverWeather=function(d){window.weatherData=d;return originalObserver(d)};const patchedModels=window.loadModels;if(typeof patchedModels==="function")window.loadModels=async function(){const result=await patchedModels();if(typeof modelsLoaded!=="undefined")modelsLoaded=true;return result};const patchedQuakes=window.loadQuakes;if(typeof patchedQuakes==="function")window.loadQuakes=async function(){await patchedQuakes();if(typeof quakesLoaded!=="undefined")quakesLoaded=true};const dustFrame=document.querySelector("#dustModal iframe");if(dustFrame)dustFrame.src=dustFrame.src.replace("overlay=dust","overlay=dustsm").replace("product=ecmwf","product=cams-global");if(typeof weatherData!=="undefined")window.weatherData=weatherData;if(typeof showHeaderStar==="function")showHeaderStar();if(typeof weatherData!=="undefined"&&weatherData){showObserverWeather(weatherData);showWeeklyWeather(weatherData);showWeatherAlerts(weatherData)}}catch(e){console.error(e)}})();</script><script>
 (()=>{
 'use strict';
 
@@ -1923,13 +1926,23 @@ function start(){
  const prayer=document.getElementById('fajr').closest('section');prayer.id='prayerSection';
  const oldButtons=root.querySelector('.buttons');const monitor=make('section','card', '<h2 class="card-title">مركز المتابعة الجوية</h2>');monitor.id='monitorCenter';const grid=make('div','monitor-grid');for(const [label,icon,handler] of [['بحر العرب','🌀','openSea'],['الزلازل','🌍','openQuakes'],['توقعات الموديلات','🌦️','openModels']]){const card=make('article','monitor-card',`<div><div class="monitor-icon">${icon}</div><h3>${label}</h3></div>`);const b=make('button','redesign-btn','عرض التفاصيل');b.type='button';b.setAttribute('aria-label','عرض تفاصيل '+label);b.onclick=()=>window[handler]();card.appendChild(b);grid.appendChild(card);}monitor.appendChild(grid);
  const map=make('section','card','<h2 class="card-title">🗺️ خريطة أجواء هدى</h2>');map.id='hadaLiveMap';const tabs=make('div','map-tabs');const frame=make('iframe','hada-map-frame');frame.title='خريطة أجواء هدى من Windy';frame.loading='lazy';frame.referrerPolicy='no-referrer-when-downgrade';frame.allowFullscreen=true;
- const clouds=make('div','satellite-image'),mapNote=make('p','source-note');clouds.style.position='relative';clouds.style.overflow='hidden';clouds.style.borderRadius='14px';clouds.setAttribute('aria-label','صورة السحب بالأقمار الصناعية');let imageURL=null,layerRequest=0;
- async function layer(overlay){const revision=++layerRequest;for(const b of tabs.children)b.setAttribute('aria-pressed',String(b.dataset.layer===overlay));frame.style.display=overlay==='rain'?'block':'none';clouds.style.display=overlay==='satellite'?'block':'none';
-  if(overlay==='rain'){frame.src='https://embed.windy.com/embed.html?'+new URLSearchParams({type:'map',location:'coordinates',metricRain:'mm',metricWind:'km/h',metricTemp:'°C',zoom:'7',overlay:'rain',product:'ecmwf',level:'surface',lat:'14.230586',lon:'47.199415'});mapNote.textContent='توقع المطر من Windy؛ ليس رصدًا مباشرًا للأمطار.';return;}
-  frame.removeAttribute('src');clouds.textContent='جاري تحميل صورة الأقمار الصناعية…';mapNote.textContent='صور أقمار متأخرة ٣ ساعات أو أكثر، وليست بثًا لحظيًا.';
-  try{const [r,module]=await Promise.all([fetch('/api/satellite',{signal:AbortSignal.timeout(25000)}),import('./sea-map-browser.mjs')]);if(!r.ok)throw Error('satellite');const blob=await r.blob();if(revision!==layerRequest)return;if(imageURL)URL.revokeObjectURL(imageURL);imageURL=URL.createObjectURL(blob);const img=make('img');img.alt='صورة السحب بالأشعة تحت الحمراء فوق اليمن وبحر العرب — EUMETSAT';img.style.cssText='display:block;width:100%;height:auto;aspect-ratio:4/3';img.src=imageURL;clouds.replaceChildren(img);const outline=make('div');outline.innerHTML=module.satelliteOutline();clouds.appendChild(outline);const t=r.headers.get('X-Hada-Requested-Time');mapNote.textContent='صورة أقمار حقيقية متأخرة ٣ ساعات أو أكثر؛ ليست بثًا لحظيًا. '+(t?'الوقت المطلوب من المصدر: '+new Date(t).toLocaleString('ar-YE',{timeZone:'Asia/Aden',day:'numeric',month:'numeric',hour:'numeric',minute:'2-digit',hour12:true})+'. ':'')+'الأبيض يوضح السحب الباردة، ولا يحدد كمية المطر. © EUMETSAT '+new Date().getFullYear()+' • الحدود: geoBoundaries / OSM وNatural Earth.';img.onerror=()=>{clouds.textContent='تعذر عرض صورة الأقمار؛ حاول التحديث بعد قليل.';};}
-  catch{if(revision===layerRequest){clouds.textContent='تعذر تحميل صورة الأقمار حاليًا؛ حاول التحديث بعد قليل.';mapNote.textContent='لا توجد صورة جديدة مؤكدة. توقع المطر متاح من الزر المجاور.';}}
+ const clouds=make('div','satellite-image'),mapNote=make('p','source-note');clouds.style.position='relative';clouds.style.overflow='hidden';clouds.style.borderRadius='14px';clouds.setAttribute('aria-label','صورة السحب بالأقمار الصناعية');let imageURL=null,layerRequest=0,satelliteBusy=false,imageTime=null,imageNote='';
+ async function layer(overlay){
+  if(overlay==='satellite'&&satelliteBusy)return false;
+  const revision=++layerRequest;for(const b of tabs.children)b.setAttribute('aria-pressed',String(b.dataset.layer===overlay));frame.style.display=overlay==='rain'?'block':'none';clouds.style.display=overlay==='satellite'?'block':'none';
+  if(overlay==='rain'){frame.src='https://embed.windy.com/embed.html?'+new URLSearchParams({type:'map',location:'coordinates',metricRain:'mm',metricWind:'km/h',metricTemp:'°C',zoom:'7',overlay:'rain',product:'ecmwf',level:'surface',lat:'14.230586',lon:'47.199415'});mapNote.textContent='توقع المطر من Windy؛ ليس رصدًا مباشرًا للأمطار.';return true;}
+  satelliteBusy=true;frame.removeAttribute('src');if(!imageURL){clouds.textContent='جاري تحميل صورة الأقمار الصناعية…';mapNote.textContent='صور أقمار متأخرة ٣ ساعات أو أكثر، وليست بثًا لحظيًا.';}
+  try{
+   const [r,module]=await Promise.all([fetch('/api/satellite',{signal:AbortSignal.timeout(25000)}),import('./sea-map-browser.mjs')]);if(!r.ok)throw Error('satellite');const blob=await r.blob();if(revision!==layerRequest)return false;
+   const t=r.headers.get('X-Hada-Requested-Time');if(!t||!Number.isFinite(Date.parse(t)))throw Error('satellite_time');
+   const nextURL=URL.createObjectURL(blob),img=make('img');img.alt='صورة السحب بالأشعة تحت الحمراء فوق اليمن وبحر العرب — EUMETSAT';img.style.cssText='display:block;width:100%;height:auto;aspect-ratio:4/3';img.src=nextURL;
+   try{await img.decode();}catch{URL.revokeObjectURL(nextURL);throw Error('satellite_decode');}if(revision!==layerRequest){URL.revokeObjectURL(nextURL);return false;}
+   if(imageURL)URL.revokeObjectURL(imageURL);imageURL=nextURL;imageTime=t;clouds.replaceChildren(img);const outline=make('div');outline.innerHTML=module.satelliteOutline();clouds.appendChild(outline);
+   imageNote='صورة أقمار حقيقية متأخرة ٣ ساعات أو أكثر؛ ليست بثًا لحظيًا. الوقت المطلوب من المصدر: '+new Date(t).toLocaleString('ar-YE',{timeZone:'Asia/Aden',day:'numeric',month:'numeric',hour:'numeric',minute:'2-digit',hour12:true})+'. الأبيض يوضح السحب الباردة، ولا يحدد كمية المطر. © EUMETSAT '+new Date().getFullYear()+' • الحدود: geoBoundaries / OSM وNatural Earth.';mapNote.textContent=imageNote;window.satelliteLastSuccess=Date.now();return true;
+  }catch{if(revision===layerRequest){const age=Date.now()-Date.parse(imageTime);if(imageURL&&age>=0&&age<=6*3600000){mapNote.textContent='تعذر التحديث؛ المعروض آخر صورة ناجحة. '+imageNote;}else{if(imageURL)URL.revokeObjectURL(imageURL);imageURL=null;clouds.textContent='تعذر تحميل صورة الأقمار حاليًا؛ ستتكرر المحاولة تلقائيًا.';mapNote.textContent='لا توجد صورة حديثة مؤكدة. توقع المطر متاح من الزر المجاور.';}}return false;}
+  finally{satelliteBusy=false;}
  }
+ window.refreshHadaSatellite=()=>layer('satellite');
  for(const [name,value] of [['السحب بالأقمار الصناعية','satellite'],['توقع المطر','rain']]){const b=make('button','redesign-btn',name);b.type='button';b.dataset.layer=value;b.onclick=()=>layer(value);tabs.appendChild(b);}map.append(tabs,clouds,frame,mapNote);window.openMap=()=>map.scrollIntoView({behavior:'smooth',block:'start'});layer('satellite');
  const alerts=document.getElementById('weatherAlerts').closest('section');alerts.id='weatherAlertsSection';
  const hours=document.getElementById('hourlyForecast').closest('section'),weekly=document.getElementById('weeklyForecast').closest('section'),forecasts=make('section','card forecast-section','<h2 class="card-title">التوقعات القادمة</h2>');forecasts.id='forecastSection';const forecastTabs=make('div','forecast-tabs');forecastTabs.setAttribute('role','tablist');hours.id='forecastHours';weekly.id='forecastDays';let selection='hours';
@@ -1937,9 +1950,9 @@ function start(){
  for(const [label,mode] of [['الساعات القادمة','hours'],['اليوم وغدًا','two'],['7 أيام','week']]){const b=make('button','redesign-btn',label);b.type='button';b.dataset.mode=mode;b.setAttribute('role','tab');b.onclick=()=>show(mode);forecastTabs.appendChild(b);}forecasts.append(forecastTabs,hours,weekly);show('hours');new MutationObserver(()=>show(selection)).observe(weekly.querySelector('#weeklyForecast'),{childList:true});
  const app=make('section','card','<h2 class="card-title">📱 التطبيق وإشعارات الطقس</h2>');app.id='appSection';const appButtons=make('div','app-actions');for(const id of ['installButton','notificationButton']){const b=document.getElementById(id);if(b)appButtons.appendChild(b);}app.appendChild(appButtons);const help=make('p','app-help');help.textContent=location.hostname==='redesign-hada-2026-10.hada-weather-aifs-preview.pages.dev'?'هذه نسخة اختبار مستقلة. فعّل التنبيهات هنا للتحقق من اشتراك هاتفك قبل تجربة الإرسال.':location.hostname.endsWith('.pages.dev')?'يمكن مراجعة زر التنبيهات هنا؛ استقبال الإشعارات يحتاج ربط نطاق اختبار مستقل.':'ثبت الموقع للوصول السريع، وفعّل إشعارات الطقس عند توفر دعم المتصفح.';app.appendChild(help);
  const aboutText='<p>موقع طقس محلي لخدمة أهالي قرية هدى والقرى المجاورة بمديرية حبان، محافظة شبوة.</p><p>يجمع توقعات الطقس وفرص الأمطار والتنبيهات في مكان واحد.</p><p>نسعى لتقديم معلومات واضحة وسهلة تساعد الأهالي على متابعة أجواء منطقتهم.</p><p><strong>إخلاء المسؤولية:</strong> التوقعات تقديرات قابلة للتغيّر، ولا تضمن هطول المطر. وعند وجود مخاطر جوية، تُقدَّم تحذيرات الجهات الرسمية.</p>';
- const ad=Array.from(root.querySelectorAll('section')).find(x=>x.querySelector('.ad-space'));ad.id='advertisingSection';const about=root.querySelector('.whats-new-wrap'),footer=root.querySelector('footer'),aboutCard=make('section','card about-footer','<h2 class="card-title">عن طقس هدى وما جاورها</h2>'+aboutText);aboutCard.id='aboutSection';aboutCard.append(about,footer);footer.textContent='نسخة تطوير التصميم • 2.9.0-preview';
+ const ad=Array.from(root.querySelectorAll('section')).find(x=>x.querySelector('.ad-space'));ad.id='advertisingSection';const about=root.querySelector('.whats-new-wrap'),footer=root.querySelector('footer'),aboutCard=make('section','card about-footer','<h2 class="card-title">عن طقس هدى وما جاورها</h2>'+aboutText);aboutCard.id='aboutSection';aboutCard.append(about,footer);footer.textContent='نسخة تطوير التصميم • 2.9.1-preview';
  root.append(header,pair,sponsor,weather,prayer,monitor,map,alerts,forecasts,app,ad,aboutCard);renderCards();oldButtons.remove();const headerStar=document.getElementById('headerStar');if(headerStar)headerStar.hidden=true;
- document.querySelector('#whatsNewModal .modal-pad').innerHTML=aboutText+'<p class="source-note">الإصدار 2.9.0-preview</p>';
+ document.querySelector('#whatsNewModal .modal-pad').innerHTML=aboutText+'<p class="source-note">الإصدار 2.9.1-preview</p>';
  const isPreview=location.hostname.endsWith('.pages.dev');if(isPreview){document.body.prepend(make('div','preview-banner','معاينة التصميم الجديد — فرع التطوير فقط — الموقع الرسمي دون تغيير'));const b=document.getElementById('notificationButton');if(b){b.disabled=false;b.textContent=location.hostname==='redesign-hada-2026-10.hada-weather-aifs-preview.pages.dev'?'🔔 تفعيل تنبيهات الطقس':'🔔 معاينة التنبيهات';}}
  const tick=()=>{clock.textContent=new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true}).format(new Date());document.getElementById('hijriDate').textContent=new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura',{timeZone:'Asia/Aden',day:'numeric',month:'long',year:'numeric'}).format(new Date());};tick();setInterval(tick,1000);setInterval(()=>{renderCards();loadDate();},60000);
  window.openStars=()=>openTable(active);window.showHeaderStar=()=>{};
@@ -2031,7 +2044,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   else initial();
 })();
 
-</script><script src="/daily-bulletin.js?v=20261015-1"></script><script src="/cyclone-season.js?v=20261016-7"></script></body>
+</script><script src="/daily-bulletin.js?v=20261015-1"></script><script src="/cyclone-season.js?v=20261016-7"></script><script src="/preview-recovery.js?v=20261017-1"></script></body>
 </html>
 
 
