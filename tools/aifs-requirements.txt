@@ -1,0 +1,4 @@
+icechunk==2.3.0
+xarray==2026.9.0
+zarr==3.4.1
+numpy==2.5.4
