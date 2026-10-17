@@ -64,7 +64,7 @@ test('deployment serves the isolated lab without outbound requests and correct m
  const {default:worker}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
  const old=globalThis.fetch;globalThis.fetch=async()=>{throw Error('unexpected_outbound_request');};
  try{
-  assert.match(await(await worker.fetch(new Request('https://preview.invalid/'))).text(),/2\.9\.2-preview/);
+  assert.match(await(await worker.fetch(new Request('https://preview.invalid/'))).text(),/2\.9\.3-preview/);
   const html=await worker.fetch(new Request('https://preview.invalid/open-data-lab.html'));assert.equal(html.status,200);assert.match(await html.text(),/إعادة قراءتها لا تجلب تشغيلًا جديدًا/);
   const data=await(await worker.fetch(request('?kind=all'))).json();assert.equal(data.models.length,5);
   const svg=await(await worker.fetch(new Request('https://preview.invalid/open-data-map.svg'))).text();

@@ -39,11 +39,11 @@ export function localSummary(place){
 }
 
 export function satelliteOutline(){
- const x=lon=>(lon-40)*50,y=lat=>(23-lat)*50;
+ const x=lon=>(lon-45)/4.5*1000,y=lat=>(16.8-lat)/3.8*750;
  const shape=g=>rings(g).map(r=>r.map(([lon,lat],i)=>(i?'L':'M')+x(lon).toFixed(1)+','+y(lat).toFixed(1)).join('')+'Z').join('');
  const path=(g,color,width)=>`<path d="${shape(g)}" fill="none" stroke="${color}" stroke-width="${width}"/>`;
  const labels=[['شبوة',47,15.25],['حبان',47.08,14.35],['هدى',47.2,14.23],['خليج عدن',48.5,12.4],['بحر العرب',56,15.5]];
- return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 750" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">${countries.features.map(f=>path(f.geometry,'#f8df86',1.6)).join('')}${provinces.features.map(f=>path(f.geometry,'#f8df86',0.7)).join('')}${labels.map(([name,lon,lat],i)=>`<circle cx="${x(lon)}" cy="${y(lat)}" r="3" fill="#ffdf74"/><text x="${x(lon)+(i===1?-45:i===2?30:0)}" y="${y(lat)+(i===1?-10:i===2?22:-12)}" fill="white" stroke="#142b35" stroke-width="3" paint-order="stroke" font-family="Arial,sans-serif" font-size="20" text-anchor="middle">${name}</text>`).join('')}</svg>`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 750" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">${countries.features.map(f=>path(f.geometry,'#f8df86',1.6)).join('')}${provinces.features.map(f=>path(f.geometry,'#f8df86',0.7)).join('')}${labels.map(([name,lon,lat],i)=>`${i===1||i===2?`<circle cx="${x(lon)}" cy="${y(lat)}" r="3" fill="#ffdf74"/>`:''}<text x="${x(lon)+(i===1?-45:i===2?30:0)}" y="${y(lat)+(i===1?-10:i===2?22:-12)}" fill="white" stroke="#142b35" stroke-width="3" paint-order="stroke" font-family="Arial,sans-serif" font-size="20" text-anchor="middle">${name}</text>`).join('')}<text x="965" y="60" text-anchor="end" font-family="Tahoma,Arial,sans-serif" font-size="40" font-weight="bold" fill="#f6d370" stroke="#10212c" stroke-width="3" paint-order="stroke">طقس هدى</text><text x="500" y="735" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="white" stroke="#10212c" stroke-width="2" paint-order="stroke">© EUMETSAT • geoBoundaries / OSM • Natural Earth</text></svg>`;
 }
 
 // All available regional grid samples within the actual Shabwa boundary.
