@@ -13,7 +13,7 @@ const mime = p => p.endsWith('.html') ? 'text/html; charset=utf-8' : /\.m?js$/.t
 export async function buildPreview() {
   const assets = {};
   for (const file of clientFiles) assets['/'+file] = [(await readFile(path.join(root,file))).toString('base64'),mime(file)];
-  for (const file of ['open-data-lab.html','open-data-lab.js','open-data-lab-qa.html']) assets['/'+file]=[(await readFile(path.join(root,file))).toString('base64'),mime(file)];
+  for (const file of ['open-data-lab.html','open-data-lab.js','open-data-lab-qa.html','clean-design.html']) assets['/'+file]=[(await readFile(path.join(root,file))).toString('base64'),mime(file)];
   const readSnapshot=async name=>JSON.parse(await readFile(path.join(root,'sea-map-data',name),'utf8'));
   const [local,aifs,region]=await Promise.all(['open-data-local-20261017.json','open-data-aifs-ens-20261017.json','open-data-region-20261017.json'].map(readSnapshot));
   const surface=await readSnapshot('open-data-surface-20261017.json');
