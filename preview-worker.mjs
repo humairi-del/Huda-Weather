@@ -1,11 +1,13 @@
 import {satelliteGateway} from './satellite-gateway.mjs';
 import {weatherGateway} from './weather-gateway.mjs';
 import {officialSources, officialDocument} from './cyclone-season-server.mjs';
+import {openDataGateway} from './open-data-bridge.mjs';
 
 // Pages preview only. No credentials, scheduled events, or notification sends.
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if(url.pathname==='/api/open-data')return openDataGateway(request,env.OPEN_DATA_BUNDLE);
     if(url.pathname==='/api/satellite')return satelliteGateway(request);
     if(url.pathname==='/api/weather')return weatherGateway(request);
     if(url.pathname==='/api/sea-map'){
