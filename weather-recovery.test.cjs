@@ -16,5 +16,5 @@ test('a valid saved forecast retains the source time and remains explicitly stal
  const {c,rendered,data}=setup(3600000);assert.equal(await c.loadWeather(),false);assert.ok(rendered.length>0);assert.equal(rendered[0]._hada.fetchedAt,data._hada.fetchedAt);assert.equal(rendered[0]._hada.stale,true);assert.equal(c.window.weatherRefreshBusy,false);
 });
 test('weather refresh cannot overlap an existing in-flight request',async()=>{
- const {c,rendered}=setup(3600000);c.window.weatherRefreshBusy=true;assert.equal(await c.loadWeather(),false);assert.equal(rendered.length,0);
+ const {c,rendered}=setup(3600000);c.window.weatherRefreshBusy=true;assert.equal(await c.loadWeather(),null);assert.equal(rendered.length,0);
 });

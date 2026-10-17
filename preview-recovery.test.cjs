@@ -13,3 +13,11 @@ test('overlapping events and rapid manual retries never duplicate requests',asyn
  let done,calls=0,at=60000;const t=createTask(()=>{calls++;return new Promise(r=>done=r);},{now:()=>at});
  const pending=t.tick(true);await t.tick(true);assert.equal(calls,1);done(true);await pending;await t.tick(true);assert.equal(calls,1);at+=10000;const again=t.tick(true);assert.equal(calls,2);done(true);await again;
 });
+test('a skipped or already running refresh is never reported as failed',async()=>{
+ let at=0,calls=0;const outcomes=[];const t=createTask(async()=>{calls++;return null;},{now:()=>at});t.onResult(ok=>outcomes.push(ok));
+ assert.equal(await t.tick(),null);at=60000;assert.equal(await t.tick(true),null);assert.equal(calls,1);assert.equal(t.state().failures,0);assert.deepEqual(outcomes,[]);assert.equal(await t.tick(true),null);assert.equal(calls,1);
+});
+test('a background success replaces the previous failure status',async()=>{
+ let at=0,ok=false;const outcomes=[];const t=createTask(async()=>ok,{now:()=>at});t.onResult(value=>outcomes.push(value));
+ at=60000;await t.tick();ok=true;at=120000;await t.tick();assert.deepEqual(outcomes,[false,true]);assert.equal(t.state().failures,0);
+});

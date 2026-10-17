@@ -5,13 +5,13 @@
  'use strict';
  const MINUTE=60000;
  function createTask(run,{now=Date.now,allowed=()=>true,fresh=()=>false}={}){
-  let busy=false,next=now()+MINUTE,last=-Infinity,failures=0;
+  let busy=false,next=now()+MINUTE,last=-Infinity,failures=0;const listeners=new Set();
   return {async tick(force=false){
-   const at=now();if(busy||!allowed()||at-last<10000||!force&&(at<next||fresh()))return false;
-   busy=true;last=at;let ok=false;
-   try{ok=await run()===true;return ok;}catch{return false;}
-   finally{failures=ok?0:failures+1;next=now()+(ok?15:Math.min(10,2**Math.min(failures-1,4)))*MINUTE;busy=false;}
-  },state:()=>({busy,next,last,failures})};
+   const at=now();if(busy||!allowed()||at-last<10000||!force&&(at<next||fresh()))return null;
+   busy=true;last=at;let ok=null;
+   try{const result=await run();ok=result===null?null:result===true;return ok;}catch{ok=false;return false;}
+   finally{if(ok!==null){failures=ok?0:failures+1;next=now()+(ok?15:Math.min(10,2**Math.min(failures-1,4)))*MINUTE;}else next=now()+MINUTE;busy=false;if(ok!==null)for(const listener of listeners)listener(ok);}
+  },onResult:listener=>listeners.add(listener),state:()=>({busy,next,last,failures})};
  }
  function mount(w){
   const doc=w.document,available=()=>!doc.hidden&&w.navigator.onLine!==false;
@@ -22,7 +22,7 @@
   const tasks=[weather,models,satellite];
   const tick=()=>{for(const task of tasks)void task.tick();};
   w.addEventListener('online',tick);doc.addEventListener('visibilitychange',tick);w.setInterval(tick,MINUTE);
-  const addButton=(parent,label,task)=>{if(!parent)return;const button=doc.createElement('button');button.type='button';button.className='action-btn';button.textContent=label;button.style.marginTop='12px';const status=doc.createElement('p');status.className='small-note';status.setAttribute('role','status');button.onclick=async()=>{if(task.state().busy)return;button.disabled=true;status.textContent='جاري التحديث…';const ok=await task.tick(true);status.textContent=ok?'اكتمل التحديث.':'لم تصل بيانات جديدة مكتملة؛ ستتكرر المحاولة تلقائيًا.';button.disabled=false;};parent.append(button,status);};
+  const addButton=(parent,label,task)=>{if(!parent)return;const button=doc.createElement('button');button.type='button';button.className='action-btn';button.textContent=label;button.style.marginTop='12px';const status=doc.createElement('p');status.className='small-note';status.setAttribute('role','status');task.onResult(ok=>{status.textContent=ok?'اكتمل التحديث.':'تعذر جلب تحديث مكتمل؛ ستتكرر المحاولة تلقائيًا.';});button.onclick=async()=>{if(task.state().busy){status.textContent='يوجد تحديث جارٍ؛ انتظر النتيجة.';return;}button.disabled=true;status.textContent='جاري التحديث…';try{const ok=await task.tick(true);if(ok===null)status.textContent=w.navigator.onLine===false?'لا يوجد اتصال حاليًا؛ ستتكرر المحاولة عند عودته.':'يوجد طلب تحديث قريب؛ انتظر قليلًا.';}finally{button.disabled=false;}};parent.append(button,status);};
   addButton(doc.getElementById('weatherCombined'),'تحديث بيانات الطقس',weather);
   addButton(doc.querySelector('#modelsModal .modal-pad'),'تحديث مقارنة الموديلات',models);
  }
