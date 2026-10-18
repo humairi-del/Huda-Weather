@@ -1,0 +1,10 @@
+{
+  "name": "hada-hazard-alerts-preview",
+  "main": "hazard-preview-timer.mjs",
+  "compatibility_date": "2026-10-18",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {"enabled": true},
+  "triggers": {"crons": ["*/15 * * * *"]},
+  "vars": {"HAZARDS_ENABLED": "0"},
+  "services": [{"binding": "HAZARD_SENDER", "service": "hada-daily-bulletin-preview", "entrypoint": "HazardSender"}]
+}
