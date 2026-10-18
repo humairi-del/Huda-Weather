@@ -15,9 +15,9 @@ async function target(env,io){
  return {enabled:!!subscription,morning:user.properties?.tags?.hada_daily_bulletin==='1',emergency:user.properties?.tags?.hada_emergency_alerts==='1'};
 }
 export async function subscriptionStatus(env,subscriptionId,io=fetch){
- const closed={confirmed:false,channels:{morning:false,emergency:false}};
+ const closed={confirmed:false,eligible:false,channels:{morning:false,emergency:false}};
  if(!configured(env)||subscriptionId!==env.TEST_SUBSCRIPTION_ID)return closed;
- try{const p=await target(env,io);const channels={morning:p.enabled&&p.morning&&env.DAILY_ENABLED==='1',emergency:p.enabled&&p.emergency&&env.HAZARD_TEST_ENABLED==='1'};return {confirmed:channels.morning&&channels.emergency,channels};}catch{return closed;}
+ try{const p=await target(env,io);const channels={morning:p.enabled&&p.morning&&env.DAILY_ENABLED==='1',emergency:p.enabled&&p.emergency&&env.HAZARD_TEST_ENABLED==='1'};return {confirmed:channels.morning&&channels.emergency,eligible:p.enabled,channels};}catch{return closed;}
 }
 export async function collectRain(now,io=fetch){
  const p=period(now),query=new URLSearchParams({latitude:POINTS.map(p=>p.lat).join(','),longitude:POINTS.map(p=>p.lon).join(','),daily:'precipitation_sum',timezone:'Asia/Aden',precipitation_unit:'mm',start_date:p.start,end_date:p.dates[6],cell_selection:'nearest'});
