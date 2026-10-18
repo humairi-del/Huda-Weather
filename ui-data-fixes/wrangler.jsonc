@@ -1,0 +1,9 @@
+{
+  "name": "hada-ui-data-fixes-preview",
+  "main": "dist/entry.mjs",
+  "compatibility_date": "2026-10-18",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "services": [{"binding": "PUBLIC_READ", "service": "hada-weather-web-v3"}],
+  "observability": {"enabled": true, "head_sampling_rate": 0.1}
+}

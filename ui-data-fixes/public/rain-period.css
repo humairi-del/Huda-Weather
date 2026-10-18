@@ -1,0 +1,7 @@
+/* Only the requested rain-period card; all other sections keep their styles. */
+.best-rain{flex-wrap:wrap}
+.best-rain .rain-result{min-width:0;flex-shrink:1;flex-wrap:wrap}
+#bestRainDay{font-size:14px;line-height:1.8;overflow-wrap:anywhere}
+@media(max-width:760px){
+ .best-rain .rain-result{padding-right:0;flex-direction:column;align-items:flex-start;gap:8px}
+}

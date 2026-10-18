@@ -1,0 +1,18 @@
+{
+  "origin": "https://hada-weather.com/",
+  "captured": "2026-10-19 Asia/Aden",
+  "note": "Public frontend snapshot only; not a backup of production worker modules or settings.",
+  "files": {
+    "official-cyclone.js": "b36e6dffce5b27f6640a3defc027ea29bfd9072e8b079094a7affe3e06980519",
+    "index.html": "1442e37588fa57d09873c1fb4e8369eb24cf6c0fea2d6d697439615ef0284b6c",
+    "install-help.js": "dc50b75d4f74c70acb7a7a4c04338b3a4644fdfbc673189a71e88d6e6b3e3648",
+    "live-weather.js": "f0b54dff07cdad2b570df587fd7137f6e31391ef10d517e7c8ac8621ead4506f",
+    "hazard-alerts.js": "71cccede6e14cc32625182ffde0853f7a447ed16145a2f2f2c7c594b78175ce8",
+    "preview-push.js": "49299335dc07956a2022e413bf0fdf149e5cd8c2cd673e5403d879ecefad92a8",
+    "notification-links.js": "8ba94e9a39103c2a9dfc1d0d72d2841a25cb08a09cbb4555a639ee4ca8fc676f",
+    "morning-modal.js": "09f87aa384f7607a0bb7000d626e50a47b8f2c188553d3626526699b3de1c08c",
+    "daily-bulletin.js": "129ced79e4541d71e98a29d9fa4b09d20daaaafd4b7e64aa6854fb3d22a72ecc",
+    "release-3.js": "993bca5a03b1a2a3f7d482beac63b12b2ae8d7b1ae28131c85a5747e7036bc92",
+    "sea-bulletin.js": "b3679d79a708f2a6c9819e14f179439ff3397b8df143a0f8bc10d21330a363b6"
+  }
+}
