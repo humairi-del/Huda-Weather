@@ -1,0 +1,34 @@
+{
+  "scope": "Offline cleanup only; not deployed. Apply only to matching current frontend source.",
+  "removedCssSelectors": [
+    ".admin-login-button",
+    ".admin-login-button:hover",
+    ".admin-login-box",
+    ".admin-login-box label",
+    ".admin-login-box input",
+    ".admin-login-box input:focus-visible",
+    ".admin-login-box .primary",
+    ".admin-login-box input:disabled",
+    ".admin-login-box button:disabled",
+    ".rain-model-switch",
+    ".rain-model-switch button",
+    ".rain-model-switch button[aria-pressed=true]",
+    ".rain-model-switch button",
+    ".map-admin-entry",
+    ".map-admin-entry .admin-login-button"
+  ],
+  "files": {
+    "index.html": {
+      "beforeSha256": "1442e37588fa57d09873c1fb4e8369eb24cf6c0fea2d6d697439615ef0284b6c",
+      "afterSha256": "6bf41a379c7d75aef9f14b16eccaaa8b668077b02f83df229fe17866a354a845",
+      "beforeBytes": 357647,
+      "afterBytes": 356435
+    },
+    "live-weather.js": {
+      "beforeSha256": "f0b54dff07cdad2b570df587fd7137f6e31391ef10d517e7c8ac8621ead4506f",
+      "afterSha256": "38775745616e16c9d575a3d53a937f7b46a2533709f65ae2f7c36ed0011ad2b0",
+      "beforeBytes": 15964,
+      "afterBytes": 15610
+    }
+  }
+}
