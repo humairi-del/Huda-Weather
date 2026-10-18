@@ -26,17 +26,17 @@ export async function collectRain(now,io=fetch){
  return consensus(Object.fromEntries(results.map(r=>r.value)),now);
 }
 export async function eventUuid(eventKey){const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('hada-hazard:v1:'+TEST_APP+':'+eventKey)));digest[6]=(digest[6]&15)|64;digest[8]=(digest[8]&63)|128;const s=Array.from(digest.slice(0,16),b=>b.toString(16).padStart(2,'0')).join('');return `${s.slice(0,8)}-${s.slice(8,12)}-${s.slice(12,16)}-${s.slice(16,20)}-${s.slice(20,32)}`;}
-export async function evaluate(now=new Date(),io=fetch){
- const results=await Promise.allSettled([collectRain(now,io),readJson(LINK+'api/official-cyclone',{},io)]);
+export async function evaluate(now=new Date(),io=fetch,officialReader=()=>readJson(LINK+'api/official-cyclone',{},io)){
+ const results=await Promise.allSettled([collectRain(now,io),officialReader()]);
  const rain=results[0].status==='fulfilled'?rainAdvisory(results[0].value,now):null;
  const cyclone=results[1].status==='fulfilled'?cycloneAdvisory(results[1].value,now):null;
  return {candidate:cyclone||rain,checkedAt:now.getTime(),rainAvailable:results[0].status==='fulfilled',officialAvailable:results[1].status==='fulfilled',coverage:['rain_forecast_huda_habban','official_classified_cyclone_towards_yemen'],notCovered:['observed_floods','dust_storms','all_governorate_locations']};
 }
-export async function runHazard(env,now=new Date(),io=fetch){
+export async function runHazard(env,now=new Date(),io=fetch,officialReader){
  if(env.HAZARD_TEST_ENABLED!=='1')return {status:'disabled'};
  if(!configured(env))return {status:'configuration_incomplete'};
  const phone=await target(env,io);if(!phone.enabled||!phone.emergency){await env.BULLETINS.put('hazard:v1:last-check',JSON.stringify({status:'owner_not_opted_in',checkedAt:now.getTime()}),{expirationTtl:604800});return {status:'owner_not_opted_in'};}
- const report=await evaluate(now,io),summary={checkedAt:report.checkedAt,rainAvailable:report.rainAvailable,officialAvailable:report.officialAvailable};
+ const report=await evaluate(now,io,officialReader),summary={checkedAt:report.checkedAt,rainAvailable:report.rainAvailable,officialAvailable:report.officialAvailable};
  if(!report.candidate){const status=report.rainAvailable&&report.officialAvailable?'no_eligible_advisory':'sources_incomplete';await env.BULLETINS.put('hazard:v1:last-check',JSON.stringify({...summary,status}),{expirationTtl:604800});return {status,...summary};}
  const c=report.candidate,key='hazard:v1:event:'+c.eventKey;
  const previous=await env.BULLETINS.get(key,{type:'json'});
