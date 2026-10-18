@@ -27,7 +27,7 @@ export function rainAdvisory(data,now=new Date()){
  const affected=data.points.filter((p,i)=>p.name===POINTS[i].name&&p.lat===POINTS[i].lat&&p.lon===POINTS[i].lon&&Number.isFinite(p.total)&&p.total>50&&p.agreement>=2);
  if(!affected.length)return null;
  const detail=affected.map(p=>p.name+' نحو '+Math.round(p.total)+' ملم').join('، ');
- return {kind:'rain',eventKey:'rain:'+start,title:'🌧️ تنبيه أمطار متوقعة — اختبار طقس هدى',text:'تشير توقعات النماذج الثلاثة خلال ٧ أيام إلى تراكم أمطار: '+detail+'. هذه توقعات قابلة للتغير وليست تأكيدًا لسيول. تابع التحديثات والتحذيرات الرسمية.',url:LINK+'#weatherMapHub',date:start};
+ return {kind:'rain',eventKey:'rain:'+start,title:'🌧️ تنبيه أمطار متوقعة — اختبار طقس هدى',text:'تشير توقعات النماذج الثلاثة خلال ٧ أيام إلى تراكم أمطار: '+detail+'. هذه توقعات قابلة للتغير وليست تأكيدًا لسيول. تابع التحديثات والتحذيرات الرسمية.',url:LINK+'?map=rain#weatherMapHub',date:start};
 }
 export function cycloneAdvisory(data,now=new Date()){
  let source;try{source=new URL(data?.sourceUrl);}catch{return null;}
