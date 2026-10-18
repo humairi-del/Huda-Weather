@@ -1,12 +1,15 @@
 {
-  "format": "hada-preview-release-v1",
+  "format": "hada-preview-release-v2",
   "date": "2026-10-18",
+  "sourceSha256": "610953c3b7c858bb3193e5b852c3d1e65f13707b8af17717c3abc5e01993d51d",
+  "workerSha256": "e6d4c10e3f29f28d59818d37d2bf180e216bb0f230921e21c3b14fe93669ab50",
+  "sourceBytes": 892279,
+  "workerTransferBytes": 2987552,
+  "sourceTransferBytes": 1189708,
+  "tests": 52,
+  "emergencySenderConnected": true,
+  "phoneOptInRequired": true,
   "origin": "https://redesign-hada-2026-10.hada-weather-aifs-preview.pages.dev",
-  "sourceSha256": "cb20b0678d51697e5aa0dd4db646b21e2b1adac7f13bf93d460f99b75f5fa1dd",
-  "workerSha256": "4a2f796185cd82fcc423cf949958f5a186154f08099c1f7a17ba690b35b48b11",
-  "beforeCommit": "e387ae6f8bae79e91e0b3ace1bc8859fc41a144f",
-  "beforeDeployment": "26663fed-29f6-4f24-bd6f-0c4d96a5e4f8",
-  "tests": 27,
-  "productionChanged": false,
-  "emergencySenderConnected": false
+  "beforeDeployment": "f494bbd4-cb53-4e13-b17e-de7628248247",
+  "senderRollbackVersion": "acdf7af1-8537-456b-a761-d3807ee32222"
 }
