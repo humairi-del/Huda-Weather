@@ -14,10 +14,16 @@ function valid(data,now=Date.now()){
  if(data.wind!==null&&(['knotsMin','knotsMax','kmhMin','kmhMax'].some(k=>!Number.isFinite(data.wind[k])||data.wind[k]<=0||data.wind[k]>500)||data.wind.knotsMin>data.wind.knotsMax||data.wind.kmhMin>data.wind.kmhMax))return false;
  return true;
 }
+// Historical display reuses every content/source check in valid(). Only the age
+// check receives a temporary timestamp; the original bulletin is never changed.
+function validDated(data,now=Date.now()){
+ if(!Number.isFinite(data?.issuedAt)||data.issuedAt<=0||data.issuedAt>now+900000||!Number.isFinite(data.checkedAt)||data.checkedAt<=0||data.checkedAt>now+300000)return false;
+ return valid({...data,issuedAt:now},now);
+}
 function notify(){window.dispatchEvent(new CustomEvent('hada:official-cyclone'));}
-async function read(url,signal){const r=await fetch(url,{signal,credentials:'same-origin',cache:'no-cache'});if(!r.ok)throw new Error('official_unavailable');const data=await r.json();if(!valid(data))throw new Error('official_stale_or_invalid');return data;}
+async function read(url,signal){const r=await fetch(url,{signal,credentials:'same-origin',cache:'no-cache'});if(!r.ok)throw new Error('official_unavailable');const data=await r.json();if(!validDated(data))throw new Error('official_stale_or_invalid');return data;}
 function accept(data){if(!latest||data.issuedAt>latest.issuedAt||(data.issuedAt===latest.issuedAt&&data.checkedAt>=latest.checkedAt)){latest=data;try{localStorage.setItem('hada-official-last-verified-v1',JSON.stringify(data));}catch{}notify();}}
-try{const saved=JSON.parse(localStorage.getItem('hada-official-last-verified-v1'));if(valid(saved))latest=saved;}catch{}
+try{const saved=JSON.parse(localStorage.getItem('hada-official-last-verified-v1'));if(validDated(saved))latest=saved;}catch{}
 async function refresh(force=false){
  if(pending)return pending;
  if(!force&&Date.now()-lastAttempt<15*60000){notify();return;}
@@ -27,7 +33,7 @@ async function refresh(force=false){
   // A verified dated snapshot supplies the first view on weak connections;
   // the same-origin reader then discovers and checks the latest official PDF.
   const snapshot=!latest?read('./official-cyclone-snapshot.json',controller.signal).then(accept).catch(()=>{}):Promise.resolve();
-  try{const data=await read('./api/official-cyclone',controller.signal);accept(data);transport='live';}
+  try{const data=await read('./api/official-cyclone',controller.signal);accept(data);transport=valid(data)?'live':'error';}
   catch{transport='error';}
   finally{await snapshot;clearTimeout(timer);pending=null;notify();}
  })();return pending;
@@ -37,8 +43,8 @@ function fact(dl,label,value){const dt=el('dt',label),dd=el('dd',value);dl.appen
 const num=n=>new Intl.NumberFormat('ar-YE',{maximumFractionDigits:0}).format(n);
 function range(lo,hi){return Math.abs(hi-lo)<.01?num(lo):`${num(lo)}–${num(hi)}`;}
 function renderCard(){
- const data=valid(latest)?latest:null,active=data?.state==='active';
- const card=el('section',undefined,'official-cyclone-card');card.dataset.state=data?.state||'unavailable';card.setAttribute('aria-label','خلاصة حالة بحر العرب');card.setAttribute('aria-busy',String(!data&&transport==='loading'));
+ const data=valid(latest)?latest:null,history=!data&&validDated(latest)?latest:null,active=data?.state==='active';
+ const card=el('section',undefined,'official-cyclone-card');card.dataset.state=data?.state||(history?'historical':'unavailable');card.setAttribute('aria-label','خلاصة حالة بحر العرب');card.setAttribute('aria-busy',String(!data&&transport==='loading'));
  card.appendChild(el('h3','حالة بحر العرب'));
  if(data){
   const badge=data.state==='ended'?'انتهت وفق النشرة':active?(data.lifecycle==='weakening'?'في طور الضعف':'مصنفة رسميًا'):data.state==='upper-air'?'دوران علوي':data.state==='no-classified-system'?'لا حالة سطحية مصنفة':'التصنيف غير مؤكد';
@@ -53,6 +59,16 @@ function renderCard(){
   STAGES.forEach((label,index)=>{const item=el('li');item.append(el('span',num(index+1),'cyclone-stage-dot'),el('span',label,'cyclone-stage-label'));if(active&&data.stage===index){item.className='is-active';item.setAttribute('aria-current','step');}list.appendChild(item);});wrap.appendChild(list);details.appendChild(wrap);
   details.appendChild(el('p','الشريط يوضح التصنيف المنشور، ولا يعني أن الحالة ستتطور حتمًا. تبدأ التسمية عند مرحلة العاصفة المدارية.','cyclone-official-note'));
   card.appendChild(details);
+ }else if(history){
+  card.appendChild(el('span','بانتظار تحديث رسمي','cyclone-status-pill sea-history-pill'));
+  card.appendChild(el('h4','آخر نشرة موثقة','sea-current-summary'));
+  card.appendChild(el('p','صدرت في '+new Intl.DateTimeFormat('ar-YE',{timeZone:ZONE,day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(history.issuedAt)),'sea-summary-time'));
+  card.appendChild(el('p','هذه نشرة سابقة؛ لا تصف الحالة الحالية ولا تُستخدم لإصدار تنبيهات.','sea-history-notice'));
+  const details=el('details');details.dataset.seaDetail='official';details.appendChild(el('summary','قراءة النشرة السابقة'));
+  details.appendChild(el('p','ما ورد حين صدورها: '+(history.state==='active'?history.category+(history.name?' «'+history.name+'»':''):history.summary)));
+  details.appendChild(el('p','الاتجاه المذكور حينها: '+history.track.text));
+  if(history.wind)details.appendChild(el('p','الرياح الواردة حينها: '+range(history.wind.kmhMin,history.wind.kmhMax)+' كم/س.'));
+  card.appendChild(details);
  }else{
   card.appendChild(el('p',transport==='error'?'تعذر التحقق من أحدث نشرة رسمية الآن.':'جارٍ التحقق من أحدث نشرة رسمية…','sea-current-summary'));
   card.appendChild(el('p','تصنيف الحالة واتجاهها غير متاحين للتحقق حاليًا.','sea-local-note'));
@@ -60,7 +76,7 @@ function renderCard(){
  if(data&&transport==='loading')card.appendChild(el('p','جارٍ البحث عن تحديث رسمي…','cyclone-official-note'));
  if(data&&transport==='error')card.appendChild(el('p','تعذر جلب تحديث؛ المعروضة النشرة المؤرخة أعلاه.','cyclone-official-note'));
  const retry=el('button',transport==='loading'?'جارٍ التحديث…':'تحديث');retry.type='button';retry.disabled=transport==='loading';retry.onclick=()=>refresh(true);card.appendChild(retry);
- const credit=el('p',undefined,'cyclone-official-source'),link=el('a','المصدر: المركز الإقليمي للأعاصير – نيودلهي');link.href=data?.sourceUrl||HOME;link.target='_blank';link.rel='noopener noreferrer';credit.appendChild(link);card.appendChild(credit);
+ const credit=el('p',undefined,'cyclone-official-source'),link=el('a','المصدر: المركز الإقليمي للأعاصير – نيودلهي');link.href=data?.sourceUrl||history?.sourceUrl||HOME;link.target='_blank';link.rel='noopener noreferrer';credit.appendChild(link);card.appendChild(credit);
  return card;
 }
 window.HadaOfficialCyclone={refresh,renderCard,valid,stages:STAGES,getData:()=>valid(latest)?latest:null};

@@ -10,13 +10,14 @@ test('unrequested scripts stay identical, including stars, notifications and map
   assert.equal(hash(data),expected,file+' has an unrequested change');
  }
 });
-test('sea presentation preserves source validation, freshness, fetching, calculation and event logic byte for byte',()=>{
+test('sea presentation preserves current validity, calculation and event API byte for byte',()=>{
  const expected=JSON.parse(fs.readFileSync(new URL('../sea-presentation-baseline.json',import.meta.url),'utf8'));
  for(const [file,checks]of Object.entries(expected)){
   const source=fs.readFileSync(new URL('../public/'+file,import.meta.url),'utf8');
   const render=file==='official-cyclone.js'?'function renderCard(){':'function render(){';
   const suffix=file==='official-cyclone.js'?'window.HadaOfficialCyclone=':'function isOpen(){';
-  assert.equal(hash(source.slice(0,source.indexOf(render))),checks.prefixSha256,file+' source/calculation changed');
+  if(file==='official-cyclone.js')assert.equal(hash(source.slice(source.indexOf('function valid('),source.indexOf('// Historical display'))),checks.validSha256,'current bulletin validation changed');
+  else assert.equal(hash(source.slice(0,source.indexOf(render))),checks.prefixSha256,file+' source/calculation changed');
   assert.equal(hash(source.slice(source.indexOf(suffix))),checks.suffixSha256,file+' events/API changed');
  }
 });

@@ -26,10 +26,11 @@ test('official summary keeps category, direction and date, while stages and wind
  assert.doesNotMatch(text,/الاسم غير متاح|إعصار رسمي|الرياح قرب مركز/);
  const details=card.querySelectorAll('details')[0];details.open=true;assert.match(visible(card),/الرياح قرب مركز الحالة/);assert.match(visible(card),/إعصار رسمي/);
 });
-test('unavailable or expired official data never gets a classification, stage bar or all-clear',async()=>{
+test('expired bulletin is dated history, excluded from current data and has no stage bar',async()=>{
  const old=bulletin();old.issuedAt=NOW-13*3600000;const h=harness(old);assert.equal(h.window.HadaOfficialCyclone.getData(),null);
  await h.window.HadaOfficialCyclone.refresh();const card=h.window.HadaOfficialCyclone.renderCard(),text=visible(card);
- assert.match(text,/تعذر التحقق/);assert.doesNotMatch(text,/لا توجد|انتهت|مصنفة رسميًا|منطقة ضغط منخفض/);assert.equal(card.querySelectorAll('details').length,0);
+ assert.match(text,/آخر نشرة موثقة/);assert.match(text,/بانتظار تحديث رسمي/);assert.match(text,/لا تصف الحالة الحالية/);assert.doesNotMatch(text,/لا توجد|انتهت|مصنفة رسميًا|منطقة ضغط منخفض/);assert.equal(card.dataset.state,'historical');
+ const details=card.querySelectorAll('details')[0];details.open=true;assert.match(visible(card),/ما ورد حين صدورها: منطقة ضغط منخفض/);assert.doesNotMatch(visible(card),/إعصار رسمي/);
 });
 test('upper-air observations stay upper-air and do not become surface tropical systems',()=>{
  const data={...bulletin(),state:'upper-air',stage:null,wind:null,category:'دوران علوي',summary:'دوران علوي مرصود دون تصنيف سطحي.'};
@@ -52,4 +53,27 @@ test('local totals remain separate, methodology is collapsed, and open details s
 test('the existing 50mm watch stays visible, and missing data never becomes zero rainfall',()=>{
  const h=localHarness(51);h.window.HadaSeaBulletin.render();assert.match(visible(h.root),/تتجاوز توقعات المطر/);
  h.setForecast(null);h.window.HadaSeaBulletin.render();assert.match(visible(h.root),/تحديث توقعات المطر/);assert.doesNotMatch(visible(h.root),/٠ ملم|لا توجد أمطار/);
+});
+
+test('first visit can read an expired dated snapshot but never returns it as current',async()=>{
+ const h=harness(null),old={...bulletin(),issuedAt:NOW-48*3600000,checkedAt:NOW-47*3600000};
+ h.ctx.fetch=async url=>{if(url.includes('/api/'))throw Error('offline');return {ok:true,json:async()=>old};};
+ await h.window.HadaOfficialCyclone.refresh(true);assert.equal(h.window.HadaOfficialCyclone.getData(),null);assert.equal(h.window.HadaOfficialCyclone.renderCard().dataset.state,'historical');
+});
+test('invalid source, future timestamps and malformed stored bulletins are never historical',()=>{
+ for(const data of [{...bulletin(),sourceUrl:'https://example.com/uploads/test.pdf'},{...bulletin(),issuedAt:NOW+3600000},{...bulletin(),checkedAt:NOW+3600000},{...bulletin(),stage:9},{...bulletin(),authority:'unknown'},{...bulletin(),issuedAt:0}]){
+  const api=harness(data).window.HadaOfficialCyclone;assert.equal(api.getData(),null);assert.equal(api.renderCard().dataset.state,'unavailable');
+ }
+});
+test('fresh API replaces history while delayed older snapshot cannot overwrite it',async()=>{
+ const h=harness(null),fresh=bulletin(),old={...fresh,issuedAt:NOW-48*3600000,checkedAt:NOW-47*3600000};let resolveSnapshot;
+ h.ctx.fetch=async url=>url.includes('/api/')?{ok:true,json:async()=>fresh}:new Promise(r=>{resolveSnapshot=()=>r({ok:true,json:async()=>old});});
+ const task=h.window.HadaOfficialCyclone.refresh(true);await Promise.resolve();await Promise.resolve();resolveSnapshot();await task;
+ assert.equal(h.window.HadaOfficialCyclone.getData().issuedAt,fresh.issuedAt);assert.equal(h.window.HadaOfficialCyclone.renderCard().dataset.state,'active');
+});
+test('failed update preserves current bulletin until expiry and never promotes stale API to current',async()=>{
+ const h=harness(bulletin()),old={...bulletin(),issuedAt:NOW-15*3600000};
+ h.ctx.fetch=async()=>({ok:true,json:async()=>old});await h.window.HadaOfficialCyclone.refresh(true);
+ assert.equal(h.window.HadaOfficialCyclone.getData().issuedAt,bulletin().issuedAt);
+ const expired=harness(old);expired.ctx.fetch=h.ctx.fetch;await expired.window.HadaOfficialCyclone.refresh(true);assert.equal(expired.window.HadaOfficialCyclone.getData(),null);
 });
