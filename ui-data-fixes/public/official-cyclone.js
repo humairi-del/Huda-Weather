@@ -38,25 +38,29 @@ const num=n=>new Intl.NumberFormat('ar-YE',{maximumFractionDigits:0}).format(n);
 function range(lo,hi){return Math.abs(hi-lo)<.01?num(lo):`${num(lo)}–${num(hi)}`;}
 function renderCard(){
  const data=valid(latest)?latest:null,active=data?.state==='active';
- const card=el('section',undefined,'official-cyclone-card');card.dataset.state=data?.state||'unavailable';card.setAttribute('aria-label','مركز رصد وتصنيف الحالات المدارية');card.setAttribute('aria-busy',String(!data&&transport==='loading'));
- card.appendChild(el('p','الرصد والتصنيف الرسمي • IMD / RSMC','cyclone-official-kicker'));
- card.appendChild(el('h3','🌀 مركز رصد وتصنيف الحالات المدارية'));
- const badge=el('span',data?.state==='ended'?'انتهاء موثق':active?(data.lifecycle==='weakening'?'حالة في طور الضعف':'حالة مصنفة رسميًا'):data?.state==='upper-air'?'دوران علوي مرصود':data?.state==='no-classified-system'?'لا تصنيف سطحي في النشرة':'بانتظار التحقق','cyclone-status-pill');card.appendChild(badge);
- const dl=el('dl',undefined,'cyclone-official-facts');
- fact(dl,'🌀 الحالة الحالية',data?active?`${data.category}${data.name?' باسم '+data.name:' — الاسم غير متاح للتحقق'}`:data.summary:transport==='error'?'تعذر تحديث النشرة الرسمية الآن.':'جارٍ قراءة أحدث نشرة رسمية لبحر العرب…');
- fact(dl,'📊 التصنيف الحالي',data?.category||'غير متاح للتحقق الآن');
- fact(dl,'💨 الرياح المركزية',data?.wind?`${range(data.wind.knotsMin,data.wind.knotsMax)} عقدة / ${range(data.wind.kmhMin,data.wind.kmhMax)} كم/س`:'لم ترد سرعة مركزية قابلة للتحقق');
- fact(dl,'🗺️ المسار المتوقع',data?.track.text||'بانتظار بيانات رسمية قابلة للتحقق');
- card.appendChild(dl);
- const wrap=el('div',undefined,'cyclone-stages-wrap');wrap.tabIndex=0;wrap.setAttribute('aria-label','شريط مراحل التصنيف؛ مرر أفقيًا عند الحاجة');
- const list=el('ol',undefined,'cyclone-stages');list.setAttribute('aria-label','مراحل تصنيف الحالة المدارية');
- STAGES.forEach((label,index)=>{const item=el('li');item.append(el('span',num(index+1),'cyclone-stage-dot'),el('span',label,'cyclone-stage-label'));if(active&&data.stage===index){item.className='is-active';item.setAttribute('aria-current','step');}list.appendChild(item);});wrap.appendChild(list);card.appendChild(wrap);
- card.appendChild(el('p','التسمية تبدأ من مرحلة العاصفة المدارية. يوضح الشريط التصنيف الحالي، ولا يعني تطور الحالة حتمًا.','cyclone-official-note'));
- if(data)card.appendChild(el('p','وقت النشرة: '+new Intl.DateTimeFormat('ar-YE',{timeZone:ZONE,day:'numeric',month:'short',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(data.issuedAt)),'cyclone-official-time'));
- if(transport==='loading')card.appendChild(el('p',data?'جارٍ التحقق من أحدث نشرة…':'جارٍ الاتصال بالمصدر الرسمي…','cyclone-official-note'));
- if(transport==='error')card.appendChild(el('p',data?'تعذر التحقق من آخر تحديث؛ المعروض هو آخر نشرة متاحة مؤرخة أعلاه.':'المعلومات غير متاحة الآن؛ لم تُعتبر الحالة مستقرة أو منتهية.','cyclone-official-note'));
- const retry=el('button','تحديث');retry.type='button';retry.disabled=transport==='loading';retry.onclick=()=>refresh(true);card.appendChild(retry);
- const credit=el('p',undefined,'cyclone-official-source'),link=el('a','المصدر الرسمي: المركز الإقليمي للأعاصير – نيودلهي');link.href=data?.sourceUrl||HOME;link.target='_blank';link.rel='noopener noreferrer';credit.appendChild(link);card.appendChild(credit);
+ const card=el('section',undefined,'official-cyclone-card');card.dataset.state=data?.state||'unavailable';card.setAttribute('aria-label','خلاصة حالة بحر العرب');card.setAttribute('aria-busy',String(!data&&transport==='loading'));
+ card.appendChild(el('h3','حالة بحر العرب'));
+ if(data){
+  const badge=data.state==='ended'?'انتهت وفق النشرة':active?(data.lifecycle==='weakening'?'في طور الضعف':'مصنفة رسميًا'):data.state==='upper-air'?'دوران علوي':data.state==='no-classified-system'?'لا حالة سطحية مصنفة':'التصنيف غير مؤكد';
+  card.appendChild(el('span',badge,'cyclone-status-pill'));
+  card.appendChild(el('p',active?data.category+(data.name?' «'+data.name+'»':''):data.summary,'sea-current-summary'));
+  card.appendChild(el('p',data.track.text,'sea-direction'));
+  card.appendChild(el('p','وقت النشرة: '+new Intl.DateTimeFormat('ar-YE',{timeZone:ZONE,day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(data.issuedAt)),'sea-summary-time'));
+  const details=el('details');details.dataset.seaDetail='official';details.appendChild(el('summary','تفاصيل الحالة'));
+  if(data.wind)details.appendChild(el('p','الرياح قرب مركز الحالة: '+range(data.wind.kmhMin,data.wind.kmhMax)+' كم/س.'));
+  const wrap=el('div',undefined,'cyclone-stages-wrap');wrap.tabIndex=0;wrap.setAttribute('aria-label','مراحل التصنيف؛ مرر أفقيًا عند الحاجة');
+  const list=el('ol',undefined,'cyclone-stages');list.setAttribute('aria-label','مراحل تصنيف الحالة المدارية');
+  STAGES.forEach((label,index)=>{const item=el('li');item.append(el('span',num(index+1),'cyclone-stage-dot'),el('span',label,'cyclone-stage-label'));if(active&&data.stage===index){item.className='is-active';item.setAttribute('aria-current','step');}list.appendChild(item);});wrap.appendChild(list);details.appendChild(wrap);
+  details.appendChild(el('p','الشريط يوضح التصنيف المنشور، ولا يعني أن الحالة ستتطور حتمًا. تبدأ التسمية عند مرحلة العاصفة المدارية.','cyclone-official-note'));
+  card.appendChild(details);
+ }else{
+  card.appendChild(el('p',transport==='error'?'تعذر التحقق من أحدث نشرة رسمية الآن.':'جارٍ التحقق من أحدث نشرة رسمية…','sea-current-summary'));
+  card.appendChild(el('p','تصنيف الحالة واتجاهها غير متاحين للتحقق حاليًا.','sea-local-note'));
+ }
+ if(data&&transport==='loading')card.appendChild(el('p','جارٍ البحث عن تحديث رسمي…','cyclone-official-note'));
+ if(data&&transport==='error')card.appendChild(el('p','تعذر جلب تحديث؛ المعروضة النشرة المؤرخة أعلاه.','cyclone-official-note'));
+ const retry=el('button',transport==='loading'?'جارٍ التحديث…':'تحديث');retry.type='button';retry.disabled=transport==='loading';retry.onclick=()=>refresh(true);card.appendChild(retry);
+ const credit=el('p',undefined,'cyclone-official-source'),link=el('a','المصدر: المركز الإقليمي للأعاصير – نيودلهي');link.href=data?.sourceUrl||HOME;link.target='_blank';link.rel='noopener noreferrer';credit.appendChild(link);card.appendChild(credit);
  return card;
 }
 window.HadaOfficialCyclone={refresh,renderCard,valid,stages:STAGES,getData:()=>valid(latest)?latest:null};

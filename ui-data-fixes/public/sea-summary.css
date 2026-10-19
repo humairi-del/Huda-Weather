@@ -1,0 +1,15 @@
+/* Scoped to the sea modal: weather, stars, maps and alerts keep their styles. */
+#seaLiveBulletin .official-cyclone-card,#seaLiveBulletin .sea-static-bulletin{padding:16px;line-height:1.9}
+#seaLiveBulletin .official-cyclone-card h3,#seaLiveBulletin .sea-static-bulletin h3{font-size:18px;margin:0 0 10px}
+#seaLiveBulletin .sea-current-summary{font-size:17px;font-weight:700;margin:12px 0 8px}
+#seaLiveBulletin .sea-direction{font-size:14px;margin:8px 0}
+#seaLiveBulletin .sea-summary-time{font-size:12px;color:var(--muted);margin:10px 0}
+#seaLiveBulletin details{margin:14px 0 0;border-top:1px solid #64748b50;padding-top:10px}
+#seaLiveBulletin summary{cursor:pointer;font-weight:700;font-size:14px;padding:5px 0}
+#seaLiveBulletin .sea-local-totals{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+#seaLiveBulletin .sea-local-totals div{border:1px solid #ae7c3560;border-radius:12px;padding:10px;text-align:center}
+#seaLiveBulletin .sea-local-totals dt{font-size:14px}
+#seaLiveBulletin .sea-local-totals dd{margin:3px 0 0;font-size:22px;font-weight:700}
+#seaLiveBulletin .sea-local-note{font-size:13px;margin:8px 0}
+#infoModal #infoText>a.primary[href^="https://www.windy.com/"]{background:transparent;border:0;color:var(--blue);padding:6px 0;font-size:13px;text-decoration:underline;box-shadow:none}
+@media(max-width:760px){#seaLiveBulletin .official-cyclone-card,#seaLiveBulletin .sea-static-bulletin{padding:13px}#seaLiveBulletin .sea-current-summary{font-size:16px}#seaLiveBulletin .sea-local-totals{gap:8px}}

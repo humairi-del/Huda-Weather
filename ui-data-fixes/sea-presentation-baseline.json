@@ -1,0 +1,10 @@
+{
+  "official-cyclone.js": {
+    "prefixSha256": "2559f1c3524870f1fa3e68b2de6dd07f539aee9ca1f7496530975cfc3f3974e9",
+    "suffixSha256": "2148713363907cf6dc1c74a71a24c015dde2feff04834b0b2797a280b734c634"
+  },
+  "sea-bulletin.js": {
+    "prefixSha256": "f0ad769afba81f5f2353809e7ca286ac9298abe745a135d5b7b0e855ff517956",
+    "suffixSha256": "f28a3eb57198a525f11b8fbb4126167e5b6642dfd69f38cb13517d42682fda39"
+  }
+}
