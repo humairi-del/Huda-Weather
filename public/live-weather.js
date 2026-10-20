@@ -2,7 +2,7 @@
 const ZONE='Asia/Aden',CACHE='hada-live-weather-preview-v1',MAX_CACHE_AGE=45*60*1000;
 const $=id=>document.getElementById(id),fmt=n=>new Intl.NumberFormat('ar-YE',{maximumFractionDigits:1}).format(n),finite=n=>typeof n==='number'&&Number.isFinite(n);
 const url=new URL('https://api.open-meteo.com/v1/forecast');url.search=new URLSearchParams({latitude:'14.230586',longitude:'47.199415',current:'temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation',hourly:'temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index',daily:'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum',timezone:ZONE,forecast_days:'7',wind_speed_unit:'kmh',temperature_unit:'celsius',precipitation_unit:'mm'});
-let pending=null,weather=null,weatherAt=0,checked=0,calendarDay='',currentHazard=null;
+let pending=null,weather=null,weatherAt=0,nextAttemptAt=0,failures=0,retryTimer=null,calendarDay='',currentHazard=null;
 function dayKey(now=new Date()){const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:ZONE,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now).map(x=>[x.type,x.value]));return `${p.year}-${p.month}-${p.day}`;}
 function parseTime(t){return Date.parse(t+'+03:00');}
 function label(code){return code===0?'سماء صافية':code===1?'صحو غالبًا':code===2?'غائم جزئيًا':code===3?'غائم':[45,48].includes(code)?'ضباب':[51,53,55,56,57].includes(code)?'رذاذ':[61,80].includes(code)?'أمطار خفيفة':[63,81].includes(code)?'أمطار متوسطة':[65,82].includes(code)?'أمطار غزيرة':[71,73,75,77,85,86].includes(code)?'ثلوج':[95,96,99].includes(code)?'أمطار رعدية':'الحالة غير متاحة';}
@@ -19,7 +19,7 @@ function quakePlace(value){
 function direction(value){return finite(value)?['شمالية','شمالية شرقية','شرقية','جنوبية شرقية','جنوبية','جنوبية غربية','غربية','شمالية غربية'][Math.round((((value%360)+360)%360)/45)%8]:'غير متاحة';}
 function validated(d){const today=dayKey();if(!d||d.timezone!==ZONE||!d.current||!finite(d.current.temperature_2m)||d.current_units?.temperature_2m!=='°C'||d.daily_units?.precipitation_sum!=='mm'||d.daily?.time?.[0]!==today||d.daily.time.length!==7||!Array.isArray(d.hourly?.time))throw new Error('invalid_weather');for(const key of ['weather_code','temperature_2m_max','temperature_2m_min','precipitation_probability_max'])if(!Array.isArray(d.daily[key])||d.daily[key].length!==7)throw new Error('invalid_daily');if(d.daily.temperature_2m_max.some(x=>!finite(x))||d.daily.temperature_2m_min.some(x=>!finite(x)))throw new Error('missing_temperature');for(const key of ['temperature_2m','precipitation_probability','weather_code','uv_index'])if(!Array.isArray(d.hourly[key])||d.hourly[key].length!==d.hourly.time.length)throw new Error('invalid_hourly');return d;}
 function chance(v){return finite(v)?fmt(v)+'٪':'غير متاحة';}
-function dayChance(d,day,now){const values=d.hourly.time.map((t,i)=>t.startsWith(day)&&parseTime(t)>=now?d.hourly.precipitation_probability[i]:null).filter(finite);return values.length?Math.max(...values):null;}
+function dayChance(d,day,now){const values=d.hourly.time.map((t,i)=>t.startsWith(day)&&parseTime(t)+3600000>now?d.hourly.precipitation_probability[i]:null).filter(finite);return values.length?Math.max(...values):null;}
 function summary(d,i){return `الحرارة ${fmt(Math.round(d.daily.temperature_2m_min[i]))}–${fmt(Math.round(d.daily.temperature_2m_max[i]))}°، ${label(d.daily.weather_code[i])}. فرصة المطر ${chance(i===0?dayChance(d,d.daily.time[0],Date.now()):d.daily.precipitation_probability_max[i])}.`;}
 function render(d,cached=false,fetchedAt=Date.now()){weather=d;weatherAt=fetchedAt;calendarDay=dayKey();const c=d.current,h=d.hourly;const now=Date.now(),indices=h.time.map((t,i)=>parseTime(t)<=now?i:-1).filter(i=>i>=0),hourIndex=indices.at(-1);const uv=h.uv_index[hourIndex],prob=h.precipitation_probability[hourIndex];
  $('liveTemperature').textContent=fmt(Math.round(c.temperature_2m))+'°';$('liveCondition').textContent=label(c.weather_code);$('liveRange').textContent=`العظمى ${fmt(Math.round(d.daily.temperature_2m_max[0]))}° · الصغرى ${fmt(Math.round(d.daily.temperature_2m_min[0]))}°`;
@@ -28,7 +28,7 @@ function render(d,cached=false,fetchedAt=Date.now()){weather=d;weatherAt=fetched
  const start=Math.max(0,h.time.findIndex(t=>parseTime(t)>=now-3600000));const timeline=document.querySelector('.timeline');timeline.replaceChildren();
  for(let i=start;i<Math.min(start+12,h.time.length);i++){const t=new Date(parseTime(h.time[i])),hour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:ZONE,hour:'2-digit',hourCycle:'h23'}).format(t)),article=document.createElement('article');article.className='hour'+([51,53,55,61,63,65,80,81,82,95,96,99].includes(h.weather_code[i])?' rain':'');const when=new Intl.DateTimeFormat('ar-YE',{timeZone:ZONE,hour:'numeric',hour12:true}).format(t);article.innerHTML=`<span>${when}</span>${icon(h.weather_code[i],hour<6||hour>=18)}<strong>${finite(h.temperature_2m[i])?fmt(Math.round(h.temperature_2m[i]))+'°':'—'}</strong><span class="chance">مطر ${chance(h.precipitation_probability[i])}</span>`;timeline.appendChild(article);}
  const week=document.querySelector('.week');week.replaceChildren();d.daily.time.forEach((date,i)=>{const article=document.createElement('article');article.className='day';const name=i===0?'اليوم':new Intl.DateTimeFormat('ar-YE',{timeZone:ZONE,weekday:'long'}).format(new Date(date+'T12:00:00+03:00'));article.innerHTML=`${name}${icon(d.daily.weather_code[i])}<strong>${finite(d.daily.temperature_2m_max[i])?fmt(Math.round(d.daily.temperature_2m_max[i]))+'°':'—'}</strong><small>${finite(d.daily.temperature_2m_min[i])?fmt(Math.round(d.daily.temperature_2m_min[i]))+'°':'—'}</small><span class="wet">مطر ${chance(d.daily.precipitation_probability_max[i])}</span>`;week.appendChild(article);});
- window.HadaWeatherUI.setForecast(d.daily.time.map(date=>({date,rainProbability:dayChance(d,date,now)})),{sample:false});
+ window.HadaRainPeriod.render(d,now);
  const messages=window.HadaOutlookMessages;if(messages){messages.today=summary(d,0);messages.tomorrow=summary(d,1);const highs=d.daily.temperature_2m_max.filter(finite),lows=d.daily.temperature_2m_min.filter(finite);messages.week=`خلال الأسبوع: الصغرى بين ${fmt(Math.min(...lows))} و${fmt(Math.max(...lows))}°، والعظمى بين ${fmt(Math.min(...highs))} و${fmt(Math.max(...highs))}°. راجع توقعات الأيام أدناه.`;const selected=document.querySelector('[data-period][aria-selected="true"]');$('outlook').textContent=messages[selected?.dataset.period||'today'];}
  if(window.HadaMonitorPanels)window.HadaMonitorPanels.wind=['اتجاه الرياح',`رياح ${direction(c.wind_direction_10m)} بسرعة ${finite(c.wind_speed_10m)?fmt(c.wind_speed_10m):'—'} كم/س.`];
  const dangerousWind=finite(c.wind_speed_10m)&&c.wind_speed_10m>=50||finite(c.wind_gusts_10m)&&c.wind_gusts_10m>=65;const heavyRain=finite(c.precipitation)&&c.precipitation>=15;
@@ -39,14 +39,54 @@ function render(d,cached=false,fetchedAt=Date.now()){weather=d;weatherAt=fetched
  window.dispatchEvent(new CustomEvent('hada:local-hazard',{detail:currentHazard}));
  let status=$('liveWeatherSource');if(!status){status=document.createElement('p');status.id='liveWeatherSource';status.className='live-source-link';$('current').appendChild(status);}status.replaceChildren();status.append(cached?'توقعات محفوظة حديثًا أثناء تحديث الاتصال · المصدر: ':'المصدر: ');const a=document.createElement('a');a.href='https://open-meteo.com/';a.target='_blank';a.rel='noopener noreferrer';a.textContent='Open-Meteo';status.appendChild(a);
 }
-async function refresh(force=false){if(pending)return pending;if(!force&&Date.now()-checked<15*60*1000)return;checked=Date.now();
- try{const cache=JSON.parse(localStorage.getItem(CACHE));if(!weather&&cache&&Date.now()-cache.saved<MAX_CACHE_AGE)render(validated(cache.data),true,cache.saved);}catch{}
- pending=(async()=>{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);try{const response=await fetch(url.href,{signal:controller.signal,credentials:'omit'});if(!response.ok)throw new Error('weather_http');const data=validated(await response.json());render(data);try{localStorage.setItem(CACHE,JSON.stringify({saved:Date.now(),data}));}catch{}}catch{if(weather&&(Date.now()-weatherAt>MAX_CACHE_AGE||calendarDay!==dayKey())){weather=null;for(const id of ['liveTemperature','liveRange','liveHumidity','liveWind','liveRain','liveUv'])$(id).textContent='—';$('weather-alert').hidden=true;currentHazard=null;window.dispatchEvent(new CustomEvent('hada:local-hazard',{detail:null}));window.HadaWeatherUI.setForecast([]);document.querySelector('.timeline').replaceChildren();document.querySelector('.week').replaceChildren();}if(!weather){$('liveCondition').textContent='تعذر تحديث الطقس مؤقتًا';$('outlook').textContent='تحقق من الاتصال؛ سنعيد التحديث تلقائيًا.';}}finally{clearTimeout(timer);pending=null;}})();return pending;}
+function connectionStatus(message='',busy=false){
+ let status=$('liveWeatherConnection');
+ if(!status){status=document.createElement('p');status.id='liveWeatherConnection';status.className='live-source-link';status.setAttribute('role','status');$('current').appendChild(status);}
+ status.hidden=!message;status.replaceChildren();
+ if(message){const text=document.createElement('span');text.textContent=message+' ';const button=document.createElement('button');button.id='retryLiveWeather';button.type='button';button.className='primary';button.textContent=busy?'جارٍ التحديث…':'إعادة المحاولة';button.disabled=busy;button.onclick=()=>refresh(true);status.append(text,button);}
+}
+function clearExpiredWeather(){
+ weather=null;currentHazard=null;
+ for(const id of ['liveTemperature','liveRange','liveHumidity','liveWind','liveRain','liveUv'])$(id).textContent='—';
+ $('liveWeatherIcon').replaceChildren();$('weather-alert').hidden=true;
+ window.dispatchEvent(new CustomEvent('hada:local-hazard',{detail:null}));
+ window.HadaRainPeriod.render(null);
+ for(const selector of ['.timeline','.week']){const node=document.querySelector(selector);node.replaceChildren();const note=document.createElement('p');note.className='muted';note.textContent='التوقعات غير متاحة مؤقتًا؛ سنحاول تحديثها تلقائيًا.';node.appendChild(note);}
+ if(window.HadaOutlookMessages)for(const key of ['today','tomorrow','week'])window.HadaOutlookMessages[key]='التوقعات غير متاحة مؤقتًا.';
+ if(window.HadaMonitorPanels)window.HadaMonitorPanels.wind=['اتجاه الرياح','بيانات الرياح غير متاحة مؤقتًا.'];
+}
+const retryDelay=count=>[10000,30000,60000,300000][Math.min(Math.max(0,count-1),3)];
+async function refresh(force=false){
+ if(pending)return pending;
+ const now=Date.now();
+ // Clear stale values even when the next network request is still throttled.
+ if(weather&&(now-weatherAt>MAX_CACHE_AGE||calendarDay!==dayKey())){clearExpiredWeather();$('liveCondition').textContent='بانتظار تحديث الطقس';$('outlook').textContent='التوقعات غير متاحة مؤقتًا.';connectionStatus('انتهت صلاحية البيانات المحفوظة؛ سنعيد المحاولة تلقائيًا.');}
+ if(!force&&now<nextAttemptAt)return;
+ clearTimeout(retryTimer);
+ try{const cache=JSON.parse(localStorage.getItem(CACHE));if(!weather&&cache&&cache.saved<=now+300000&&now-cache.saved<MAX_CACHE_AGE)render(validated(cache.data),true,cache.saved);}catch{}
+ if($('liveWeatherConnection')&&!$('liveWeatherConnection').hidden)connectionStatus('نعيد محاولة تحديث الطقس.',true);
+ pending=(async()=>{
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+  try{
+   const response=await fetch(url.href,{signal:controller.signal,credentials:'omit'});if(!response.ok)throw new Error('weather_http');
+   const data=validated(await response.json());render(data);connectionStatus();failures=0;nextAttemptAt=Date.now()+15*60*1000;
+   try{localStorage.setItem(CACHE,JSON.stringify({saved:Date.now(),data}));}catch{}
+  }catch{
+   if(weather&&(Date.now()-weatherAt>MAX_CACHE_AGE||calendarDay!==dayKey()))clearExpiredWeather();
+   if(!weather){clearExpiredWeather();$('liveCondition').textContent='تعذر تحديث الطقس مؤقتًا';$('outlook').textContent='التوقعات غير متاحة مؤقتًا.';}
+   else render(weather,true,weatherAt);
+   connectionStatus(weather?'تعذر الاتصال؛ المعروضة بيانات محفوظة حديثًا، وسنعيد المحاولة تلقائيًا.':'تعذر الاتصال بالطقس؛ سنعيد المحاولة تلقائيًا.');
+   const delay=retryDelay(++failures);nextAttemptAt=Date.now()+delay;
+   retryTimer=setTimeout(()=>{if(!document.hidden)refresh();},delay);
+  }finally{clearTimeout(timer);pending=null;}
+ })();
+ return pending;
+}
 const panels=window.HadaMonitorPanels;if(panels){panels.wind=['اتجاه الرياح','بانتظار وصول بيانات الرياح.'];panels.sea=['متابعة بحر العرب','خرائط متابعة الأجواء والحالات المدارية؛ راجع وقت آخر تحديث داخل المصدر.'];panels.quake=['متابعة الزلازل','جارٍ جلب آخر الهزات المسجلة في محيط المنطقة…'];}
 const seaButton=document.querySelector('[data-open="sea"]');if(seaButton){const old=seaButton.onclick;seaButton.onclick=()=>{old();const box=$('infoText');window.HadaSeaBulletin.mount(box);const a=document.createElement('a');a.className='primary';a.style.display='inline-block';a.href='https://www.windy.com/?rain,15,57,4';a.target='_blank';a.rel='noopener noreferrer';a.textContent='متابعة أجواء بحر العرب';box.appendChild(document.createElement('br'));box.appendChild(a);const storm=document.createElement('a');storm.className='primary';storm.style.display='inline-block';storm.href='https://zoom.earth/storms/93s-2027/#map=precipitation/model=gfs/overlays=wind,fires,crosshair';storm.target='_blank';storm.rel='noopener noreferrer';storm.textContent='متابعة العواصف المدارية';box.appendChild(document.createElement('br'));box.appendChild(storm);};document.querySelector('.sea [data-open="sea"]').onclick=seaButton.onclick;}
 let quakeToken=0;const quakeButton=document.querySelector('[data-open="quake"]');if(quakeButton){const old=quakeButton.onclick;quakeButton.onclick=async()=>{old();const token=++quakeToken,controller=new AbortController(),timer=setTimeout(()=>controller.abort(),18000);try{const end=new Date(),start=new Date(Date.now()-30*86400000),q=new URL('https://earthquake.usgs.gov/fdsnws/event/1/query');q.search=new URLSearchParams({format:'geojson',starttime:start.toISOString().slice(0,10),endtime:end.toISOString().slice(0,10),latitude:'14.230586',longitude:'47.199415',maxradiuskm:'1500',minmagnitude:'3',orderby:'time',limit:'8'});const response=await fetch(q.href,{signal:controller.signal});if(!response.ok)throw new Error('quakes');const data=await response.json();if(token!==quakeToken)return;const box=$('infoText');box.replaceChildren();const intro=document.createElement('p');intro.textContent=data.features?.length?'آخر الهزات المسجلة خلال ٣٠ يومًا في محيط ١٥٠٠ كم.':'لم يسجل المصدر هزات بقوة ٣ أو أكثر ضمن النطاق خلال آخر ٣٠ يومًا.';box.appendChild(intro);for(const feature of data.features||[]){const prop=feature.properties;if(!finite(prop.mag)||!finite(prop.time))continue;const item=document.createElement('div');item.className='quake-live-item';const strength=document.createElement('strong');strength.textContent='القوة '+fmt(prop.mag);
  const place=document.createElement('p'),translated=quakePlace(prop.place);place.textContent=translated||prop.place||'موقع غير مسمى';place.dir=translated?'rtl':'auto';
  const time=document.createElement('p');time.className='small-note';time.textContent=new Intl.DateTimeFormat('ar-YE',{timeZone:ZONE,day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(prop.time));item.append(strength,place,time);box.appendChild(item);}const source=document.createElement('p');source.className='source-note';source.textContent='المصدر: هيئة المسح الجيولوجي الأمريكية USGS.';box.appendChild(source);}catch{if(token===quakeToken)$('infoText').textContent='تعذر تحديث بيانات الزلازل مؤقتًا. أعد فتح القسم للمحاولة مجددًا.';}finally{clearTimeout(timer);}};}
-refresh();window.addEventListener('online',()=>refresh(true));document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh(calendarDay!==dayKey());});setInterval(()=>refresh(calendarDay!==dayKey()),60000);
-window.HadaLiveWeather={url:url.href,validated,dayChance,direction,refresh,getHazard:()=>currentHazard};
+refresh();window.addEventListener('online',()=>refresh(true));document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh(calendarDay!==dayKey());});setInterval(()=>{if(!document.hidden){if(weather&&calendarDay===dayKey()&&Date.now()-weatherAt<=MAX_CACHE_AGE)window.HadaRainPeriod.render(weather);refresh(calendarDay!==dayKey());}},60000);
+window.HadaLiveWeather={url:url.href,validated,dayChance,direction,refresh,retryDelay,getHazard:()=>currentHazard};
 })();
