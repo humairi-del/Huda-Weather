@@ -1,0 +1,28 @@
+{
+  "total": 1730384,
+  "bytes": 2735840,
+  "gzipBytes": 1297788,
+  "hash": "bf5c89cf9205b656dd9552337614d1f73fae4d4a294c3939f5c2cfa024d4b4f2",
+  "modules": [
+    {
+      "name": "imd-fixed.js",
+      "chars": 9142
+    },
+    {
+      "name": "notifications.js",
+      "chars": 20381
+    },
+    {
+      "name": "rain-consensus.js",
+      "chars": 4779
+    },
+    {
+      "name": "rain-entry.js",
+      "chars": 322
+    },
+    {
+      "name": "worker.js",
+      "chars": 2666221
+    }
+  ]
+}

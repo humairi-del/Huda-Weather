@@ -1,0 +1,65 @@
+/* Hada Weather 3.0.0 — mobile review fixes. */
+[hidden]{display:none!important}
+.brand,.brand>div,.header-tools,.stat,.section-head>*{min-width:0}
+.brand h1{font-size:clamp(17px,2.6vw,26px);line-height:1.65;word-break:normal;overflow-wrap:normal}
+.stat strong{word-break:normal;overflow-wrap:normal;line-height:1.6}
+#liveWind{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:center;gap:0 7px}
+#liveWind .wind-value,#liveWind .wind-unit{display:inline-block;white-space:nowrap}
+#liveWind .wind-unit{font-size:14px;font-weight:500}
+.section-head{flex-wrap:wrap;gap:12px}
+.weather-alerts h2{margin:0;font-size:21px}
+.alerts-refresh,.alerts-view-button{min-height:44px;font:inherit;cursor:pointer}
+.alerts-view-button{display:block;width:100%;margin-top:12px;border:1px solid #3b6484;border-radius:12px;padding:12px;background:#17344c;color:#d8edff}
+.hazard-box{border:1px solid #315272;border-radius:16px;background:#0d2033;padding:20px;line-height:1.9;outline-offset:5px}
+.hazard-box strong{display:block;font-size:18px}.hazard-box p{margin:10px 0}
+.hazard-box[data-state=active]{border-color:#e6aa45;background:#3a2b15}
+.hazard-box[data-state=unavailable],.hazard-box[data-state=partial]{border-color:#ab8b55}
+.hazard-coverage{color:var(--muted);font-size:12px;line-height:1.9;margin-bottom:0}
+.weather-alerts>.alert{margin-top:16px}
+.hazard-box.is-highlighted{box-shadow:0 0 0 3px #8acbf455}
+.about-toggle{border:1px solid var(--line);border-radius:16px;background:#101e30}
+.about-toggle>summary{padding:18px 20px;cursor:pointer;font-weight:700;font-size:18px;list-style:none}
+.about-toggle>summary::after{content:'＋';float:left;color:var(--blue)}
+.about-toggle[open]>summary::after{content:'−'}
+.about-content{padding:0 20px 16px;line-height:2;animation:hada-reveal .2s ease-out}
+.copyright{text-align:center;font-size:12px;line-height:2;color:var(--muted);margin:24px 0 0}
+.map-sources{font-size:12px;color:var(--muted);line-height:1.9;margin-top:14px}
+.map-sources summary{cursor:pointer;padding:8px}
+.map-sources a{overflow-wrap:anywhere}
+.map-zoom-button{width:100%;margin-top:12px;min-height:44px;border-radius:12px;border:1px solid #3b6484;background:#17344c;color:#d8edff;font:inherit;cursor:pointer}
+.map-image-dialog{width:min(96vw,1450px);max-width:none;max-height:94vh;padding:14px;background:#0d1c2d;color:#edf5ff;border:1px solid #416182;border-radius:16px}
+.map-image-dialog::backdrop{background:#030914dd}
+.map-image-dialog .image-scroll{overflow:auto;max-height:76vh;background:#fff;border-radius:10px;direction:ltr}
+.map-image-dialog svg{display:block;width:1200px;max-width:none;height:auto}
+.map-image-dialog img{display:block;max-width:none;width:1200px;height:auto}
+.map-image-dialog button{font:inherit;min-height:44px;padding:10px 18px;margin-bottom:12px}
+.sea-map-gallery{margin-top:18px;border:1px solid var(--line);border-radius:16px;padding:14px;line-height:1.9}
+.sea-map-gallery>summary{font-weight:700;cursor:pointer;padding:6px}
+.sea-map-gallery figure{margin:18px 0;padding:12px;background:#0a1728;border-radius:12px}
+.sea-map-gallery h4{font-size:17px;margin:0 0 8px}
+.sea-map-gallery img{display:block;width:100%;height:auto;border-radius:8px;cursor:zoom-in}
+.sea-map-gallery figcaption,.sea-map-gallery .image-status{font-size:12px;color:var(--muted)}
+.sea-map-gallery .image-error{padding:15px;border:1px solid #a88652;border-radius:10px}
+.sea-map-gallery .archive-label{color:#f6d191}
+.quake-live-item{padding:17px!important;line-height:1.9}
+.quake-live-item p{margin:6px 0}.quake-live-item strong{display:block;color:#cce6ff}
+.official-cyclone-card,.sea-static-bulletin{overflow-wrap:break-word}
+@keyframes hada-reveal{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){
+ header{grid-template-columns:1fr;gap:15px}
+ .brand{justify-content:flex-start;max-width:100%;width:100%}
+ .brand h1{font-size:21px}
+ .header-tools{max-width:none;width:100%;flex-direction:row;align-items:center;justify-content:space-between}
+ .datebox{max-width:none}.install-button{font-size:12px}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .stat{padding:15px 10px}.stat strong{font-size:22px}
+ .stat label{line-height:1.8;font-size:13px}
+ #liveWind{flex-direction:row}
+ .official-cyclone-card{padding:14px}
+ .official-cyclone-card h3{font-size:18px}
+ .cyclone-official-facts,.cyclone-official-facts dd,.sea-static-bulletin li{font-size:15px;line-height:2}
+ .cyclone-official-note,.cyclone-official-time,.sea-feed-note{font-size:13px;line-height:1.9}
+ .map-hub-tabs button{padding:11px 8px;font-size:13px;line-height:1.9}
+ .weather-alerts h2{font-size:19px}.hazard-box{padding:16px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.about-content{animation:none}}

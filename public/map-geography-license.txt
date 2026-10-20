@@ -1,0 +1,3 @@
+Yemen governorates: Central Statistical Organization (CSO), HDX via geoBoundaries gbHumanitarian. Represented year: 2019. CC BY 3.0 IGO. https://data.humdata.org/dataset/cod-ab-yem
+https://www.geoboundaries.org/api/current/gbHumanitarian/YEM/ADM1/
+Modified: shared arcs simplified at 0.001 degrees for display. Neighboring countries: Natural Earth, public domain.

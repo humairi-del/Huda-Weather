@@ -1,0 +1,200 @@
+[
+  {
+    "path": "public/OneSignalSDKUpdaterWorker.js",
+    "bytes": 76,
+    "sha256": "2f213985d10e5c5117acfde4f0cab00ad2c13035577ef38c7f0d86d2dd722fbc",
+    "git_blob_sha": "f674ccfd41ba2b0c5a51c621e9b6a691b99279da"
+  },
+  {
+    "path": "public/OneSignalSDKWorker.js",
+    "bytes": 133,
+    "sha256": "cb6e0dfcadd984d9b15a2ff658defce14aa7fa10d497b8bb2bb1c7b0a4d82d85",
+    "git_blob_sha": "3ced2fbf25a98a780bfad967860f8188d36b6877"
+  },
+  {
+    "path": "public/daily-bulletin.js",
+    "bytes": 14200,
+    "sha256": "129ced79e4541d71e98a29d9fa4b09d20daaaafd4b7e64aa6854fb3d22a72ecc",
+    "git_blob_sha": "a874db8ff0ae69c1a9187a5f1c2d82e7837535f6"
+  },
+  {
+    "path": "public/hazard-alerts.js",
+    "bytes": 4627,
+    "sha256": "71cccede6e14cc32625182ffde0853f7a447ed16145a2f2f2c7c594b78175ce8",
+    "git_blob_sha": "7e32f41b8d3de92af7465ae555f1aab0da0a11a4"
+  },
+  {
+    "path": "public/icons/apple-touch-icon.png",
+    "bytes": 35003,
+    "sha256": "9d5d6e7ab29c286f9f0f043709e6946195852f36c6cb0f155f5c0eae1ed761da",
+    "git_blob_sha": "fc9b1002c78154f7b9b9ca9708f4a6906ec8f449"
+  },
+  {
+    "path": "public/icons/favicon-32.png",
+    "bytes": 2243,
+    "sha256": "125a943c61251f6689a747f83dcd82175151f01acb5ce9ae5deb11a7276cf051",
+    "git_blob_sha": "26f7519eb9ffe42fec9605819419b27221ad2b44"
+  },
+  {
+    "path": "public/icons/hada-logo-96.png",
+    "bytes": 12866,
+    "sha256": "185697c46121671c11aed944bf7d4ed37cae9e732fb4072a1c7a309c1e8d8b44",
+    "git_blob_sha": "75045080a9e52e241634f3db00d91c837160d000"
+  },
+  {
+    "path": "public/icons/icon-192.png",
+    "bytes": 38866,
+    "sha256": "a8c5311caee1c5339f1cc234d80daf514ca3604c83211f0082b82b3c891d497d",
+    "git_blob_sha": "8f7f67a218e59a8ca8bc80558a450e632adb924d"
+  },
+  {
+    "path": "public/icons/icon-512.png",
+    "bytes": 229256,
+    "sha256": "e4245e2e1772e2fbda2e22775d9085690b7c23c8122f22944cc701a44b5f25d9",
+    "git_blob_sha": "c8d4738f914e4d5c72136e09d7887a064e65aacd"
+  },
+  {
+    "path": "public/index.html",
+    "bytes": 357647,
+    "sha256": "1442e37588fa57d09873c1fb4e8369eb24cf6c0fea2d6d697439615ef0284b6c",
+    "git_blob_sha": "b2bd77c94c7a0efdd73e94abd1d943a1ee99fc3a"
+  },
+  {
+    "path": "public/install-help.js",
+    "bytes": 2097,
+    "sha256": "dc50b75d4f74c70acb7a7a4c04338b3a4644fdfbc673189a71e88d6e6b3e3648",
+    "git_blob_sha": "7c884afde93c3224b2b374f99f9dc88c3c79599a"
+  },
+  {
+    "path": "public/live-weather.js",
+    "bytes": 15964,
+    "sha256": "f0b54dff07cdad2b570df587fd7137f6e31391ef10d517e7c8ac8621ead4506f",
+    "git_blob_sha": "65d4edefab6a383cf9dc21e81698b0c2f9d7569d"
+  },
+  {
+    "path": "public/manifest.json",
+    "bytes": 617,
+    "sha256": "d53b18603a999c06c5870dcb341abbef2b21882bd6862a4bec416f58021e4195",
+    "git_blob_sha": "59a2765f9ab407ca2fe71b74380b84229efb0302"
+  },
+  {
+    "path": "public/map-geography-license.txt",
+    "bytes": 364,
+    "sha256": "882a0d11860a9c4baff1100446dca8f3bd54db6920a50b102a2dad3c724cfc3b",
+    "git_blob_sha": "ac78a7830885faf8d0d731acb1b716471be1370e"
+  },
+  {
+    "path": "public/morning-modal.js",
+    "bytes": 4459,
+    "sha256": "09f87aa384f7607a0bb7000d626e50a47b8f2c188553d3626526699b3de1c08c",
+    "git_blob_sha": "1f138793ee5ffd232d660a89f568cf26c43b8059"
+  },
+  {
+    "path": "public/notification-links.js",
+    "bytes": 318,
+    "sha256": "8ba94e9a39103c2a9dfc1d0d72d2841a25cb08a09cbb4555a639ee4ca8fc676f",
+    "git_blob_sha": "a0f7d9dde0cc84333cd44598e6fd8c6adc7a4810"
+  },
+  {
+    "path": "public/official-cyclone-snapshot.json",
+    "bytes": 716,
+    "sha256": "231fdecb77a5989b8fa2e50eb6628a2478b24e662f18601215ac570ce16df4b8",
+    "git_blob_sha": "1aec9ec5e6e3f0ace7942199b0abcc5ce3e4466f"
+  },
+  {
+    "path": "public/official-cyclone.js",
+    "bytes": 7722,
+    "sha256": "b36e6dffce5b27f6640a3defc027ea29bfd9072e8b079094a7affe3e06980519",
+    "git_blob_sha": "c7ad6cd0baf6a0b894c6126960df3a77adcdbd61"
+  },
+  {
+    "path": "public/prayer-7day.js",
+    "bytes": 4787,
+    "sha256": "508d5a3e68cd0565736a419795645e18fe3fbcb439ee73d37275b6204da14442",
+    "git_blob_sha": "9bc3229881d952f19d3afe9e540c6fb89394cee5"
+  },
+  {
+    "path": "public/preview-push.js",
+    "bytes": 4619,
+    "sha256": "49299335dc07956a2022e413bf0fdf149e5cd8c2cd673e5403d879ecefad92a8",
+    "git_blob_sha": "e787b9f6010bdeb6181f05a7dbe95f8cf41e279c"
+  },
+  {
+    "path": "public/rain-consensus-snapshot.json",
+    "bytes": 16274,
+    "sha256": "5abd6c5f27645a756cae403ccece996c14d178e60321bd4f3fed5e908742b566",
+    "git_blob_sha": "a1d4826ab827c8d11af232841fc53c2d63f6ea16"
+  },
+  {
+    "path": "public/release-3.css",
+    "bytes": 4791,
+    "sha256": "be98dfdc9a7187e4ec4d30c1cccf3dc1691e26ec37e76776b3f549e0e5cb021c",
+    "git_blob_sha": "f8af8fa8a2acc570a2511f74f0e241b7f17152e4"
+  },
+  {
+    "path": "public/release-3.js",
+    "bytes": 2907,
+    "sha256": "993bca5a03b1a2a3f7d482beac63b12b2ae8d7b1ae28131c85a5747e7036bc92",
+    "git_blob_sha": "60e42e0ebdf0e179ccdfeeb00d6ba166c7f1e3c3"
+  },
+  {
+    "path": "public/sea-bulletin.js",
+    "bytes": 6918,
+    "sha256": "b3679d79a708f2a6c9819e14f179439ff3397b8df143a0f8bc10d21330a363b6",
+    "git_blob_sha": "bb3a293cbb5fd926371447949131df16042f48a9"
+  },
+  {
+    "path": "public/sea-map-gallery.js",
+    "bytes": 6982,
+    "sha256": "ae59d6ea554c38688a90f8d48ddcb47d11c0fe983ddfb6f555e332b8909c80e0",
+    "git_blob_sha": "efb68e12be8890918095ae380d75a60288b4f2af"
+  },
+  {
+    "path": "public/sponsor-albaqira.jpg",
+    "bytes": 219294,
+    "sha256": "3829b8dd72fa96f96a72724e512b02c612445ea136f51b4af29b42e8651e94c0",
+    "git_blob_sha": "29e3b0ed9c9ef769ddf205953e8892a2680d8570"
+  },
+  {
+    "path": "public/sw.js",
+    "bytes": 1334,
+    "sha256": "7905646751acefd972c3d4f53406413e52bd9a0740e5acdd02c8913f7a3a1500",
+    "git_blob_sha": "d3fec0897efde689b0b262a3716748f88d7d4746"
+  },
+  {
+    "path": "public/yemen-governorates.geojson",
+    "bytes": 201449,
+    "sha256": "4e566613bf65b1b0f5c0aeb2db20260abae8f6758827f7fa2554672f98157939",
+    "git_blob_sha": "eef878fda4936f68126618ad283fb29557d64963"
+  },
+  {
+    "path": "workers/imd-fixed.js",
+    "bytes": 10093,
+    "sha256": "4d86f71c4e0b972837bb216b22e555605ea9347717413e83d08e5e7e33932f3f",
+    "git_blob_sha": "b9ac01623c8f762cb5563cadfe10c760f2d063a0"
+  },
+  {
+    "path": "workers/notifications.js",
+    "bytes": 20381,
+    "sha256": "81ed380cbf20fb81c47fae954cad078a14c48d927df1701bb406232b70eae240",
+    "git_blob_sha": "424430ea45eabd7ad2dbb1ebfc76b38a63861c1b"
+  },
+  {
+    "path": "workers/rain-consensus.js",
+    "bytes": 4786,
+    "sha256": "f9f76e30ea822b0d265bd53f0ed59ce70f09bf4c6d1fee0e1f42d617f0b9311f",
+    "git_blob_sha": "607261936e61efa525629d884a543dcd88bc6ff3"
+  },
+  {
+    "path": "workers/rain-entry.js",
+    "bytes": 322,
+    "sha256": "62b5925470cb8a11233a036bf564d400ef279079f14bd12605b5232f1726799e",
+    "git_blob_sha": "7987d2df386df67b8e55a68c887ff3c956356009"
+  },
+  {
+    "path": "workers/worker.js",
+    "bytes": 2666239,
+    "sha256": "f6d519ee6b98af31ec16642ba24953a349d47110f87741385526d3225bc7bd4c",
+    "git_blob_sha": "16b18347c72b0a9f36de0aa2ebdcd995f289ab1e"
+  }
+]
