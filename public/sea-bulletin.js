@@ -10,7 +10,7 @@ function inRing(lon,lat,ring){let hit=false;for(let i=0,j=ring.length-1;i<ring.l
 function inGeometry(lon,lat,g){if(!g)return false;const polygons=g.type==='Polygon'?[g.coordinates]:g.coordinates;return polygons.some(poly=>inRing(lon,lat,poly[0])&&!poly.slice(1).some(hole=>inRing(lon,lat,hole)));}
 function assess(forecast,now=Date.now()){
  const hub=window.HadaMapHub,expected=hub.period(new Date(now));
- if(!forecast||forecast.units!=='mm'||!Number.isFinite(forecast.fetchedAt)||now-forecast.fetchedAt>MAX_AGE_MS||forecast.fetchedAt-now>300000||forecast.p?.start!==expected.start||forecast.p?.end!==expected.end||forecast.p?.dates?.join(',')!==expected.dates.join(',')||[...(forecast.models||[])].sort().join(',')!=='ecmwf,gfs,icon'||!Array.isArray(forecast.data)||forecast.data.length!==hub.points.length)return {kind:'unavailable'};
+ if(!forecast||forecast.units!=='mm'||!Number.isFinite(forecast.fetchedAt)||now-forecast.fetchedAt>MAX_AGE_MS||forecast.fetchedAt-now>300000||forecast.p?.start!==expected.start||forecast.p?.end!==expected.end||forecast.p?.dates?.join(',')!==expected.dates.join(',')||!Array.isArray(forecast.models)||!forecast.models.length||new Set(forecast.models).size!==forecast.models.length||forecast.models.some(k=>!['ecmwf','gfs','icon'].includes(k))||!Array.isArray(forecast.data)||forecast.data.length!==hub.points.length)return {kind:'unavailable'};
  const rows=[];
  for(let i=0;i<forecast.data.length;i++){
   const row=forecast.data[i],point=hub.points[i];
@@ -22,7 +22,7 @@ function assess(forecast,now=Date.now()){
  const high=local.filter(row=>row.total>THRESHOLD_MM),scope=high.length?high:local;
  const daily=expected.dates.map((_,d)=>Math.max(...scope.map(row=>row.daily[d])));
  const peakValue=Math.max(...daily),peakDay=daily.indexOf(peakValue);
- return {kind:high.length?'rain-watch':'below-threshold',maxTotal:Math.max(...local.map(row=>row.total)),peakDay,peakValue,peakDate:expected.dates[peakDay],huda:local.find(r=>r.name==='هدى').total,habban:local.find(r=>r.name==='حبان').total,period:expected,fetchedAt:forecast.fetchedAt,stormStatus:'unavailable'};
+ return {kind:high.length?'rain-watch':'below-threshold',maxTotal:Math.max(...local.map(row=>row.total)),peakDay,peakValue,peakDate:expected.dates[peakDay],huda:local.find(r=>r.name==='هدى').total,habban:local.find(r=>r.name==='حبان').total,period:expected,fetchedAt:forecast.fetchedAt,stormStatus:'unavailable',models:[...forecast.models],partial:forecast.models.length<3};
 }
 function el(tag,text,className){const node=document.createElement(tag);if(text!==undefined)node.textContent=text;if(className)node.className=className;return node;}
 function dated(day){return new Intl.DateTimeFormat('ar-YE',{timeZone:ZONE,weekday:'long',day:'numeric',month:'long'}).format(new Date(day+'T12:00:00+03:00'));}
@@ -38,6 +38,7 @@ function render(){
   card.appendChild(el('p',feedState==='error'?'تعذر تحديث بيانات الخريطة مؤقتًا. أعد فتح النافذة للمحاولة مجددًا.':'جارٍ تحديث بيانات الخريطة المجمعة…'));
   card.appendChild(el('p','لا تتوفر بيانات حديثة مكتملة لتقييم توقعات الأمطار الآن.','sea-feed-note'));
  }else{
+  if(state.partial)card.appendChild(el('p','التوقعات مبنية على الموديلات المتاحة: '+state.models.map(k=>k.toUpperCase()).join(' / ')+'؛ تعذّر بعض المصادر، والتقييم غير مكتمل المصادر.','sea-feed-note'));
   const list=el('ul');
   line(list,'الحالة المتوقعة:',warning?'تراكمات أمطار مرتفعة في بعض نقاط شبوة الممثلة على الخريطة.':'لا تظهر تراكمات تتجاوز ٥٠ ملم في نقاط شبوة الممثلة خلال الأيام السبعة القادمة.');
   line(list,'هدى وحبان:',`المجموع المتوقع خلال ٧ أيام: هدى ${number(state.huda)} ملم، وحبان ${number(state.habban)} ملم.`);
