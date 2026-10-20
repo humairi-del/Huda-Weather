@@ -2,7 +2,7 @@
 // Reading this endpoint never subscribes, schedules, or sends a notification.
 (()=>{'use strict';
  const $=id=>document.getElementById(id),box=$('activeHazardBox');if(!box)return;
- const MAX_AGE=15*60000;let latest=null,pending=null,lastAttempt=0,local=null,timer;
+ const MAX_AGE=15*60000;let latest=null,pending=null,lastAttempt=0,local=null,timer,retryTimer,failures=0;
  const time=value=>new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',day:'numeric',month:'long',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(value));
  function valid(data,now=Date.now()){
   if(data?.schema!=='hada-public-hazards-v1'||!Number.isFinite(data.checkedAt)||data.checkedAt>now+300000||now-data.checkedAt>MAX_AGE||typeof data.rainAvailable!=='boolean'||typeof data.officialAvailable!=='boolean')return false;
@@ -13,8 +13,8 @@
   const data=valid(latest)?latest:null,c=data?.candidate,localActive=local?.active===true&&Number.isFinite(local.checkedAt)&&Date.now()-local.checkedAt<90*60000;
   box.dataset.state=c||localActive?'active':!data?'unavailable':data.rainAvailable&&data.officialAvailable?'quiet':'partial';
   const quiet=data&&data.rainAvailable&&data.officialAvailable;
-  $('hazardTitle').textContent=c?c.title.replace(' — اختبار طقس هدى',''):localActive?'تنبيه طقس محلي':quiet?'لا توجد تنبيهات مطر أو حالات مدارية حاليًا':'تعذّر تحديث التنبيهات';
-  const detail=$('hazardMessage');detail.textContent=c?c.text:localActive?'راجع تفاصيل التنبيه أدناه.':'';detail.hidden=!detail.textContent;
+  $('hazardTitle').textContent=c?c.title.replace(' — اختبار طقس هدى',''):localActive?'تنبيه طقس محلي':quiet?'لا توجد تنبيهات مطر أو حالات مدارية حاليًا':data?'التنبيهات متاحة جزئيًا':'تعذّر تحديث التنبيهات';
+  const detail=$('hazardMessage');detail.textContent=c?c.text:localActive?'راجع تفاصيل التنبيه أدناه.':data&&!quiet?'بانتظار تحديث '+[!data.rainAvailable?'توقعات المطر':null,!data.officialAvailable?'نشرة بحر العرب':null].filter(Boolean).join(' و')+'؛ سنعيد المحاولة تلقائيًا.':!data?'سنحاول الاتصال بالمصادر مجددًا تلقائيًا.':'';detail.hidden=!detail.textContent;
   const checked=$('hazardChecked');checked.textContent='';checked.hidden=true;
   const link=$('hazardDetails');link.hidden=!c;
   if(c){link.href=c.kind==='cyclone'?'?sea=tracking#weatherAlerts':'?map=rain#weatherAlerts';link.textContent=c.kind==='cyclone'?'عرض متابعة بحر العرب':'عرض خريطة الأمطار';}
@@ -22,11 +22,12 @@
  async function refresh(force=false){
   if(pending)return pending;
   if(!force&&Date.now()-lastAttempt<5*60000){render();return;}
-  lastAttempt=Date.now();$('refreshHazards').disabled=true;
+  clearTimeout(retryTimer);lastAttempt=Date.now();$('refreshHazards').disabled=true;
   pending=(async()=>{
    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),45000);
-   try{const response=await fetch('./api/hazards',{signal:controller.signal,cache:'no-store',credentials:'same-origin'});if(!response.ok)throw Error('hazards_unavailable');const data=await response.json();if(!valid(data))throw Error('invalid_hazards');latest=data;render();}
-   catch{render(true);}finally{clearTimeout(timeout);pending=null;$('refreshHazards').disabled=false;}
+   let complete=false;
+   try{const response=await fetch('./api/hazards',{signal:controller.signal,cache:'no-store',credentials:'same-origin'});if(!response.ok)throw Error('hazards_unavailable');const data=await response.json();if(!valid(data))throw Error('invalid_hazards');latest=data;complete=data.rainAvailable&&data.officialAvailable;render();}
+   catch{render(true);}finally{clearTimeout(timeout);pending=null;$('refreshHazards').disabled=false;if(complete)failures=0;else{const delay=[10000,30000,60000,300000][Math.min(failures++,3)];retryTimer=setTimeout(()=>{if(!document.hidden)refresh(true);},delay);}}
   })();return pending;
  }
  async function open(){
