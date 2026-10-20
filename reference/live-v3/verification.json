@@ -1,0 +1,144 @@
+{
+  "static_asset_count": 28,
+  "worker_module_count": 5,
+  "byte_match_count": 33,
+  "html_resource_links": [
+    {
+      "tag": "link",
+      "url": "./manifest.json",
+      "exists": true
+    },
+    {
+      "tag": "link",
+      "url": "./icons/apple-touch-icon.png",
+      "exists": true
+    },
+    {
+      "tag": "link",
+      "url": "./icons/favicon-32.png",
+      "exists": true
+    },
+    {
+      "tag": "link",
+      "url": "./icons/icon-192.png",
+      "exists": true
+    },
+    {
+      "tag": "link",
+      "url": "./release-3.css?v=3.0.1",
+      "exists": true
+    },
+    {
+      "tag": "img",
+      "url": "./icons/hada-logo-96.png",
+      "exists": true
+    },
+    {
+      "tag": "img",
+      "url": "./sponsor-albaqira.jpg",
+      "exists": true
+    },
+    {
+      "tag": "script",
+      "url": "./prayer-7day.js",
+      "exists": true
+    },
+    {
+      "tag": "script",
+      "url": "./official-cyclone.js",
+      "exists": true
+    },
+    {
+      "tag": "script",
+      "url": "./sea-bulletin.js?v=20261018-no-models",
+      "exists": true
+    },
+    {
+      "tag": "script",
+      "url": "./live-weather.js",
+      "exists": true
+    },
+    {
+      "tag": "script",
+      "url": "./preview-push.js?v=20261018-public",
+      "exists": true
+    },
+    {
+      "tag": "script",
+      "url": "./daily-bulletin.js?v=20261018",
+      "exists": true
+    },
+    {
+      "tag": "script",
+      "url": "./morning-modal.js?v=20261018",
+      "exists": true
+    },
+    {
+      "tag": "script",
+      "url": "./notification-links.js?v=20261018",
+      "exists": true
+    },
+    {
+      "tag": "script",
+      "url": "./hazard-alerts.js?v=3.0.1",
+      "exists": true
+    },
+    {
+      "tag": "script",
+      "url": "./release-3.js?v=3.0.1",
+      "exists": true
+    },
+    {
+      "tag": "script",
+      "url": "./install-help.js?v=3.0.1",
+      "exists": true
+    }
+  ],
+  "worker_imports": [
+    {
+      "file": "rain-entry.js",
+      "import": "./worker.js"
+    },
+    {
+      "file": "rain-entry.js",
+      "import": "./rain-consensus.js"
+    },
+    {
+      "file": "worker.js",
+      "import": "./imd-fixed.js"
+    },
+    {
+      "file": "worker.js",
+      "import": "./notifications.js"
+    }
+  ],
+  "syntax_checked": [
+    "workers/imd-fixed.js",
+    "workers/notifications.js",
+    "workers/rain-consensus.js",
+    "workers/rain-entry.js",
+    "workers/worker.js",
+    "public/OneSignalSDKUpdaterWorker.js",
+    "public/OneSignalSDKWorker.js",
+    "public/daily-bulletin.js",
+    "public/hazard-alerts.js",
+    "public/install-help.js",
+    "public/live-weather.js",
+    "public/morning-modal.js",
+    "public/notification-links.js",
+    "public/official-cyclone.js",
+    "public/prayer-7day.js",
+    "public/preview-push.js",
+    "public/release-3.js",
+    "public/sea-bulletin.js",
+    "public/sea-map-gallery.js",
+    "public/sw.js"
+  ],
+  "manifest_icon_links": "passed",
+  "limitations": [
+    "Static verification only; no deployment, scheduled events, push sends or external service execution.",
+    "Original published bugs and unavailable live sources are preserved, not fixed.",
+    "public/ is an exact readable mirror; deployed worker serves embedded copies.",
+    "Inherited main files at repository root remain unchanged and are not the v3 entry point."
+  ]
+}

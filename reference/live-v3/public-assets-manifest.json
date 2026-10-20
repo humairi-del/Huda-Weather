@@ -1,0 +1,170 @@
+[
+  {
+    "path": "/OneSignalSDKUpdaterWorker.js",
+    "contentType": "text/javascript; charset=utf-8",
+    "bytes": 76,
+    "sha256": "2f213985d10e5c5117acfde4f0cab00ad2c13035577ef38c7f0d86d2dd722fbc"
+  },
+  {
+    "path": "/OneSignalSDKWorker.js",
+    "contentType": "text/javascript; charset=utf-8",
+    "bytes": 133,
+    "sha256": "cb6e0dfcadd984d9b15a2ff658defce14aa7fa10d497b8bb2bb1c7b0a4d82d85"
+  },
+  {
+    "path": "/daily-bulletin.js",
+    "contentType": "text/javascript; charset=utf-8",
+    "bytes": 14200,
+    "sha256": "129ced79e4541d71e98a29d9fa4b09d20daaaafd4b7e64aa6854fb3d22a72ecc"
+  },
+  {
+    "path": "/hazard-alerts.js",
+    "contentType": "text/javascript; charset=utf-8",
+    "bytes": 4627,
+    "sha256": "71cccede6e14cc32625182ffde0853f7a447ed16145a2f2f2c7c594b78175ce8"
+  },
+  {
+    "path": "/icons/apple-touch-icon.png",
+    "contentType": "image/png",
+    "bytes": 35003,
+    "sha256": "9d5d6e7ab29c286f9f0f043709e6946195852f36c6cb0f155f5c0eae1ed761da"
+  },
+  {
+    "path": "/icons/favicon-32.png",
+    "contentType": "image/png",
+    "bytes": 2243,
+    "sha256": "125a943c61251f6689a747f83dcd82175151f01acb5ce9ae5deb11a7276cf051"
+  },
+  {
+    "path": "/icons/hada-logo-96.png",
+    "contentType": "image/png",
+    "bytes": 12866,
+    "sha256": "185697c46121671c11aed944bf7d4ed37cae9e732fb4072a1c7a309c1e8d8b44"
+  },
+  {
+    "path": "/icons/icon-192.png",
+    "contentType": "image/png",
+    "bytes": 38866,
+    "sha256": "a8c5311caee1c5339f1cc234d80daf514ca3604c83211f0082b82b3c891d497d"
+  },
+  {
+    "path": "/icons/icon-512.png",
+    "contentType": "image/png",
+    "bytes": 229256,
+    "sha256": "e4245e2e1772e2fbda2e22775d9085690b7c23c8122f22944cc701a44b5f25d9"
+  },
+  {
+    "path": "/install-help.js",
+    "contentType": "text/javascript; charset=utf-8",
+    "bytes": 2097,
+    "sha256": "dc50b75d4f74c70acb7a7a4c04338b3a4644fdfbc673189a71e88d6e6b3e3648"
+  },
+  {
+    "path": "/index.html",
+    "contentType": "text/html; charset=utf-8",
+    "bytes": 357647,
+    "sha256": "1442e37588fa57d09873c1fb4e8369eb24cf6c0fea2d6d697439615ef0284b6c"
+  },
+  {
+    "path": "/live-weather.js",
+    "contentType": "text/javascript; charset=utf-8",
+    "bytes": 15964,
+    "sha256": "f0b54dff07cdad2b570df587fd7137f6e31391ef10d517e7c8ac8621ead4506f"
+  },
+  {
+    "path": "/manifest.json",
+    "contentType": "application/json; charset=utf-8",
+    "bytes": 617,
+    "sha256": "d53b18603a999c06c5870dcb341abbef2b21882bd6862a4bec416f58021e4195"
+  },
+  {
+    "path": "/map-geography-license.txt",
+    "contentType": "text/plain; charset=utf-8",
+    "bytes": 364,
+    "sha256": "882a0d11860a9c4baff1100446dca8f3bd54db6920a50b102a2dad3c724cfc3b"
+  },
+  {
+    "path": "/morning-modal.js",
+    "contentType": "text/javascript; charset=utf-8",
+    "bytes": 4459,
+    "sha256": "09f87aa384f7607a0bb7000d626e50a47b8f2c188553d3626526699b3de1c08c"
+  },
+  {
+    "path": "/notification-links.js",
+    "contentType": "text/javascript; charset=utf-8",
+    "bytes": 318,
+    "sha256": "8ba94e9a39103c2a9dfc1d0d72d2841a25cb08a09cbb4555a639ee4ca8fc676f"
+  },
+  {
+    "path": "/official-cyclone-snapshot.json",
+    "contentType": "application/json; charset=utf-8",
+    "bytes": 716,
+    "sha256": "231fdecb77a5989b8fa2e50eb6628a2478b24e662f18601215ac570ce16df4b8"
+  },
+  {
+    "path": "/official-cyclone.js",
+    "contentType": "text/javascript; charset=utf-8",
+    "bytes": 7722,
+    "sha256": "b36e6dffce5b27f6640a3defc027ea29bfd9072e8b079094a7affe3e06980519"
+  },
+  {
+    "path": "/prayer-7day.js",
+    "contentType": "text/javascript; charset=utf-8",
+    "bytes": 4787,
+    "sha256": "508d5a3e68cd0565736a419795645e18fe3fbcb439ee73d37275b6204da14442"
+  },
+  {
+    "path": "/preview-push.js",
+    "contentType": "text/javascript; charset=utf-8",
+    "bytes": 4619,
+    "sha256": "49299335dc07956a2022e413bf0fdf149e5cd8c2cd673e5403d879ecefad92a8"
+  },
+  {
+    "path": "/rain-consensus-snapshot.json",
+    "contentType": "application/json; charset=utf-8",
+    "bytes": 16274,
+    "sha256": "5abd6c5f27645a756cae403ccece996c14d178e60321bd4f3fed5e908742b566"
+  },
+  {
+    "path": "/release-3.css",
+    "contentType": "text/css; charset=utf-8",
+    "bytes": 4791,
+    "sha256": "be98dfdc9a7187e4ec4d30c1cccf3dc1691e26ec37e76776b3f549e0e5cb021c"
+  },
+  {
+    "path": "/release-3.js",
+    "contentType": "text/javascript; charset=utf-8",
+    "bytes": 2907,
+    "sha256": "993bca5a03b1a2a3f7d482beac63b12b2ae8d7b1ae28131c85a5747e7036bc92"
+  },
+  {
+    "path": "/sea-bulletin.js",
+    "contentType": "text/javascript; charset=utf-8",
+    "bytes": 6918,
+    "sha256": "b3679d79a708f2a6c9819e14f179439ff3397b8df143a0f8bc10d21330a363b6"
+  },
+  {
+    "path": "/sea-map-gallery.js",
+    "contentType": "text/javascript; charset=utf-8",
+    "bytes": 6982,
+    "sha256": "ae59d6ea554c38688a90f8d48ddcb47d11c0fe983ddfb6f555e332b8909c80e0"
+  },
+  {
+    "path": "/sponsor-albaqira.jpg",
+    "contentType": "image/jpeg",
+    "bytes": 219294,
+    "sha256": "3829b8dd72fa96f96a72724e512b02c612445ea136f51b4af29b42e8651e94c0"
+  },
+  {
+    "path": "/sw.js",
+    "contentType": "text/javascript; charset=utf-8",
+    "bytes": 1334,
+    "sha256": "7905646751acefd972c3d4f53406413e52bd9a0740e5acdd02c8913f7a3a1500"
+  },
+  {
+    "path": "/yemen-governorates.geojson",
+    "contentType": "application/geo+json; charset=utf-8",
+    "bytes": 201449,
+    "sha256": "4e566613bf65b1b0f5c0aeb2db20260abae8f6758827f7fa2554672f98157939"
+  }
+]
