@@ -3,13 +3,12 @@
 (()=>{'use strict';
  const $=id=>document.getElementById(id),box=$('activeHazardBox');if(!box)return;
  const MAX_AGE=15*60000;let latest=null,pending=null,lastAttempt=0,local=null,timer,retryTimer,failures=0;
- const time=value=>new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',day:'numeric',month:'long',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(value));
  function valid(data,now=Date.now()){
   if(data?.schema!=='hada-public-hazards-v1'||!Number.isFinite(data.checkedAt)||data.checkedAt>now+300000||now-data.checkedAt>MAX_AGE||typeof data.rainAvailable!=='boolean'||typeof data.officialAvailable!=='boolean')return false;
   if(data.candidate===null)return true;
   const c=data.candidate;return !!c&&['rain','cyclone'].includes(c.kind)&&typeof c.title==='string'&&c.title.length<=200&&typeof c.text==='string'&&c.text.length<=2000&&typeof c.url==='string'&&((c.kind==='rain'&&data.rainAvailable)||(c.kind==='cyclone'&&data.officialAvailable));
  }
- function render(error=false){
+ function render(){
   const data=valid(latest)?latest:null,c=data?.candidate,localActive=local?.active===true&&Number.isFinite(local.checkedAt)&&Date.now()-local.checkedAt<90*60000;
   box.dataset.state=c||localActive?'active':!data?'unavailable':data.rainAvailable&&data.officialAvailable?'quiet':'partial';
   const quiet=data&&data.rainAvailable&&data.officialAvailable;
@@ -27,7 +26,7 @@
    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),45000);
    let complete=false;
    try{const response=await fetch('./api/hazards',{signal:controller.signal,cache:'no-store',credentials:'same-origin'});if(!response.ok)throw Error('hazards_unavailable');const data=await response.json();if(!valid(data))throw Error('invalid_hazards');latest=data;complete=data.rainAvailable&&data.officialAvailable;render();}
-   catch{render(true);}finally{clearTimeout(timeout);pending=null;$('refreshHazards').disabled=false;if(complete)failures=0;else{const delay=[10000,30000,60000,300000][Math.min(failures++,3)];retryTimer=setTimeout(()=>{if(!document.hidden)refresh(true);},delay);}}
+   catch{render();}finally{clearTimeout(timeout);pending=null;$('refreshHazards').disabled=false;if(complete)failures=0;else{const delay=[10000,30000,60000,300000][Math.min(failures++,3)];retryTimer=setTimeout(()=>{if(!document.hidden)refresh(true);},delay);}}
   })();return pending;
  }
  async function open(){
