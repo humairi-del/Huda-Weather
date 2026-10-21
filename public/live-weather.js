@@ -31,7 +31,7 @@ function render(d,cached=false,fetchedAt=Date.now()){weather=d;weatherAt=fetched
  window.HadaRainPeriod.render(d,now);
  const messages=window.HadaOutlookMessages;if(messages){messages.today=summary(d,0);messages.tomorrow=summary(d,1);const highs=d.daily.temperature_2m_max.filter(finite),lows=d.daily.temperature_2m_min.filter(finite);messages.week=`خلال الأسبوع: الصغرى بين ${fmt(Math.min(...lows))} و${fmt(Math.max(...lows))}°، والعظمى بين ${fmt(Math.min(...highs))} و${fmt(Math.max(...highs))}°. راجع توقعات الأيام أدناه.`;const selected=document.querySelector('[data-period][aria-selected="true"]');$('outlook').textContent=messages[selected?.dataset.period||'today'];}
  if(window.HadaMonitorPanels)window.HadaMonitorPanels.wind=['اتجاه الرياح',`رياح ${direction(c.wind_direction_10m)} بسرعة ${finite(c.wind_speed_10m)?fmt(c.wind_speed_10m):'—'} كم/س.`];
- const dangerousWind=finite(c.wind_speed_10m)&&c.wind_speed_10m>=50||finite(c.wind_gusts_10m)&&c.wind_gusts_10m>=65;const heavyRain=finite(c.precipitation)&&c.precipitation>=15;
+ const heavyRain=finite(c.precipitation)&&c.precipitation>=15;
  const currentAt=parseTime(c.time),fresh=Number.isFinite(currentAt)&&now-currentAt<=90*60000&&currentAt<=now+5*60000;
  const alert=$('weather-alert');alert.hidden=!(fresh&&heavyRain);
  currentHazard={available:fresh,checkedAt:currentAt,active:!alert.hidden,cached};
