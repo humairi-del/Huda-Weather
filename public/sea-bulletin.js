@@ -35,8 +35,8 @@ function render(){
  const card=el('section',undefined,'sea-static-bulletin');card.setAttribute('aria-label','ملخص بحر العرب المرتبط بالخريطة');card.setAttribute('aria-busy',String(state.kind==='unavailable'&&feedState==='loading'));
  card.appendChild(el('h3','📊 مستجدات بحر العرب والمنطقة'));
  if(state.kind==='unavailable'){
-  card.appendChild(el('p',feedState==='error'?'تعذر تحديث بيانات الخريطة مؤقتًا. أعد فتح النافذة للمحاولة مجددًا.':'جارٍ تحديث بيانات الخريطة المجمعة…'));
-  card.appendChild(el('p','لا تتوفر بيانات حديثة مكتملة لتقييم توقعات الأمطار الآن.','sea-feed-note'));
+  card.appendChild(el('p',feedState==='loading'?'جارٍ تحديث توقعات الأمطار…':'لا توجد تحديثات لتوقعات الأمطار الآن.'));
+  card.appendChild(el('p','ستظهر التوقعات عند اكتمال بيانات الموديلات؛ غياب التحديث لا يعني عدم وجود مخاطر.','sea-feed-note'));
  }else{
   const list=el('ul');
   line(list,'الحالة المتوقعة:',warning?'تراكمات أمطار مرتفعة في بعض نقاط شبوة الممثلة على الخريطة.':'لا تظهر تراكمات تتجاوز ٥٠ ملم في نقاط شبوة الممثلة خلال الأيام السبعة القادمة.');

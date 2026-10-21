@@ -11,16 +11,25 @@ export function normalizeRain(payload,p){
  if(!Array.isArray(payload)||payload.length!==rainPoints.length)throw Error('incomplete_locations');
  return payload.map((row,i)=>{const d=row.daily;if(row.error||row.daily_units?.precipitation_sum!=='mm'||row.timezone!=='Asia/Aden'||!Array.isArray(d?.time)||d.time.length!==7||d.time.some((v,n)=>v!==p.dates[n])||!Array.isArray(d.precipitation_sum)||d.precipitation_sum.length!==7||d.precipitation_sum.some(v=>typeof v!=='number'||!Number.isFinite(v)||v<0))throw Error('incomplete_forecast');return {...rainPoints[i],daily:d.precipitation_sum};});
 }
-// Some ECMWF daily aggregates contain negative totals although the hourly
-// series is valid. Recompute only those days from the SAME model and location;
-// missing/negative hourly values still invalidate the product, never zero-fill.
+// ECMWF can return negative de-accumulated precipitation in daily AND hourly
+// totals. Recover only affected days from the same model, grid cell and hours.
+// A negative hourly total requires valid liquid rain + snowfall water equivalent;
+// absent or invalid components still reject the forecast, never zero-fill.
+export function hourlyPrecipitation(row,index){
+ const h=row.hourly,value=h?.precipitation?.[index];
+ if(typeof value!=='number'||!Number.isFinite(value))return null;
+ if(value>=0)return value;
+ const rain=h.rain?.[index],snow=h.snowfall_water_equivalent?.[index];
+ if(row.hourly_units?.rain!=='mm'||row.hourly_units?.snowfall_water_equivalent!=='mm'||!Array.isArray(h.rain)||!Array.isArray(h.snowfall_water_equivalent)||h.rain.length!==h.time.length||h.snowfall_water_equivalent.length!==h.time.length||![rain,snow].every(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0))return null;
+ return rain+snow;
+}
 export function repairDailyRain(row,hourlyRow,p){
  const h=hourlyRow?.hourly;
  if(hourlyRow?.timezone!=='Asia/Aden'||hourlyRow.hourly_units?.precipitation!=='mm'||!Array.isArray(h?.time)||!Array.isArray(h.precipitation)||h.time.length!==h.precipitation.length||![row.latitude,row.longitude,hourlyRow.latitude,hourlyRow.longitude].every(Number.isFinite)||Math.abs(hourlyRow.latitude-row.latitude)>.01||Math.abs(hourlyRow.longitude-row.longitude)>.01)throw Error('invalid_hourly_repair');
  const values=row.daily.precipitation_sum.map((value,day)=>{
   if(typeof value!=='number'||!Number.isFinite(value))throw Error('missing_daily_rain');
   if(value>=0)return value;
-  const samples=p.dates[day]&&h.time.map((time,i)=>({time,value:h.precipitation[i]})).filter(x=>x.time.startsWith(p.dates[day]+'T'));
+  const samples=p.dates[day]&&h.time.map((time,i)=>({time,value:hourlyPrecipitation(hourlyRow,i)})).filter(x=>x.time.startsWith(p.dates[day]+'T'));
   if(!samples||samples.length!==24||samples.some((x,i)=>x.time!==p.dates[day]+'T'+String(i).padStart(2,'0')+':00'||typeof x.value!=='number'||!Number.isFinite(x.value)||x.value<0))throw Error('incomplete_hourly_repair');
   return Math.round(samples.reduce((sum,x)=>sum+x.value,0)*1000)/1000;
  });
@@ -34,7 +43,7 @@ export async function readDailyRain(sourceUrl,p,fetcher=fetch,timeout=20000){
  if(bad.length){
   const u=new URL(sourceUrl),lat=u.searchParams.get('latitude')?.split(','),lon=u.searchParams.get('longitude')?.split(',');
   if(!lat||!lon||lat.length!==rows.length||lon.length!==rows.length)throw Error('incomplete_locations');
-  u.searchParams.delete('daily');u.searchParams.set('hourly','precipitation');
+  u.searchParams.delete('daily');u.searchParams.set('hourly','precipitation,rain,snowfall_water_equivalent');
   u.searchParams.set('latitude',bad.map(i=>lat[i]).join(','));u.searchParams.set('longitude',bad.map(i=>lon[i]).join(','));
   const raw=await jsonRead(u.href,fetcher,timeout),hourlyRows=Array.isArray(raw)?raw:[raw];
   if(hourlyRows.length!==bad.length)throw Error('incomplete_hourly_locations');

@@ -12,8 +12,8 @@
   const data=valid(latest)?latest:null,c=data?.candidate,localActive=local?.active===true&&Number.isFinite(local.checkedAt)&&Date.now()-local.checkedAt<90*60000;
   box.dataset.state=c||localActive?'active':!data?'unavailable':data.rainAvailable&&data.officialAvailable?'quiet':'partial';
   const quiet=data&&data.rainAvailable&&data.officialAvailable;
-  $('hazardTitle').textContent=c?c.title.replace(' — اختبار طقس هدى',''):localActive?'تنبيه طقس محلي':quiet?'لا توجد تنبيهات مطر أو حالات مدارية حاليًا':data?'التنبيهات متاحة جزئيًا':'تعذّر تحديث التنبيهات';
-  const detail=$('hazardMessage');detail.textContent=c?c.text:localActive?'راجع تفاصيل التنبيه أدناه.':data&&!quiet?'بانتظار تحديث '+[!data.rainAvailable?'توقعات المطر':null,!data.officialAvailable?'نشرة بحر العرب':null].filter(Boolean).join(' و')+'؛ سنعيد المحاولة تلقائيًا.':!data?'سنحاول الاتصال بالمصادر مجددًا تلقائيًا.':'';detail.hidden=!detail.textContent;
+  $('hazardTitle').textContent=c?c.title.replace(' — اختبار طقس هدى',''):localActive?'تنبيه طقس محلي':quiet?'لا توجد تنبيهات مطر أو حالات مدارية حاليًا':data?'لا توجد تحديثات مكتملة للتنبيهات الآن':'لا توجد تحديثات للتنبيهات الآن';
+  const detail=$('hazardMessage');detail.textContent=c?c.text:localActive?'راجع تفاصيل التنبيه أدناه.':data&&!quiet?'لا توجد تحديثات حديثة لـ '+[!data.rainAvailable?'توقعات المطر':null,!data.officialAvailable?'نشرة بحر العرب':null].filter(Boolean).join(' و')+'؛ سنعيد المحاولة تلقائيًا. غياب التحديث لا يعني عدم وجود مخاطر.':!data?'سنحاول الاتصال بالمصادر مجددًا تلقائيًا.':'';detail.hidden=!detail.textContent;
   const checked=$('hazardChecked');checked.textContent='';checked.hidden=true;
   const link=$('hazardDetails');link.hidden=!c;
   if(c){link.href=c.kind==='cyclone'?'?sea=tracking#weatherAlerts':'?map=rain#weatherAlerts';link.textContent=c.kind==='cyclone'?'عرض متابعة بحر العرب':'عرض خريطة الأمطار';}

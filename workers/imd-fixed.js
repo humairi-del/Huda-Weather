@@ -39,11 +39,15 @@ function movement(s){
  const dirs={'northnorthwest':'الشمال والشمال الغربي','westnorthwest':'الغرب والشمال الغربي','eastnortheast':'الشرق والشمال الشرقي','northnortheast':'الشمال والشمال الشرقي','southsoutheast':'الجنوب والجنوب الشرقي','westsouthwest':'الغرب والجنوب الغربي','eastsoutheast':'الشرق والجنوب الشرقي','southsouthwest':'الجنوب والجنوب الغربي','northwest':'الشمال الغربي','northeast':'الشمال الشرقي','southwest':'الجنوب الغربي','southeast':'الجنوب الشرقي','west':'الغرب','east':'الشرق','north':'الشمال','south':'الجنوب'};
  return {text:'الاتجاه الأول المتوقع: نحو '+dirs[m[2].toLowerCase().replace(/[ -]/g,'')]+'. لا يحدد هذا وحده ساحل الوصول.',targets:[]};
 }
-export function parseImdBulletin(raw,sourceUrl,now=Date.now()){
+export function isCurrentBulletin(data,now=Date.now()){
+ return data?.schema==='hada-imd-cyclone-v1'&&data.basin==='Arabian Sea'&&Number.isFinite(data.issuedAt)&&data.issuedAt>0&&data.issuedAt<=now+15*60000&&Number.isFinite(data.checkedAt)&&data.checkedAt<=now+5*60000&&now-data.checkedAt<=15*60000&&now-data.issuedAt<=(data.state==='active'?12:30)*3600000;
+}
+// Dated history may be displayed, but isCurrentBulletin still gates alerts.
+export function parseImdBulletin(raw,sourceUrl,now=Date.now(),{allowHistorical=false}={}){
  const url=new URL(sourceUrl);if(url.origin!==new URL(IMD_HOME).origin||!url.pathname.startsWith('/uploads/')||!/\.pdf$/i.test(url.pathname))throw new Error('source_not_allowed');
  const text=raw.normalize('NFKC').replace(/[–—−]/g,'-').replace(/\s+/g,' ').trim();
  if(!/REGIONAL SPECIALISED METEOROLOGICAL CENTRE|RSMC.*NEW DELHI|INDIA METEOROLOGICAL DEPARTMENT/i.test(text))throw new Error('authority_not_recognized');
- const issuedAt=bulletinTime(text);if(!issuedAt||issuedAt>now+15*60000||now-issuedAt>30*3600000)throw new Error('bulletin_stale_or_undated');
+ const issuedAt=bulletinTime(text);if(!issuedAt||issuedAt>now+15*60000||now-issuedAt>(allowHistorical?168:30)*3600000)throw new Error('bulletin_stale_or_undated');
  let sea=text.match(/\bARABIAN SEA\s*:\s*([\s\S]+)/i)?.[1];
  if(sea)sea=sea.split(/\bBAY OF BENGAL\s*:/i)[0];
  else {
@@ -68,7 +72,7 @@ export function parseImdBulletin(raw,sourceUrl,now=Date.now()){
   return {...base,state:'ended',lifecycle:'ended',summary:'أفادت النشرة بتبدد الحالة. لا توجد مرحلة نشطة معروضة.',category:'انتهت الحالة وفق النشرة'};
  }
  if(current){
-  if(now-issuedAt>12*3600000)throw new Error('active_bulletin_stale');
+  if(now-issuedAt>12*3600000&&!allowHistorical)throw new Error('active_bulletin_stale');
   if(!/\b(?:lay|lies|centred|centered|persists?|weakened into|intensified into|concentrated into|located|observed)\b/i.test(observed))return {...base,state:'unverified',summary:'توجد إشارة إلى حالة مدارية، وتعذر التحقق آليًا من تصنيفها الحالي.'};
   // Observed winds may follow a forecast paragraph. Only accept a
   // present-tense wind sentence, never a forecast intensity estimate.
