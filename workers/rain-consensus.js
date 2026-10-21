@@ -26,22 +26,28 @@ export function repairDailyRain(row,hourlyRow,p){
  });
  return {...row,daily:{...row.daily,precipitation_sum:values}};
 }
-async function readModel(key,p,fetcher){
- const payload=await jsonRead(rainSourceUrl(key,p),fetcher);
- if(!Array.isArray(payload)||payload.length!==rainPoints.length)throw Error('incomplete_locations');
- const bad=payload.flatMap((row,i)=>row.daily?.precipitation_sum?.some(v=>typeof v==='number'&&v<0)?[i]:[]);
+// Shared by the map and hazard readers so a recoverable daily aggregate
+// cannot disable alerts while the same model's hourly data remains available.
+export async function readDailyRain(sourceUrl,p,fetcher=fetch,timeout=20000){
+ const payload=await jsonRead(sourceUrl,fetcher,timeout),rows=Array.isArray(payload)?payload:[payload];
+ const bad=rows.flatMap((row,i)=>row?.daily?.precipitation_sum?.some(v=>typeof v==='number'&&v<0)?[i]:[]);
  if(bad.length){
-  const u=new URL(rainSourceUrl(key,p));u.searchParams.delete('daily');u.searchParams.set('hourly','precipitation');
-  u.searchParams.set('latitude',bad.map(i=>rainPoints[i].lat).join(','));u.searchParams.set('longitude',bad.map(i=>rainPoints[i].lon).join(','));
-  const raw=await jsonRead(u.href,fetcher),rows=Array.isArray(raw)?raw:[raw];
-  if(rows.length!==bad.length)throw Error('incomplete_hourly_locations');
-  bad.forEach((index,i)=>{payload[index]=repairDailyRain(payload[index],rows[i],p);});
+  const u=new URL(sourceUrl),lat=u.searchParams.get('latitude')?.split(','),lon=u.searchParams.get('longitude')?.split(',');
+  if(!lat||!lon||lat.length!==rows.length||lon.length!==rows.length)throw Error('incomplete_locations');
+  u.searchParams.delete('daily');u.searchParams.set('hourly','precipitation');
+  u.searchParams.set('latitude',bad.map(i=>lat[i]).join(','));u.searchParams.set('longitude',bad.map(i=>lon[i]).join(','));
+  const raw=await jsonRead(u.href,fetcher,timeout),hourlyRows=Array.isArray(raw)?raw:[raw];
+  if(hourlyRows.length!==bad.length)throw Error('incomplete_hourly_locations');
+  bad.forEach((index,i)=>{rows[index]=repairDailyRain(rows[index],hourlyRows[i],p);});
  }
- return normalizeRain(payload,p);
+ return Array.isArray(payload)?rows:rows[0];
+}
+async function readModel(key,p,fetcher){
+ return normalizeRain(await readDailyRain(rainSourceUrl(key,p),p,fetcher,35000),p);
 }
 export function combineRain(rows,p,now){const keys=Object.keys(MODELS);if(keys.some(k=>!rows[k]||rows[k].length!==rainPoints.length))throw Error('missing_model');return {schema:'hada-local-consensus-v3',units:'mm',models:keys,start:p.start,fetchedAt:now,data:rainPoints.map((point,i)=>({...point,daily:Array.from({length:7},(_,day)=>keys.reduce((n,k)=>n+rows[k][i].daily[day],0)/3)}))};}
 export function validRainSnapshot(d,p,now){return d?.schema==='hada-local-consensus-v3'&&d.units==='mm'&&d.start===p.start&&[...(d.models||[])].sort().join(',')==='ecmwf,gfs,icon'&&Number.isFinite(d.fetchedAt)&&now-d.fetchedAt<=MAX_AGE&&d.fetchedAt<=now+300000&&Array.isArray(d.data)&&d.data.length===rainPoints.length&&d.data.every((r,i)=>r.lat===rainPoints[i].lat&&r.lon===rainPoints[i].lon&&Array.isArray(r.daily)&&r.daily.length===7&&r.daily.every(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0));}
-async function jsonRead(url,fetcher){const r=await fetcher(url,{signal:AbortSignal.timeout(35000),redirect:'manual'});if(!r.ok||!r.body)throw Error('upstream_response');const reader=r.body.getReader(),parts=[];let size=0;try{for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>2500000)throw Error('upstream_too_large');parts.push(value)}}finally{await reader.cancel()}const b=new Uint8Array(size);let at=0;for(const part of parts){b.set(part,at);at+=part.length}return JSON.parse(new TextDecoder().decode(b));}
+async function jsonRead(url,fetcher,timeout=35000){const r=await fetcher(url,{signal:AbortSignal.timeout(timeout),redirect:'manual'});if(!r.ok||!r.body)throw Error('upstream_response');const reader=r.body.getReader(),parts=[];let size=0;try{for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>2500000)throw Error('upstream_too_large');parts.push(value)}}finally{await reader.cancel()}const b=new Uint8Array(size);let at=0;for(const part of parts){b.set(part,at);at+=part.length}return JSON.parse(new TextDecoder().decode(b));}
 export async function rainConsensusResponse(request,ctx,fetcher=fetch,now=Date.now()){
  if(request.method!=='GET')return new Response('Method not allowed',{status:405,headers:{Allow:'GET'}});
  const p=rainPeriod(now),key=new Request('https://hada-weather.com/__cache/rain-consensus-v1/'+p.start);let cache=null;
