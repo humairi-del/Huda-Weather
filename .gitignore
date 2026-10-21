@@ -1,0 +1,4 @@
+node_modules/
+.wrangler/
+dist/
+workers/assets.generated.js

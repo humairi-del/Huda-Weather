@@ -30,7 +30,7 @@ function line(list,label,body){const li=el('li');li.append(el('strong',label+' '
 function render(){
  const root=$('seaLiveBulletin');if(!root)return;
  const forecast=window.HadaMapHub?.getForecast(),state=assess(forecast),warning=state.kind==='rain-watch';
- const banner=el('div','⚠️ تنبيه برتقالي: تتجاوز تراكمات الأمطار المتوقعة ٥٠ ملم خلال ٧ أيام في أجزاء من شبوة. يرجى متابعة التحديثات والتحذيرات الرسمية.','sea-orange-alert');
+ const banner=el('div','⚠️ تراكمات أمطار مرتفعة محتملة في أجزاء من شبوة خلال الأسبوع. تابع التحديثات والتحذيرات الرسمية.','sea-orange-alert');
  banner.hidden=!warning;banner.setAttribute('role','status');banner.setAttribute('aria-atomic','true');
  const card=el('section',undefined,'sea-static-bulletin');card.setAttribute('aria-label','ملخص بحر العرب المرتبط بالخريطة');card.setAttribute('aria-busy',String(state.kind==='unavailable'&&feedState==='loading'));
  card.appendChild(el('h3','📊 مستجدات بحر العرب والمنطقة'));
@@ -39,11 +39,11 @@ function render(){
   card.appendChild(el('p','ستظهر التوقعات عند اكتمال بيانات الموديلات؛ غياب التحديث لا يعني عدم وجود مخاطر.','sea-feed-note'));
  }else{
   const list=el('ul');
-  line(list,'الحالة المتوقعة:',warning?'تراكمات أمطار مرتفعة في بعض نقاط شبوة الممثلة على الخريطة.':'لا تظهر تراكمات تتجاوز ٥٠ ملم في نقاط شبوة الممثلة خلال الأيام السبعة القادمة.');
-  line(list,'هدى وحبان:',`المجموع المتوقع خلال ٧ أيام: هدى ${number(state.huda)} ملم، وحبان ${number(state.habban)} ملم.`);
+  line(list,'الحالة المتوقعة:',warning?'تراكمات أمطار مرتفعة في بعض نقاط شبوة الممثلة على الخريطة.':'لا تظهر تراكمات مرتفعة وفق عتبة المتابعة في نقاط شبوة الممثلة خلال الأسبوع.');
+  line(list,'هدى وحبان:',state.huda<.1&&state.habban<.1?'لا تبرز أمطار في التوقعات المتاحة.':'تظهر فرص أمطار خلال الأسبوع؛ راجع الساعات والأيام لتوقيت الفرصة.');
   const when=state.peakDay===0?'اليوم':state.peakDay===1?'غدًا':`بعد ${number(state.peakDay)} أيام`;
   line(list,'التوقيت:',state.peakValue>=1?`أعلى كمية يومية في ${warning?'النقاط ذات التراكم المرتفع':'النقاط الممثلة'} متوقعة ${when}، ${dated(state.peakDate)}. هذا توقيت للمطر وليس موعد وصول حالة مدارية.`:'لا تبرز كمية يومية تبلغ ١ ملم في النقاط الممثلة. التوقعات قابلة للتغير.');
-  card.appendChild(list);
+  card.appendChild(list);const details=el('details',undefined,'forecast-technical');details.appendChild(el('summary','تفاصيل تقنية'));details.appendChild(el('p',`تراكم ٧ أيام: هدى ${number(state.huda)} ملم، حبان ${number(state.habban)} ملم. عتبة المتابعة الإقليمية: أكثر من ٥٠ ملم. المصدر: متوسط ECMWF وGFS وICON عبر Open-Meteo.`));card.appendChild(details);
   card.appendChild(el('p','تعتمد النشرة على نفس بيانات الخريطة المجمعة. عدم تجاوز العتبة لا يستبعد أمطارًا أو مخاطر محلية.','sea-feed-note'));
   card.appendChild(el('p','تحديث الخريطة: '+new Intl.DateTimeFormat('ar-YE',{timeZone:ZONE,day:'numeric',month:'short',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(state.fetchedAt)),'sea-feed-updated'));
  }
