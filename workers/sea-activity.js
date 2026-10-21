@@ -4,7 +4,12 @@ export const SEA_POINTS=[
  {lat:12.7,lon:46.5,target:0},{lat:13.1,lon:47.5,target:1},
  {lat:13.4,lon:48.5,target:2},{lat:13.7,lon:49.5,target:3},
  {lat:12.2,lon:47.5,target:1},{lat:12.7,lon:48.5,target:2},
- {lat:13,lon:49.5,target:3},{lat:13.3,lon:50.5,target:3}
+ {lat:13,lon:49.5,target:3},{lat:13.3,lon:50.5,target:3},
+ // Gulf of Aden, its eastern entrance, and waters around and south of Socotra.
+ {lat:12,lon:44.5,target:0},{lat:12,lon:46,target:0},
+ {lat:12,lon:48,target:1},{lat:12,lon:50,target:2},
+ {lat:12,lon:51.5,target:3},{lat:13,lon:52,target:3},
+ ...[9.5,10.5,11.5,13].flatMap(lat=>[53,54.5,56].map(lon=>({lat,lon,target:3})))
 ];
 export const COAST_POINTS=[{lat:13.4,lon:46.6},{lat:13.9,lon:47.5},{lat:14.3,lon:48.5},{lat:14.6,lon:49.2}];
 export const REGIONAL_POINTS=[
@@ -15,47 +20,58 @@ export const REGIONAL_POINTS=[
 export const POINTS=[...SEA_POINTS,...COAST_POINTS,...REGIONAL_POINTS];
 export const ACTIVE='الحالة: نشاط ركامي - تدفق كتل سحابية وفرص أمطار متفرقة من جهة بحر العرب نحو السواحل والمناطق الداخلية';
 export const REGIONAL_ACTIVE='الحالة: نشاط سحابي - غطاء سحابي مرتفع أو فرص أمطار متفرقة في نطاق بحر العرب وسواحل شبوة والمناطق الداخلية';
+export const MARINE_ACTIVE='الحالة: رصد مؤشرات نشاط مداري / تدفق كتل ركامية من بحر العرب وخليج عدن نحو السواحل الجنوبية';
+export const WIND_ACTIVE='الحالة: نشاط رياح في بحر العرب وخليج عدن ومحيط سقطرى؛ تُتابَع فرص امتداد السحب نحو السواحل الجنوبية';
+export const MOIST_ACTIVE='الحالة: تدفق رطوبة وسحب في بحر العرب وخليج عدن باتجاه السواحل الجنوبية';
+export const WIND_THRESHOLD_KNOTS=15;
 export const QUIET='الحالة: لا تبرز حاليًا مؤشرات سحب كثيفة أو فرص أمطار مؤثرة في النطاق المتابع';
-const FIELDS=['precipitation_probability','precipitation','cloud_cover','cloud_cover_low','cloud_cover_mid','wind_speed_850hPa','wind_direction_850hPa'];
-export function sourceUrl(now=Date.now()){
+const FIELDS=['wind_speed_10m','relative_humidity_850hPa','precipitation_probability','precipitation','cloud_cover','cloud_cover_low','cloud_cover_mid','wind_speed_850hPa','wind_direction_850hPa'];
+export function sourceUrl(now=Date.now(),points=POINTS){
  const start=new Date(Math.floor(now/HOUR)*HOUR).toISOString().slice(0,13)+':00';
  const end=new Date(Math.floor(now/HOUR)*HOUR+3*HOUR).toISOString().slice(0,13)+':00';
  const url=new URL('https://api.open-meteo.com/v1/forecast');
- url.search=new URLSearchParams({latitude:POINTS.map(p=>p.lat).join(','),longitude:POINTS.map(p=>p.lon).join(','),hourly:FIELDS.join(','),timezone:'GMT',start_hour:start,end_hour:end,wind_speed_unit:'kmh',precipitation_unit:'mm',cell_selection:'nearest'});
+ url.search=new URLSearchParams({latitude:points.map(p=>p.lat).join(','),longitude:points.map(p=>p.lon).join(','),hourly:FIELDS.join(','),timezone:'GMT',start_hour:start,end_hour:end,wind_speed_unit:'kmh',precipitation_unit:'mm',cell_selection:'nearest'});
  return url.href;
 }
 function bearing(a,b){const rad=Math.PI/180,p=a.lat*rad,q=b.lat*rad,d=(b.lon-a.lon)*rad;return (Math.atan2(Math.sin(d)*Math.cos(q),Math.cos(p)*Math.sin(q)-Math.sin(p)*Math.cos(q)*Math.cos(d))/rad+360)%360;}
 export function towardCoast(point,direction,speed){if(speed<5)return false;const flow=(direction+180)%360,target=bearing(point,COAST_POINTS[point.target]);return Math.abs(((flow-target+540)%360)-180)<=60;}
-export function analyzeSea(payload,now=Date.now()){
- if(!Array.isArray(payload)||payload.length!==POINTS.length)throw Error('incomplete_area');
+function normalizeRows(payload,points,now){
+ if(!Array.isArray(payload)||payload.length!==points.length)throw Error('incomplete_area');
  const start=Math.floor(now/HOUR)*HOUR;
- const rows=payload.map((row,p)=>{
+ return payload.map((row,p)=>{
   const h=row?.hourly,u=row?.hourly_units;
-  if(row?.error||row.utc_offset_seconds!==0||!Number.isFinite(row.latitude)||!Number.isFinite(row.longitude)||Math.abs(row.latitude-POINTS[p].lat)>.4||Math.abs(row.longitude-POINTS[p].lon)>.4||!Array.isArray(h?.time)||u?.precipitation_probability!=='%'||u?.precipitation!=='mm'||u?.cloud_cover!=='%'||u?.cloud_cover_low!=='%'||u?.cloud_cover_mid!=='%'||u?.wind_speed_850hPa!=='km/h'||u?.wind_direction_850hPa!=='°')throw Error('invalid_area');
+  if(row?.error||row.utc_offset_seconds!==0||!Number.isFinite(row.latitude)||!Number.isFinite(row.longitude)||Math.abs(row.latitude-points[p].lat)>.4||Math.abs(row.longitude-points[p].lon)>.4||!Array.isArray(h?.time)||u?.wind_speed_10m!=='km/h'||u?.relative_humidity_850hPa!=='%'||u?.precipitation_probability!=='%'||u?.precipitation!=='mm'||u?.cloud_cover!=='%'||u?.cloud_cover_low!=='%'||u?.cloud_cover_mid!=='%'||u?.wind_speed_850hPa!=='km/h'||u?.wind_direction_850hPa!=='°')throw Error('invalid_area');
   return Array.from({length:4},(_,hour)=>{
    const timestamp=new Date(start+hour*HOUR).toISOString().slice(0,16),i=h.time.indexOf(timestamp);
    if(i<0)throw Error('outdated_hours');
    const values=Object.fromEntries(FIELDS.map(k=>[k,h[k]?.[i]]));
-   if(FIELDS.some(k=>typeof values[k]!=='number'||!Number.isFinite(values[k])||values[k]<0)||['precipitation_probability','cloud_cover','cloud_cover_low','cloud_cover_mid'].some(k=>values[k]>100)||values.wind_direction_850hPa>360||values.wind_speed_850hPa>500||values.precipitation>500)throw Error('incomplete_hours');
+   if(FIELDS.some(k=>typeof values[k]!=='number'||!Number.isFinite(values[k])||values[k]<0)||['relative_humidity_850hPa','precipitation_probability','cloud_cover','cloud_cover_low','cloud_cover_mid'].some(k=>values[k]>100)||values.wind_direction_850hPa>360||values.wind_speed_10m>500||values.wind_speed_850hPa>500||values.precipitation>500)throw Error('incomplete_hours');
    return values;
   });
  });
- // The wind direction is where air comes FROM. Convert it to a flow bearing
- // and compare with the bearing to the coast. High cirrus alone is insufficient.
- const flowing=rows.slice(0,SEA_POINTS.length).some((hours,p)=>hours.some(v=>
-  v.cloud_cover>=60&&Math.max(v.cloud_cover_low,v.cloud_cover_mid)>=35&&
-  towardCoast(SEA_POINTS[p],v.wind_direction_850hPa,v.wind_speed_850hPa)));
- const rainy=rows.slice(0,SEA_POINTS.length).some((hours,p)=>hours.some((v,i)=>
-  v.precipitation>=.2&&v.cloud_cover>=40&&towardCoast(SEA_POINTS[p],v.wind_direction_850hPa,v.wind_speed_850hPa)&&
-  rows[SEA_POINTS.length+SEA_POINTS[p].target].slice(i).some(c=>c.cloud_cover>=40)));
- // Regional conditions activate the card independently of local dryness or
- // wind alignment. Cloud cover alone is not proof of convection or movement.
+}
+export function analyzeSea(payload,now=Date.now()){
+ const rows=normalizeRows(payload,POINTS,now);
+ return analyzeAreas(rows.slice(0,SEA_POINTS.length),rows.slice(SEA_POINTS.length),now);
+}
+function analyzeAreas(marineRows,regionalRows,now){
+ const start=Math.floor(now/HOUR)*HOUR;
+ const flowing=marineRows?.some((hours,p)=>hours.some(v=>v.cloud_cover>=60&&Math.max(v.cloud_cover_low,v.cloud_cover_mid)>=35&&towardCoast(SEA_POINTS[p],v.wind_direction_850hPa,v.wind_speed_850hPa)))||false;
+ const convection=marineRows?.some(hours=>hours.some(v=>v.precipitation>=.2&&v.cloud_cover>=50&&Math.max(v.cloud_cover_low,v.cloud_cover_mid)>=35))||false;
+ const moistFlow=marineRows?.some((hours,p)=>hours.some(v=>v.relative_humidity_850hPa>=75&&v.cloud_cover>=30&&towardCoast(SEA_POINTS[p],v.wind_direction_850hPa,v.wind_speed_850hPa)))||false;
+ // Surface mean wind, not gusts or winds at 850 hPa. 1 knot = 1.852 km/h.
+ const marineWind=marineRows?.some(hours=>hours.some(v=>v.wind_speed_10m/1.852>=WIND_THRESHOLD_KNOTS))||false;
+ const rows=[...(marineRows||[]),...(regionalRows||[])];
  const regional=rows.some(hours=>hours.some(v=>v.cloud_cover>=60||v.precipitation_probability>=20||v.precipitation>=.1));
- const active=regional||flowing||rainy;
- return {schema:'hada-sea-activity-v2',state:active?'active':'quiet',summary:flowing||rainy?ACTIVE:active?REGIONAL_ACTIVE:QUIET,source:'Open-Meteo',basis:'hourly-model-estimate',checkedAt:now,validFrom:start,validUntil:start+HOUR,horizonHours:4};
+ const active=marineWind||convection||moistFlow||flowing||regional;
+ // Missing maritime data must never be interpreted as maritime calm. Regional
+ // activity can still be displayed; a missing inland point cannot mask sea winds.
+ if(!active&&(!marineRows||!regionalRows))throw Error('incomplete_area');
+ const summary=convection&&flowing?MARINE_ACTIVE:marineWind?WIND_ACTIVE:moistFlow?MOIST_ACTIVE:flowing?ACTIVE:active?REGIONAL_ACTIVE:QUIET;
+ return {schema:'hada-sea-activity-v3',state:active?'active':'quiet',summary,source:'Open-Meteo',basis:'hourly-model-estimate',checkedAt:now,validFrom:start,validUntil:start+HOUR,horizonHours:4,coverage:{marine:!!marineRows,regional:!!regionalRows}};
 }
 export function validSea(data,now=Date.now()){
- return data?.schema==='hada-sea-activity-v2'&&['active','quiet'].includes(data.state)&&(data.state==='active'?[ACTIVE,REGIONAL_ACTIVE].includes(data.summary):data.summary===QUIET)&&data.source==='Open-Meteo'&&data.basis==='hourly-model-estimate'&&Number.isFinite(data.checkedAt)&&data.checkedAt<=now+300000&&now-data.checkedAt<HOUR&&data.validFrom===Math.floor(now/HOUR)*HOUR&&data.validUntil===data.validFrom+HOUR;
+ return data?.schema==='hada-sea-activity-v3'&&['active','quiet'].includes(data.state)&&(data.state==='active'?[ACTIVE,REGIONAL_ACTIVE,MARINE_ACTIVE,WIND_ACTIVE,MOIST_ACTIVE].includes(data.summary):data.summary===QUIET)&&data.source==='Open-Meteo'&&data.basis==='hourly-model-estimate'&&Number.isFinite(data.checkedAt)&&data.checkedAt<=now+300000&&now-data.checkedAt<HOUR&&data.validFrom===Math.floor(now/HOUR)*HOUR&&data.validUntil===data.validFrom+HOUR;
 }
 async function readJson(response){
  if(!response.ok||!response.body)throw Error('weather_http_'+response.status);
@@ -64,18 +80,21 @@ async function readJson(response){
  const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}return JSON.parse(new TextDecoder().decode(bytes));
 }
 export async function readSeaActivity(now=Date.now(),fetcher=fetch){
- const payload=await readJson(await fetcher(sourceUrl(now),{signal:AbortSignal.timeout(20000),redirect:'manual',headers:{Accept:'application/json'}}));
- return analyzeSea(payload,now);
+ const areas=[SEA_POINTS,[...COAST_POINTS,...REGIONAL_POINTS]];
+ // Independent requests: inland dryness or missing inland data cannot suppress
+ // a wind or cloud signal in the Gulf of Aden / Socotra maritime domain.
+ const results=await Promise.allSettled(areas.map(async points=>normalizeRows(await readJson(await fetcher(sourceUrl(now,points),{signal:AbortSignal.timeout(20000),redirect:'manual',headers:{Accept:'application/json'}})),points,now)));
+ return analyzeAreas(results[0].status==='fulfilled'?results[0].value:null,results[1].status==='fulfilled'?results[1].value:null,now);
 }
 export async function seaActivityResponse(request,ctx,fetcher=fetch,now=Date.now()){
  if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405,headers:{Allow:'GET, HEAD'}});
  if(request.method==='HEAD')return new Response(null,{headers:{'cache-control':'no-store'}});
- const key=new Request(new URL('/__cache/sea-activity-v2/'+Math.floor(now/HOUR),request.url));let cache;
- try{if(globalThis.caches){cache=await caches.open('hada-sea-activity-v2');const cached=await cache.match(key);if(cached&&validSea(await cached.clone().json(),now))return cached;}}catch{cache=null;}
+ const key=new Request(new URL('/__cache/sea-activity-v3/'+Math.floor(now/HOUR),request.url));let cache;
+ try{if(globalThis.caches){cache=await caches.open('hada-sea-activity-v3');const cached=await cache.match(key);if(cached&&validSea(await cached.clone().json(),now))return cached;}}catch{cache=null;}
  try{
   const data=await readSeaActivity(now,fetcher);
   if(!validSea(data,Date.now()))throw Error('hour_changed');
   const response=Response.json(data,{headers:{'cache-control':'public, max-age='+Math.max(1,Math.floor((data.validUntil-now)/1000)),'x-content-type-options':'nosniff'}});
   if(cache)ctx.waitUntil(cache.put(key,response.clone()).catch(()=>{}));return response;
- }catch(error){const reason=error instanceof Error?error.message:'unknown';console.warn(JSON.stringify({event:'sea_activity_unavailable',reason}));return Response.json({schema:'hada-sea-activity-v2',state:'unavailable',checkedAt:now},{status:503,headers:{'cache-control':'no-store','x-hada-source-status':/^[a-z0-9_]+$/.test(reason)?reason:'weather_unavailable'}});}
+ }catch(error){const reason=error instanceof Error?error.message:'unknown';console.warn(JSON.stringify({event:'sea_activity_unavailable',reason}));return Response.json({schema:'hada-sea-activity-v3',state:'unavailable',checkedAt:now},{status:503,headers:{'cache-control':'no-store','x-hada-source-status':/^[a-z0-9_]+$/.test(reason)?reason:'weather_unavailable'}});}
 }
