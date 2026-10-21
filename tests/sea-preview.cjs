@@ -10,7 +10,7 @@ function card(overrides={},age=0){
  return window.HadaOfficialCyclone.renderCard().text;
 }
 test('weak state omits empty name, wind and technical placeholders',()=>{
- const text=card({name:null,wind:null});assert.match(text,/نشاط منخفض جوي اعتيادي/);assert.doesNotMatch(text,/الاسم غير متاح|لم ترد سرعة|عتبة|النقاط الممثلة|تفاصيل تقنية/);
+ const text=card({name:null,wind:null});assert.match(text,/الحالة: استقرار عام \/ نشاط اعتيادي - لا توجد تأثيرات مباشرة على المنطقة/);assert.doesNotMatch(text,/الاسم غير متاح|لم ترد سرعة|عتبة|النقاط الممثلة|تفاصيل تقنية/);
 });
 test('Yemen-bound low does not claim no direct local effects',()=>{
  assert.doesNotMatch(card({track:{text:'باتجاه اليمن',targets:['اليمن']}}),/لا تشير الوجهة|لا توجد تأثيرات|استقرار عام/);
@@ -21,7 +21,7 @@ test('stale bulletin does not claim current stability',()=>{
 test('strong storm retains classification and available wind',()=>{
  const text=card({stage:3,category:'عاصفة مدارية',name:'اختبار'});assert.match(text,/عاصفة مدارية/);assert.match(text,/الرياح:/);
 });
-test('only live satellite view remains and refresh is included',()=>{
- const html=fs.readFileSync('public/index.html','utf8');assert.match(html,/overlay=satellite/);assert.match(html,/src="\.\/live-clouds.js"/);assert.doesNotMatch(html,/rainAccumulationMap|window.HadaMapHub=|mapTabRain/);
+test('live satellite is default with a separate provider accumulation view',()=>{
+ const html=fs.readFileSync('public/index.html','utf8');assert.match(html,/overlay=satellite/);assert.match(html,/src="\.\/live-clouds.js"/);assert.doesNotMatch(html,/rainAccumulationMap|window.HadaMapHub=|mapTabRain/);assert.match(html,/id="showRainAccumulation"/);
  assert.doesNotMatch(fs.readFileSync('public/sea-bulletin.js','utf8'),/HadaMapHub|مستجدات بحر العرب والمنطقة/);
 });

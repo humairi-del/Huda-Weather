@@ -51,13 +51,12 @@ function renderCard(){
  else if(data.state==='active'&&data.stage>=2){
   message='الحالة: '+data.category+(data.name?' «'+data.name+'»':'')+'.';
  }else{
-  message=data.state==='active'||data.state==='upper-air'?'الحالة: نشاط منخفض جوي اعتيادي.':'الحالة: استقرار عام في تصنيف الحالات المدارية؛ لا توجد عاصفة نشطة في النشرة.';
-  // Never infer local safety from the absence of a cyclone classification.
-  const targets=data.track?.targets;
-  if(data.state==='active'&&Array.isArray(targets)&&targets.length&&targets.every(t=>/^(الصومال|الهند|باكستان|عمان)$/.test(t)))message+=' لا تشير الوجهة المذكورة في النشرة إلى تأثير مباشر على هدى وحبان.';
+  message='الحالة: استقرار عام / نشاط اعتيادي - لا توجد تأثيرات مباشرة على المنطقة';
+  // Preserve an explicit local warning even for a weak system.
+  if(data.track?.targets?.some(t=>/اليمن|شبوة|حبان|هدى/.test(t)))message='الحالة: نشاط منخفض جوي اعتيادي. '+data.track.text;
  }
  card.appendChild(el('p',message,'sea-current-summary'));
- if(data?.state==='active'){
+ if(data?.state==='active'&&data.stage>=2){
   if(data.track.text)card.appendChild(el('p',data.track.text));
   if(data.stage>=2&&data.wind)card.appendChild(el('p','الرياح: '+range(data.wind.kmhMin,data.wind.kmhMax)+' كم/س.'));
  }
