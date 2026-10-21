@@ -26,7 +26,7 @@ function accept(data){if(!latest||data.issuedAt>latest.issuedAt||(data.issuedAt=
 try{const saved=JSON.parse(localStorage.getItem('hada-official-last-verified-v1'));if(validDated(saved))latest=saved;}catch{}
 async function refresh(force=false){
  if(pending)return pending;
- if(!force&&Date.now()-lastAttempt<15*60000){notify();return;}
+ if(!force&&Date.now()-lastAttempt<6*3600000){notify();return;}
  lastAttempt=Date.now();transport='loading';notify();
  pending=(async()=>{
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);

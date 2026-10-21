@@ -1,5 +1,5 @@
 // Read-only, shared three-model product. Missing values never become zero.
-const DAY=86400000,FRESH=30*60000,MAX_AGE=90*60000;
+const DAY=86400000,FRESH=60*60000,MAX_AGE=180*60000;
 export const rainPoints=[];for(let lat=11;lat<=21;lat++)for(let lon=40.5;lon<=55.5;lon++)rainPoints.push({lat,lon});
 rainPoints.push({lat:14.230586,lon:47.199415,name:'هدى'},{lat:14.3545083,lon:47.0802023,name:'حبان'});
 const MODELS={gfs:'gfs_global',ecmwf:'ecmwf_ifs025',icon:'icon_global'};
@@ -54,15 +54,18 @@ export async function readDailyRain(sourceUrl,p,fetcher=fetch,timeout=20000){
 async function readModel(key,p,fetcher){
  return normalizeRain(await readDailyRain(rainSourceUrl(key,p),p,fetcher,35000),p);
 }
-export function combineRain(rows,p,now){const keys=Object.keys(MODELS);if(keys.some(k=>!rows[k]||rows[k].length!==rainPoints.length))throw Error('missing_model');return {schema:'hada-local-consensus-v3',units:'mm',models:keys,start:p.start,fetchedAt:now,data:rainPoints.map((point,i)=>({...point,daily:Array.from({length:7},(_,day)=>keys.reduce((n,k)=>n+rows[k][i].daily[day],0)/3)}))};}
+export function combineRain(rows,p,now){const keys=Object.keys(MODELS);if(keys.some(k=>!rows[k]||rows[k].length!==rainPoints.length))throw Error('missing_model');return {schema:'hada-local-consensus-v3',units:'mm',models:keys,start:p.start,fetchedAt:now,data:rainPoints.map((point,i)=>({...point,daily:Array.from({length:7},(_,day)=>keys.reduce((n,k)=>n+rows[k][i].daily[day],0)/3),agreement:keys.filter(k=>rows[k][i].daily.reduce((a,b)=>a+b,0)>50).length}))};}
 export function validRainSnapshot(d,p,now){return d?.schema==='hada-local-consensus-v3'&&d.units==='mm'&&d.start===p.start&&[...(d.models||[])].sort().join(',')==='ecmwf,gfs,icon'&&Number.isFinite(d.fetchedAt)&&now-d.fetchedAt<=MAX_AGE&&d.fetchedAt<=now+300000&&Array.isArray(d.data)&&d.data.length===rainPoints.length&&d.data.every((r,i)=>r.lat===rainPoints[i].lat&&r.lon===rainPoints[i].lon&&Array.isArray(r.daily)&&r.daily.length===7&&r.daily.every(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0));}
 async function jsonRead(url,fetcher,timeout=35000){const r=await fetcher(url,{signal:AbortSignal.timeout(timeout),redirect:'manual'});if(!r.ok||!r.body)throw Error('upstream_response');const reader=r.body.getReader(),parts=[];let size=0;try{for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>2500000)throw Error('upstream_too_large');parts.push(value)}}finally{await reader.cancel()}const b=new Uint8Array(size);let at=0;for(const part of parts){b.set(part,at);at+=part.length}return JSON.parse(new TextDecoder().decode(b));}
 export async function rainConsensusResponse(request,ctx,fetcher=fetch,now=Date.now()){
  if(request.method!=='GET')return new Response('Method not allowed',{status:405,headers:{Allow:'GET'}});
- const p=rainPeriod(now),key=new Request('https://hada-weather.com/__cache/rain-consensus-v1/'+p.start);let cache=null;
- try{if(globalThis.caches)cache=await caches.open('hada-rain-consensus-v1');if(!validRainSnapshot(saved,p,now)&&cache){const r=await cache.match(key);if(r){const d=await r.json();if(validRainSnapshot(d,p,now))saved=d;}}}catch{cache=null}
+ const p=rainPeriod(now),key=new Request(new URL('/__cache/preview-v4-rain/'+p.start,request.url).href);let cache=null;
+ try{if(globalThis.caches)cache=await caches.open('hada-preview-v4-rain');if(!validRainSnapshot(saved,p,now)&&cache){const r=await cache.match(key);if(r){const d=await r.json();if(validRainSnapshot(d,p,now))saved=d;}}}catch{cache=null}
  const reply=(d,failed=false)=>Response.json({...d,refreshFailed:failed},{headers:{'cache-control':failed?'no-store':'public, max-age=300','x-content-type-options':'nosniff'}});
  if(validRainSnapshot(saved,p,now)&&now-saved.fetchedAt<FRESH)return reply(saved);
- if(!pending){pending=(async()=>{const entries=await Promise.all(Object.keys(MODELS).map(async k=>[k,await readModel(k,p,fetcher)]));const d=combineRain(Object.fromEntries(entries),p,Date.now());if(rainPeriod().start!==p.start)throw Error('period_changed');saved=d;if(cache)ctx.waitUntil(cache.put(key,Response.json(d,{headers:{'cache-control':'public, max-age=5400'}})).catch(()=>{}));return d;})().finally(()=>{pending=null});}
+ if(!pending){pending=(async()=>{const entries=await Promise.all(Object.keys(MODELS).map(async k=>[k,await readModel(k,p,fetcher)]));const d=combineRain(Object.fromEntries(entries),p,Date.now());
+ // Probability is a separate explicit probability field, never inferred from accumulations.
+ try{const u=new URL('https://api.open-meteo.com/v1/forecast');u.search=new URLSearchParams({latitude:rainPoints.map(x=>x.lat).join(','),longitude:rainPoints.map(x=>x.lon).join(','),daily:'precipitation_probability_max',timezone:'Asia/Aden',start_date:p.start,end_date:p.dates[6]});const raw=await jsonRead(u.href,fetcher,25000),rows=Array.isArray(raw)?raw:[raw];if(rows.length===rainPoints.length)rows.forEach((r,i)=>{if(r.daily?.time?.join(',')===p.dates.join(',')&&r.daily_units?.precipitation_probability_max==='%'&&r.daily?.precipitation_probability_max?.length===7)d.data[i].probability=r.daily.precipitation_probability_max.map(v=>Number.isFinite(v)&&v>=0&&v<=100?v:null);});}catch{ /* Missing probability stays unavailable; complete rainfall remains usable. */ }
+if(rainPeriod().start!==p.start)throw Error('period_changed');saved=d;if(cache)ctx.waitUntil(cache.put(key,Response.json(d,{headers:{'cache-control':'public, max-age=10800'}})).catch(()=>{}));return d;})().finally(()=>{pending=null});}
  try{return reply(await pending)}catch{if(validRainSnapshot(saved,p,Date.now()))return reply(saved,true);return Response.json({schema:'hada-local-consensus-v3',error:'forecast_unavailable'},{status:503,headers:{'cache-control':'no-store'}})}
 }

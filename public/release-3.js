@@ -4,7 +4,7 @@
  if(wind){new MutationObserver(formatWind).observe(wind,{childList:true,characterData:true,subtree:true});formatWind();}
  // Preview stays visibly identified. The release package does not silently
  // configure a production OneSignal app or enrol additional recipients.
- const preview=document.querySelector('.preview');if(preview)preview.textContent=location.hostname==='hada-weather.com'?'طقس هدى وما جاورها • توقعات قابلة للتغيّر':'معاينة مستقلة للإصدار 3.0.2 • الموقع الرسمي دون تغيير';
+ const preview=document.querySelector('.preview');if(preview)preview.textContent=location.hostname==='hada-weather.com'?'طقس هدى وما جاورها • توقعات قابلة للتغيّر':'معاينة preview-v4 • طقس هدى';
  // The rain viewer is independent of the removed model gallery.
  let imageDialog=null,returnFocus=null;
  function openRainMap(svg){

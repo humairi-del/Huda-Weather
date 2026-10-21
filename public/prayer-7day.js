@@ -43,7 +43,7 @@ async function refresh(force=false){
   calendar=null;
   try{const cached=JSON.parse(localStorage.getItem(key));if(validCalendar(cached,month))calendar=cached;}catch(e){}
  }
- if(calendar){render(day);return;}
+ if(calendar){render(day);if(!force&&Date.now()-(calendar.fetchedAt||0)<6*3600000)return;}
  if(pending){if(displayedDay!==day)render(day,true);return pending;}
  if(!force&&Date.now()-lastAttempt<300000){render(day);return;}
  lastAttempt=Date.now();render(day,true);
@@ -54,7 +54,7 @@ async function refresh(force=false){
    const query=new URLSearchParams({latitude:'14.212599',longitude:'47.161149',method:'99',methodSettings:'16.5,null,17',school:'0',timezonestring:zone,calendarMethod:'UAQ',tune:'0,0,0,0,0,0,0,0,0'});
    const response=await fetch(`https://api.aladhan.com/v1/calendar/${year}/${Number(monthNumber)}?${query}`,{signal:controller.signal});
    if(!response.ok)throw new Error('Prayer request failed');
-   const next=parseCalendar(await response.json(),month);
+   const next=parseCalendar(await response.json(),month);next.fetchedAt=Date.now();
    // A request completing after midnight must never put yesterday's times back.
    if(today().slice(0,7)===month){calendar=next;try{localStorage.setItem(key,JSON.stringify(next));}catch(e){}}
   }catch(e){console.warn('prayer calendar unavailable',e);}
@@ -67,5 +67,5 @@ refresh();
 window.addEventListener('load',()=>refresh());
 window.addEventListener('online',()=>refresh(true));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
-setInterval(()=>{if(today()!==displayedDay||!calendar)refresh();},60000);
+setInterval(()=>{if(today()!==displayedDay||!calendar||Date.now()-(calendar.fetchedAt||0)>=6*3600000)refresh();},60000);
 })();

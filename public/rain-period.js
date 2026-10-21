@@ -22,8 +22,8 @@ function view(hourly,now=Date.now()){
  if(best.probability===0)return {value:'٠٪',period:'خلال الفترة المتاحة',note:'لا تظهر فرصة مطر واضحة في الساعات القادمة.'};
  const dayChange=new Date(best.start+3*HOUR).toISOString().slice(0,10)!==new Date(best.end+3*HOUR).toISOString().slice(0,10);
  const period=date(best.start)+' · من '+time(best.start)+' إلى '+(dayChange?date(best.end)+'، ':'')+time(best.end);
- const amount=best.amount===null?'كمية المطر غير متاحة.':`كمية المطر المتوقعة للساعة كاملة: ${number(best.amount)} ملم.`;
- return {value:number(best.probability)+'٪',period,note:(best.current?'الفترة جارية؛ الكمية تشمل الجزء الذي مضى من الساعة. ':'الفترة قادمة. ')+amount+' التوقعات قابلة للتغيّر.'};
+ const amount='';const tech=document.getElementById('bestRainTechnical');if(tech)tech.textContent=best.amount===null?'كمية المطر غير متاحة.':`كمية المطر المتوقعة للساعة كاملة: ${number(best.amount)} ملم. المصدر: Open-Meteo.`;
+ return {value:number(best.probability)+'٪',period,note:(best.current?'فرصة المطر خلال هذه الساعة. ':'أقرب فترة ذات أعلى احتمال للمطر. ')+'التوقعات قابلة للتغيّر.'};
 }
 function render(data,now=Date.now()){
  const state=view(data?.hourly,now);
