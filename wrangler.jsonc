@@ -2,14 +2,6 @@
 // Frontend assets are embedded in workers/worker.js; do not add an assets binding.
 // Secret values remain in Cloudflare and must never be committed here.
 {
-  "previews": {
-    "vars": {
-      "PUBLIC_NOTIFICATIONS_ENABLED": "0",
-      "PUBLIC_SCHEDULE_ENABLED": "0"
-    },
-    "kv_namespaces": [],
-    "tail_consumers": []
-  },
   "name": "hada-weather-web-v3",
   "account_id": "1a16d4f178bae474099aa23095030294",
   "main": "workers/rain-entry.js",
