@@ -43,7 +43,6 @@
 .sea-map-gallery .archive-label{color:#f6d191}
 .quake-live-item{padding:17px!important;line-height:1.9}
 .quake-live-item p{margin:6px 0}.quake-live-item strong{display:block;color:#cce6ff}
-.official-cyclone-card,.sea-static-bulletin{overflow-wrap:break-word}
 @keyframes hada-reveal{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:600px){
  header{grid-template-columns:1fr;gap:15px}
@@ -55,10 +54,6 @@
  .stat{padding:15px 10px}.stat strong{font-size:22px}
  .stat label{line-height:1.8;font-size:13px}
  #liveWind{flex-direction:row}
- .official-cyclone-card{padding:14px}
- .official-cyclone-card h3{font-size:18px}
- .cyclone-official-facts,.cyclone-official-facts dd,.sea-static-bulletin li{font-size:15px;line-height:2}
- .cyclone-official-note,.cyclone-official-time,.sea-feed-note{font-size:13px;line-height:1.9}
  .map-hub-tabs button{padding:11px 8px;font-size:13px;line-height:1.9}
  .weather-alerts h2{font-size:19px}.hazard-box{padding:16px}
 }

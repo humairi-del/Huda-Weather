@@ -1,27 +1,11 @@
-const {test}=require('node:test');
-const assert=require('node:assert/strict');
-const fs=require('node:fs');
-const vm=require('node:vm');
-function card(overrides={},age=0){
- const data={...JSON.parse(fs.readFileSync('public/official-cyclone-snapshot.json','utf8')),issuedAt:Date.now()-age,checkedAt:Date.now(),...overrides};
- class Element{constructor(){this.children=[];this.textContent='';this.dataset={};}appendChild(x){this.children.push(x);return x;}setAttribute(){} get text(){return this.textContent+this.children.map(x=>x.text).join(' ');}}
- const window={addEventListener(){}};
- vm.runInNewContext(fs.readFileSync('public/official-cyclone.js','utf8'),{window,document:{createElement:()=>new Element()},localStorage:{getItem:()=>JSON.stringify(data)},setInterval(){},Intl,URL,Date});
- return window.HadaOfficialCyclone.renderCard().text;
-}
-test('weak state omits empty name, wind and technical placeholders',()=>{
- const text=card({name:null,wind:null});assert.match(text,/الحالة: استقرار عام \/ نشاط اعتيادي - لا توجد تأثيرات مباشرة على المنطقة/);assert.doesNotMatch(text,/الاسم غير متاح|لم ترد سرعة|عتبة|النقاط الممثلة|تفاصيل تقنية/);
-});
-test('Yemen-bound low does not claim no direct local effects',()=>{
- assert.doesNotMatch(card({track:{text:'باتجاه اليمن',targets:['اليمن']}}),/لا تشير الوجهة|لا توجد تأثيرات|استقرار عام/);
-});
-test('stale bulletin does not claim current stability',()=>{
- const text=card({},48*3600000);assert.match(text,/لا تتوفر نشرة حديثة/);assert.doesNotMatch(text,/استقرار عام|نشاط منخفض/);
-});
-test('strong storm retains classification and available wind',()=>{
- const text=card({stage:3,category:'عاصفة مدارية',name:'اختبار'});assert.match(text,/عاصفة مدارية/);assert.match(text,/الرياح:/);
-});
-test('live satellite is default with a separate provider accumulation view',()=>{
- const html=fs.readFileSync('public/index.html','utf8');assert.match(html,/overlay=satellite/);assert.match(html,/src="\.\/live-clouds.js"/);assert.doesNotMatch(html,/rainAccumulationMap|window.HadaMapHub=|mapTabRain/);assert.match(html,/id="showRainAccumulation"/);
- assert.doesNotMatch(fs.readFileSync('public/sea-bulletin.js','utf8'),/HadaMapHub|مستجدات بحر العرب والمنطقة/);
-});
+const {test}=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');
+const load=()=>import('../workers/sea-activity.js');
+const now=Date.now(),start=Math.floor(now/3600000)*3600000;
+async function payload(){const m=await load();return m.POINTS.map(p=>({latitude:p.lat,longitude:p.lon,utc_offset_seconds:0,hourly_units:{precipitation:'mm',cloud_cover:'%',cloud_cover_low:'%',cloud_cover_mid:'%',wind_speed_850hPa:'km/h',wind_direction_850hPa:'°'},hourly:{time:Array.from({length:4},(_,i)=>new Date(start+i*3600000).toISOString().slice(0,16)),precipitation:[0,0,0,0],cloud_cover:[0,0,0,0],cloud_cover_low:[0,0,0,0],cloud_cover_mid:[0,0,0,0],wind_speed_850hPa:[10,10,10,10],wind_direction_850hPa:[180,180,180,180]}}));}
+test('complete clear weather produces the requested calm summary',async()=>{const m=await load();const d=m.analyzeSea(await payload(),now);assert.equal(d.summary,m.QUIET);assert.ok(m.validSea(d,now));assert.equal(m.validSea(d,start+m.HOUR),false);});
+test('low and mid clouds flowing onshore trigger activity',async()=>{const m=await load(),p=await payload();p[0].hourly.cloud_cover.fill(80);p[0].hourly.cloud_cover_low.fill(50);assert.equal(m.analyzeSea(p,now).summary,m.ACTIVE);});
+test('offshore flow and high cirrus alone do not become onshore activity',async()=>{const m=await load(),p=await payload();p[0].hourly.cloud_cover.fill(90);assert.equal(m.analyzeSea(p,now).state,'quiet');p[0].hourly.cloud_cover_low.fill(60);p[0].hourly.wind_direction_850hPa.fill(0);assert.equal(m.analyzeSea(p,now).state,'quiet');});
+test('rain patches with onshore wind and downstream clouds trigger activity',async()=>{const m=await load(),p=await payload();p[0].hourly.precipitation.fill(.5);p[0].hourly.cloud_cover.fill(50);p[m.SEA_POINTS.length].hourly.cloud_cover.fill(50);assert.equal(m.analyzeSea(p,now).state,'active');});
+test('missing, stale, or partial hours never imply calm',async()=>{const m=await load(),p=await payload();p[0].hourly.cloud_cover[0]=null;assert.throws(()=>m.analyzeSea(p,now));assert.throws(()=>m.analyzeSea([],now));const stale=await payload();stale[0].hourly.time[0]='2000-01-01T00:00';assert.throws(()=>m.analyzeSea(stale,now));});
+test('unavailable source returns unavailable, never old bulletins or calm',async()=>{const m=await load(),r=await m.seaActivityResponse(new Request('https://example.test/api/sea-activity'),{waitUntil(){}},async()=>new Response('',{status:503}),now);assert.equal(r.status,503);assert.equal((await r.json()).state,'unavailable');});
+test('retired source and modal links are removed',()=>{for(const file of ['public/index.html','public/sea-bulletin.js','public/live-weather.js','workers/worker.js','workers/notifications.js'])assert.doesNotMatch(fs.readFileSync(file,'utf8'),/rsmcnewdelhi|imd-fixed|api\/official-cyclone|readOfficialBulletins|HadaOfficialCyclone/);assert.doesNotMatch(fs.readFileSync('public/live-weather.js','utf8'),/متابعة العواصف المدارية/);assert.equal(fs.existsSync('public/official-cyclone-snapshot.json'),false);});
