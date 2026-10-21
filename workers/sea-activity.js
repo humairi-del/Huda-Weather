@@ -55,7 +55,7 @@ async function readJson(response){
  const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}return JSON.parse(new TextDecoder().decode(bytes));
 }
 export async function readSeaActivity(now=Date.now(),fetcher=fetch){
- const payload=await readJson(await fetcher(sourceUrl(now),{signal:AbortSignal.timeout(20000),redirect:'error',headers:{Accept:'application/json'}}));
+ const payload=await readJson(await fetcher(sourceUrl(now),{signal:AbortSignal.timeout(20000),redirect:'manual',headers:{Accept:'application/json'}}));
  return analyzeSea(payload,now);
 }
 export async function seaActivityResponse(request,ctx,fetcher=fetch,now=Date.now()){
