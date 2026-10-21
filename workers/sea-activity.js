@@ -49,7 +49,7 @@ export function validSea(data,now=Date.now()){
  return data?.schema==='hada-sea-activity-v1'&&['active','quiet'].includes(data.state)&&data.summary===(data.state==='active'?ACTIVE:QUIET)&&data.source==='Open-Meteo'&&data.basis==='hourly-model-estimate'&&Number.isFinite(data.checkedAt)&&data.checkedAt<=now+300000&&now-data.checkedAt<HOUR&&data.validFrom===Math.floor(now/HOUR)*HOUR&&data.validUntil===data.validFrom+HOUR;
 }
 async function readJson(response){
- if(!response.ok||!response.body)throw Error('weather_unavailable');
+ if(!response.ok||!response.body)throw Error('weather_http_'+response.status);
  const reader=response.body.getReader(),chunks=[];let size=0;
  try{for(;;){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>524288)throw Error('weather_too_large');chunks.push(value);}}finally{await reader.cancel();}
  const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}return JSON.parse(new TextDecoder().decode(bytes));
@@ -68,5 +68,5 @@ export async function seaActivityResponse(request,ctx,fetcher=fetch,now=Date.now
   if(!validSea(data,Date.now()))throw Error('hour_changed');
   const response=Response.json(data,{headers:{'cache-control':'public, max-age='+Math.max(1,Math.floor((data.validUntil-now)/1000)),'x-content-type-options':'nosniff'}});
   if(cache)ctx.waitUntil(cache.put(key,response.clone()).catch(()=>{}));return response;
- }catch{return Response.json({schema:'hada-sea-activity-v1',state:'unavailable',checkedAt:now},{status:503,headers:{'cache-control':'no-store'}});}
+ }catch(error){const reason=error instanceof Error?error.message:'unknown';console.warn(JSON.stringify({event:'sea_activity_unavailable',reason}));return Response.json({schema:'hada-sea-activity-v1',state:'unavailable',checkedAt:now},{status:503,headers:{'cache-control':'no-store','x-hada-source-status':/^[a-z0-9_]+$/.test(reason)?reason:'weather_unavailable'}});}
 }
