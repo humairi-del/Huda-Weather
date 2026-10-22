@@ -1,2 +1,7 @@
-import {seaActivityResponse} from "./sea-activity.js";
-import app from "./worker.js";import {rainConsensusResponse}from"./rain-consensus.js";export default {fetch(request,env,ctx){if(new URL(request.url).pathname==="/api/sea-activity")return seaActivityResponse(request,ctx);if(new URL(request.url).pathname==="/api/rain-consensus")return rainConsensusResponse(request,ctx);return app.fetch(request,env,ctx)},scheduled(event,env,ctx){return app.scheduled(event,env,ctx)}};
+import app from './worker.js';
+import {engineResponse} from './weather-engine.js';
+import {quakesResponse} from './quakes.js';
+export default {
+ async fetch(request,env,ctx){const path=new URL(request.url).pathname;if(path==='/api/weather-engine')return engineResponse(request,ctx);if(path==='/api/quakes')return quakesResponse(request,ctx);return app.fetch(request,env,ctx);},
+ scheduled(event,env,ctx){return app.scheduled(event,env,ctx);}
+};
