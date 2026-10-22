@@ -1,9 +1,6 @@
 (()=>{'use strict';
 const ZONE='Asia/Aden',HOUR=3600000;
 const finite=n=>typeof n==='number'&&Number.isFinite(n);
-const number=n=>new Intl.NumberFormat('ar-YE',{maximumFractionDigits:1}).format(n);
-const time=n=>new Intl.DateTimeFormat('ar-YE',{timeZone:ZONE,hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(n));
-const date=n=>new Intl.DateTimeFormat('ar-YE',{timeZone:ZONE,weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(n));
 function select(hourly,now=Date.now()){
  if(!Array.isArray(hourly?.time)||!Array.isArray(hourly.precipitation_probability))return null;
  let best=null;
@@ -18,17 +15,12 @@ function select(hourly,now=Date.now()){
 }
 function view(hourly,now=Date.now()){
  const best=select(hourly,now);
- if(!best)return {value:'—',period:'البيانات غير متاحة',note:'تظهر أفضل فرصة عند توفر توقعات حديثة.'};
- if(best.probability===0)return {value:'لا فرصة واضحة',period:'خلال الفترة المتاحة',note:'لا تظهر فرصة مطر واضحة في الساعات القادمة.'};
- const dayChange=new Date(best.start+3*HOUR).toISOString().slice(0,10)!==new Date(best.end+3*HOUR).toISOString().slice(0,10);
- const period=date(best.start)+' · من '+time(best.start)+' إلى '+(dayChange?date(best.end)+'، ':'')+time(best.end);
- const amount='';
- return {value:window.HadaRainLanguage.probability(best.probability),period,note:(best.current?'الفترة جارية؛ الكمية تشمل الجزء الذي مضى من الساعة. ':'الفترة قادمة. ')+amount+' التوقعات قابلة للتغيّر.'};
+ if(!best)return {value:'احتمال المطر غير متاح',period:'بانتظار توقعات حديثة'};
+ return {value:'احتمال المطر '+new Intl.NumberFormat('ar-YE-u-nu-latn',{maximumFractionDigits:0}).format(best.probability)+'٪',period:new Intl.DateTimeFormat('ar-YE-u-nu-latn',{timeZone:ZONE,weekday:'long',day:'numeric',month:'long'}).format(new Date(best.start))};
 }
 function render(data,now=Date.now()){
- const state=view(data?.hourly,now);const best=select(data?.hourly,now),tech=document.getElementById('bestRainTechnical');if(tech)tech.textContent=best?'احتمال المطر '+number(best.probability)+'٪'+(best.amount===null?' · الكمية غير متاحة': ' · كمية الساعة كاملة '+number(best.amount)+' ملم')+' · المصدر: Open-Meteo.':'لا تتوفر تفاصيل حديثة.';
- for(const [id,text] of [['bestRainValue',state.value],['bestRainDay',state.period],['bestRainNote',state.note]]){const node=document.getElementById(id);if(node)node.textContent=text;}
- return state;
+ const state=view(data?.hourly,now);
+ for(const [id,value] of [['bestRainValue',state.value],['bestRainDay',state.period]]){const node=document.getElementById(id);if(node)node.textContent=value;}return state;
 }
 window.HadaRainPeriod={select,view,render};
 })();

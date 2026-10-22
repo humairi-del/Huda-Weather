@@ -34,7 +34,8 @@ function dayWeather(d,day){
  const range=rows=>rows?{min:Math.min(...rows),max:Math.max(...rows)}:null;
  let prevailing='الاتجاه غير متاح';
  if(wind&&angles){const total=wind.reduce((a,b)=>a+b,0),x=wind.reduce((a,v,i)=>a+v*Math.sin(angles[i]*Math.PI/180),0),y=wind.reduce((a,v,i)=>a+v*Math.cos(angles[i]*Math.PI/180),0);prevailing=total===0?'ساكنة':Math.hypot(x,y)/total<.25?'متغيرة':direction((Math.atan2(x,y)*180/Math.PI+360)%360);}
- return {humidity:range(humidity),wind:range(wind),direction:prevailing};
+ const mean=rows=>rows?rows.reduce((sum,v)=>sum+v,0)/rows.length:null;
+ return {humidity:range(humidity),wind:range(wind),humidityMean:mean(humidity),windMean:mean(wind),direction:prevailing};
 }
 function cardData(d,calendar,now=Date.now()){
  const day=dayKey(now),valid=isFresh(d,now),i=valid?d.daily.time.indexOf(day):-1,summary=dayWeather(valid?d:null,day);

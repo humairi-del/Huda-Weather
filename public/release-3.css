@@ -46,3 +46,9 @@
 
 /* Keep the map renderer at its geographic size, independent of weather icon sizes. */
 .earthquake-map .leaflet-overlay-pane svg{width:auto;height:auto;max-width:none;max-height:none}
+
+/* Open secondary sections only when requested. Native summaries support touch and keyboard. */
+.section-disclosure>summary{cursor:pointer;font-weight:700;font-size:19px;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.section-disclosure>summary::-webkit-details-marker{display:none}.section-disclosure>summary::after{content:'＋';color:var(--blue)}.section-disclosure[open]>summary::after{content:'−'}
+.section-disclosure:not([open])>.disclosure-content{display:none}.disclosure-content{margin-top:20px}.daily-calendar:not([open]){max-width:none}
+.compact-rain{display:block;text-align:right}.compact-rain h2{margin:0;font-size:20px}.compact-rain p{margin:12px 0 0}.compact-rain #bestRainDay{color:var(--muted)}.compact-rain #bestRainValue{font-size:24px;font-weight:700;color:#a3daff}
