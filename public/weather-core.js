@@ -25,9 +25,20 @@ function ramadan(now=Date.now()){
  const part=t=>Object.fromEntries(formatter.formatToParts(new Date(t)).map(x=>[x.type,x.value]));if(+part(base).month===9)return {active:true,days:0};
  for(let i=1;i<=370;i++){const p=part(base+i*DAY);if(+p.month===9&&+p.day===1)return {active:false,days:i};}return null;
 }
+// All 24 forecast hours of the Yemen calendar day, including hours already past.
+// Never substitute a current observation or tomorrow's hours for a missing value.
+function dayWeather(d,day){
+ const h=d?.hourly,indices=Array.from({length:24},(_,i)=>h?.time?.indexOf(day+'T'+String(i).padStart(2,'0')+':00')??-1);
+ const values=(key,valid)=>indices.every(i=>i>=0&&valid(h[key]?.[i]))?indices.map(i=>h[key][i]):null;
+ const humidity=values('relative_humidity_2m',v=>finite(v)&&v>=0&&v<=100),wind=values('wind_speed_10m',v=>finite(v)&&v>=0),angles=values('wind_direction_10m',v=>finite(v)&&v>=0&&v<=360);
+ const range=rows=>rows?{min:Math.min(...rows),max:Math.max(...rows)}:null;
+ let prevailing='الاتجاه غير متاح';
+ if(wind&&angles){const total=wind.reduce((a,b)=>a+b,0),x=wind.reduce((a,v,i)=>a+v*Math.sin(angles[i]*Math.PI/180),0),y=wind.reduce((a,v,i)=>a+v*Math.cos(angles[i]*Math.PI/180),0);prevailing=total===0?'ساكنة':Math.hypot(x,y)/total<.25?'متغيرة':direction((Math.atan2(x,y)*180/Math.PI+360)%360);}
+ return {humidity:range(humidity),wind:range(wind),direction:prevailing};
+}
 function cardData(d,calendar,now=Date.now()){
- const valid=isFresh(d,now),i=valid?d.daily.time.indexOf(dayKey(now)):-1,c=valid?d.current:null;
- return {day:dayKey(now),min:i>=0?d.daily.temperature_2m_min[i]:null,max:i>=0?d.daily.temperature_2m_max[i]:null,chance:i>=0&&prob(d.daily.precipitation_probability_max[i])?d.daily.precipitation_probability_max[i]:null,code:i>=0?d.daily.weather_code[i]:null,wind:c?.wind_speed_10m??null,direction:direction(c?.wind_direction_10m),humidity:c?.relative_humidity_2m??null,best:bestWeek(d,now),stars:stars(calendar,now),reflection:reflection(now),ramadan:ramadan(now),fresh:valid};
+ const day=dayKey(now),valid=isFresh(d,now),i=valid?d.daily.time.indexOf(day):-1,summary=dayWeather(valid?d:null,day);
+ return {day,min:i>=0?d.daily.temperature_2m_min[i]:null,max:i>=0?d.daily.temperature_2m_max[i]:null,chance:i>=0&&prob(d.daily.precipitation_probability_max[i])?d.daily.precipitation_probability_max[i]:null,code:i>=0?d.daily.weather_code[i]:null,...summary,best:bestWeek(d,now),stars:stars(calendar,now),reflection:reflection(now),ramadan:ramadan(now),fresh:valid};
 }
 function alerts(d,now=Date.now()){
  if(!isFresh(d,now))return {items:[],complete:false,missing:['الطقس']};
@@ -46,5 +57,5 @@ function alerts(d,now=Date.now()){
  const missing=[];const expected=Math.ceil((stamp(days[2])+12*HOUR-Math.floor(now/HOUR)*HOUR)/HOUR);if(!complete||count!==expected)missing.push('بعض ساعات الطقس');if(!dustComplete||dustCount!==expected)missing.push('الغبار');
  items.sort((a,b)=>stamp(a.time)-stamp(b.time)||b.severity-a.severity);return {items,complete:missing.length===0,missing};
 }
-return {ZONE,DAY,HOUR,finite,prob,dayKey,stamp,weekday,number,description,direction,isFresh,bestWeek,stars,reflection,ramadan,cardData,alerts};
+return {ZONE,DAY,HOUR,finite,prob,dayKey,stamp,weekday,number,description,direction,isFresh,bestWeek,stars,reflection,ramadan,dayWeather,cardData,alerts};
 });

@@ -55,7 +55,7 @@ async function refresh(force=false){
  pending=(async()=>{
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
   try{
-   const response=await fetch(url.href,{signal:controller.signal,credentials:'omit'});if(!response.ok)throw new Error('weather_http');
+   const response=await fetch(url.href,{signal:controller.signal,credentials:'omit',cache:'no-store'});if(!response.ok)throw new Error('weather_http');
    const data=validated(await response.json());render(data);connectionStatus();failures=0;nextAttemptAt=Date.now()+15*60*1000;
    try{localStorage.setItem(CACHE,JSON.stringify({saved:Date.now(),data}));}catch{}
   }catch{
