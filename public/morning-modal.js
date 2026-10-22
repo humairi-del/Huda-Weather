@@ -17,9 +17,9 @@
  async function load(){
   content.replaceChildren(text('p','جارٍ تجهيز نشرة اليوم…'));timer=setTimeout(()=>abort.abort(),18000);
   try{
-   const q=new URLSearchParams({latitude:'14.230586',longitude:'47.199415',timezone:'Asia/Aden',forecast_days:'2',hourly:'temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m',daily:'temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_gusts_10m_max'});
-   const r=await fetch('https://api.open-meteo.com/v1/forecast?'+q,{signal:abort.signal,cache:'no-store'});if(!r.ok)throw Error('forecast');
-   const b=window.HadaDailyBulletin.build(await r.json(),new Date(),window.HadaStarCalendar);
+   await window.HadaLiveWeather.refresh();
+   const data=window.HadaLiveWeather.getData();if(!data)throw Error('forecast');
+   const b=window.HadaDailyBulletin.build(data,new Date(),window.HadaStarCalendar);
    if(abort.signal.aborted)return;
    content.replaceChildren(text('p',new Intl.DateTimeFormat('ar-YE',{timeZone:'Asia/Aden',weekday:'long',day:'numeric',month:'long'}).format(new Date())),text('h3','توقعات هدى اليوم'));
    const units=(v,u)=>v===null?'غير متاح':Math.round(v)+u;

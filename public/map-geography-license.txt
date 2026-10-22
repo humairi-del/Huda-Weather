@@ -1,3 +1,7 @@
 Yemen governorates: Central Statistical Organization (CSO), HDX via geoBoundaries gbHumanitarian. Represented year: 2019. CC BY 3.0 IGO. https://data.humdata.org/dataset/cod-ab-yem
 https://www.geoboundaries.org/api/current/gbHumanitarian/YEM/ADM1/
 Modified: shared arcs simplified at 0.001 degrees for display. Neighboring countries: Natural Earth, public domain.
+
+Maritime monitoring polygon: Marine Regions / Flanders Marine Institute (VLIZ), Yemeni Exclusive Economic Zone, World EEZ v12. Retrieved 2026-10-22 from https://geo.vliz.be/geoserver/MarineRegions/wfs (layer MarineRegions:eez, territory1/2/3 = Yemen). Marine Regions data: CC BY 4.0, https://www.marineregions.org/disclaimer.php . Coordinates rounded to five decimals; geometry topology and polygon holes preserved. The geometry is a data monitoring extent, not a legal determination of maritime sovereignty.
+Leaflet 1.9.4: Copyright Vladimir Agafonkin et al., BSD-2-Clause. https://github.com/Leaflet/Leaflet/blob/v1.9.4/LICENSE
+Map tiles: OpenStreetMap contributors, ODbL; https://www.openstreetmap.org/copyright .

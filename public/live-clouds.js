@@ -1,0 +1,4 @@
+(()=>{'use strict';const frame=document.getElementById('windyLiveMap'),button=document.getElementById('refreshLiveClouds'),status=document.getElementById('liveCloudRefreshStatus');if(!frame||!button)return;const interval=15*60000;let last=Date.now();
+function refresh(){if(navigator.onLine===false){status.textContent='اتصل بالإنترنت لتحديث صور السحب.';return;}const url=new URL(frame.src);url.searchParams.set('_refresh',String(Date.now()));last=Date.now();frame.src=url.href;status.textContent='جارٍ طلب أحدث الصور…';}
+button.addEventListener('click',refresh);frame.addEventListener('load',()=>{status.textContent='وقت الصور يظهر داخل الخريطة.';});function resume(){if(!document.hidden&&Date.now()-last>=interval)refresh();}setInterval(resume,interval);document.addEventListener('visibilitychange',resume);window.addEventListener('online',resume);
+})();
