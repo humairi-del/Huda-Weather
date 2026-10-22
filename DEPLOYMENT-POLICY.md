@@ -1,7 +1,7 @@
-# Preview-only review
+# Release policy
 
-This branch is refactor-weather-blocks. Its only deployment target is hada-weather-blocks-preview, without custom routes, cron schedules or notification sending. The asset build rejects settings that change these restrictions. There is no deployment or owner-password endpoint in the public site. Secrets must never be embedded in HTML, JavaScript, browser storage, this repository or downloaded images.
+Production release 3.1.0 was explicitly approved by the owner on 2026-10-22 after preview review and confirmation. Never store the confirmation value or credentials in this repository, browser code or generated images. Future production releases require new explicit owner authorization.
 
-A production release requires the owner's separate explicit approval and verification of the owner's confirmation code through an authenticated server or secure approval flow. No code has been received or invented in this update. A client-side comparison or localStorage switch must never authorize publishing. Existing production services and morning-notification settings must remain unchanged while reviewing this branch.
+The production target is hada-weather-web-v3 on hada-weather.com. Preserve the existing secret bindings, PUBLIC_BULLETINS namespace, notification switches and cron schedules. Do not send manual test notifications or widen recipients.
 
-The calendar consumes HadaStarCalendar directly from the existing page. Annual star-date updates therefore have one source. The morning notification formatter, sender identity, enable switches, recipients, and 07:00 Yemen schedule are preserved; no notification is sent by viewing this preview.
+The independent refactor-weather-blocks preview keeps its own configuration without production routes, schedules or notification sending. Its configuration must never replace the production configuration. Agricultural calendar tables remain the single source for the daily card.
