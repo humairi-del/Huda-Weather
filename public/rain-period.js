@@ -1,26 +1,17 @@
 (()=>{'use strict';
-const ZONE='Asia/Aden',HOUR=3600000;
-const finite=n=>typeof n==='number'&&Number.isFinite(n);
-function select(hourly,now=Date.now()){
- if(!Array.isArray(hourly?.time)||!Array.isArray(hourly.precipitation_probability))return null;
- let best=null;
- hourly.time.forEach((stamp,i)=>{
-  if(typeof stamp!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:00$/.test(stamp))return;
-  const start=Date.parse(stamp+'+03:00'),end=start+HOUR,probability=hourly.precipitation_probability[i];
-  if(!Number.isFinite(start)||end<=now||!finite(probability)||probability<0||probability>100)return;
-  const raw=hourly.precipitation?.[i],amount=finite(raw)&&raw>=0?raw:null;
-  if(!best||probability>best.probability||(probability===best.probability&&start<best.start))best={start,end,probability,amount,current:start<=now};
- });
- return best;
+const C=window.HadaWeatherCore;let latest=null;
+// Proposed existing-language threshold, isolated for owner review; not an emergency threshold.
+const MINIMUM=20;
+function select(hourly,now=Date.now()){return C.nearestRain({hourly,daily:{time:[C.dayKey(now)]},engine:{schema:'hada-weather-engine-v1',fetchedAt:now}},now,MINIMUM);}
+function view(data,now=Date.now()){
+ const r=C.nearestRain(data,now,MINIMUM);
+ if(r.state==='unavailable')return {value:'احتمال المطر غير متاح',period:'تعذّر الحصول على توقعات حديثة مكتملة'};
+ if(r.state==='none')return {value:'لا تظهر فرصة مطر تبلغ 20٪ خلال التوقعات المتاحة',period:''};
+ const c=r.state==='partial'?r.candidate:r,date=new Date(c.start),today=C.dayKey(now)===C.dayKey(c.start),time=new Intl.DateTimeFormat('ar-YE-u-nu-latn',{timeZone:C.ZONE,hour:'numeric',hour12:true}).format(date);
+ const period=today?(c.start<=now?'اليوم · خلال الساعة الحالية':'اليوم · '+time):new Intl.DateTimeFormat('ar-YE-u-nu-latn',{timeZone:C.ZONE,weekday:'long',day:'numeric',month:'long'}).format(date);
+ return {value:'احتمال المطر '+new Intl.NumberFormat('ar-YE-u-nu-latn',{maximumFractionDigits:0}).format(c.chance)+'٪',period:(r.state==='partial'?'بعض الساعات الأقرب غير متاحة · ':'')+period};
 }
-function view(hourly,now=Date.now()){
- const best=select(hourly,now);
- if(!best)return {value:'احتمال المطر غير متاح',period:'بانتظار توقعات حديثة'};
- return {value:'احتمال المطر '+new Intl.NumberFormat('ar-YE-u-nu-latn',{maximumFractionDigits:0}).format(best.probability)+'٪',period:new Intl.DateTimeFormat('ar-YE-u-nu-latn',{timeZone:ZONE,weekday:'long',day:'numeric',month:'long'}).format(new Date(best.start))};
-}
-function render(data,now=Date.now()){
- const state=view(data?.hourly,now);
- for(const [id,value] of [['bestRainValue',state.value],['bestRainDay',state.period]]){const node=document.getElementById(id);if(node)node.textContent=value;}return state;
-}
-window.HadaRainPeriod={select,view,render};
+function render(data=latest,now=Date.now()){latest=data;const state=view(data,now);for(const [id,value] of [['bestRainValue',state.value],['bestRainDay',state.period]]){const node=document.getElementById(id);if(node)node.textContent=value;}return state;}
+setInterval(()=>{if(!document.hidden)render();},60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)render();});
+window.HadaRainPeriod={select,view,render,minimum:MINIMUM};
 })();

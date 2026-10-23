@@ -1,7 +1,7 @@
-# Release policy
+# Isolated repair phase 1
 
-Production release 3.1.0 was explicitly approved by the owner on 2026-10-22 after preview review and confirmation. Never store the confirmation value or credentials in this repository, browser code or generated images. Future production releases require new explicit owner authorization.
+Owner-approved scope is repair preparation and isolated preview only. Target hada-weather-repair-phase1 on branch repair-phase1-20261023. No main changes or production deployments, production Cloudflare setting changes, real notifications, OneSignal setting changes, Rasid Hada or Neon writes are authorized.
 
-The production target is hada-weather-web-v3 on hada-weather.com. Preserve the existing secret bindings, PUBLIC_BULLETINS namespace, notification switches and cron schedules. Do not send manual test notifications or widen recipients.
+The build guard rejects production names/routes/cron, enabled sender flags and database/service bindings. Preview has no credentials and notification mode is simulate. The existing production reference and redacted rollback settings are in repair/production-baseline.json. Never store owner confirmation codes, credentials or private subscription identifiers in source or images.
 
-The independent refactor-weather-blocks preview keeps its own configuration without production routes, schedules or notification sending. Its configuration must never replace the production configuration. Agricultural calendar tables remain the single source for the daily card.
+Publication requires a later explicit owner approval and confirmation. Merge only reviewed source changes onto the current production base; never merge the preview Wrangler settings or build target guard into production.

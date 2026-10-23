@@ -1,0 +1,39 @@
+{
+  "captured": "2026-10-23",
+  "git_commit": "bddd4a3ae2c44d68609f3c30e986c53d9e0cbb51",
+  "worker": "hada-weather-web-v3",
+  "deployment": "fbb7b3af-2e05-473a-8108-1def645094c6",
+  "version": "3d14f989-ad97-4cd0-8828-813266d32783",
+  "traffic_percent": 100,
+  "route": "hada-weather.com/*",
+  "crons_utc": [
+    "0 4 * * *",
+    "*/15 * * * *"
+  ],
+  "kv": {
+    "name": "PUBLIC_BULLETINS",
+    "id": "101e4b5a321c415897f3e98b360d5af5"
+  },
+  "flags": {
+    "PUBLIC_NOTIFICATIONS_ENABLED": "1",
+    "PUBLIC_SCHEDULE_ENABLED": "1"
+  },
+  "secret_binding_names": [
+    "ONESIGNAL_APP_ID",
+    "ONESIGNAL_REST_API_KEY"
+  ],
+  "rollback": "Redeploy the recorded version using existing unchanged bindings. Explicit owner approval required. Never overwrite production config with repair config.",
+  "notification_evidence": {
+    "morning_date": "2026-10-23",
+    "successful_subscriptions": 5,
+    "received_confirmations": 0,
+    "meaning": "Accepted by push service; not proof of five people or confirmed handset receipt."
+  },
+  "owner_scope": {
+    "legacy_test_subscription_verified": true,
+    "legacy_app": "9fedd24f-9a4d-4445-9a60-af736cb71c89",
+    "production_app": "4b60cca8-16ec-432d-88ae-e0bbc22d6558",
+    "legacy_subscription_found_in_production_app": false,
+    "action": "Do not guess another subscription. New sender stays closed until production app ownership is verified. IDs omitted."
+  }
+}

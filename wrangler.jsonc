@@ -1,5 +1,5 @@
 {
-  "name": "hada-weather-web-v3",
+  "name": "hada-weather-repair-phase1",
   "account_id": "1a16d4f178bae474099aa23095030294",
   "main": "workers/rain-entry.js",
   "compatibility_date": "2026-10-21",
@@ -7,7 +7,7 @@
     "nodejs_compat"
   ],
   "minify": true,
-  "keep_vars": true,
+  "keep_vars": false,
   "build": {
     "command": "node scripts/sync-public-assets.mjs",
     "watch_dir": [
@@ -16,28 +16,15 @@
     ]
   },
   "vars": {
-    "PUBLIC_NOTIFICATIONS_ENABLED": "1",
-    "PUBLIC_SCHEDULE_ENABLED": "1"
+    "PUBLIC_NOTIFICATIONS_ENABLED": "0",
+    "PUBLIC_SCHEDULE_ENABLED": "0",
+    "NOTIFICATION_MODE": "simulate"
   },
-  "kv_namespaces": [
-    {
-      "binding": "PUBLIC_BULLETINS",
-      "id": "101e4b5a321c415897f3e98b360d5af5"
-    }
-  ],
   "workers_dev": true,
   "preview_urls": false,
-  "routes": [
-    {
-      "pattern": "hada-weather.com/*",
-      "zone_id": "e6bed25f68bfd6054bbf85eb5cd0163a"
-    }
-  ],
+  "routes": [],
   "triggers": {
-    "crons": [
-      "0 4 * * *",
-      "*/15 * * * *"
-    ]
+    "crons": []
   },
   "observability": {
     "enabled": true,

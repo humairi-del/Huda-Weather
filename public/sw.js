@@ -1,5 +1,5 @@
 // onesignal:managed v1 — preserve the production registration path and push scope.
-importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
+if(self.location.hostname==='hada-weather.com')importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
 const CACHE='hada-weather-v3-0-1';
 self.addEventListener('install',event=>{event.waitUntil(self.skipWaiting());});
 self.addEventListener('activate',event=>{event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('hada-weather-v')&&k!==CACHE).map(k=>caches.delete(k)));await self.clients.claim();})());});

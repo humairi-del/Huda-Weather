@@ -10,6 +10,27 @@ const number=(v,digits=0)=>finite(v)?new Intl.NumberFormat('ar-YE-u-nu-arab',{ma
 function description(c){return c===0?'صحو':c===1?'صحو غالبًا':c===2?'غائم جزئيًا':c===3?'غائم':[45,48].includes(c)?'ضباب':[51,53,55,56,57].includes(c)?'رذاذ':[61,80].includes(c)?'أمطار خفيفة':[63,81].includes(c)?'أمطار متوسطة':[65,82].includes(c)?'أمطار غزيرة':[95,96,99].includes(c)?'أمطار رعدية':[71,73,75,77,85,86].includes(c)?'هطول ثلجي':'البيانات غير مكتملة';}
 function direction(v){return finite(v)&&v>=0&&v<=360?['شمالية','شمالية شرقية','شرقية','جنوبية شرقية','جنوبية','جنوبية غربية','غربية','شمالية غربية'][Math.round(v/45)%8]:'الاتجاه غير متاح';}
 function isFresh(d,now=Date.now()){return d?.engine?.schema==='hada-weather-engine-v1'&&finite(d.engine.fetchedAt)&&d.engine.fetchedAt<=now+300000&&now-d.engine.fetchedAt<45*60000&&d.daily?.time?.[0]===dayKey(now);}
+// Reject late responses and upgrades from an older forecast valid time.
+function acceptNewer(previous,next){
+ if(!next?.engine)return false;if(!previous?.engine)return true;
+ const a=previous.engine,b=next.engine,ta=stamp(previous.current?.time||''),tb=stamp(next.current?.time||'');
+ if(Number.isFinite(ta)&&Number.isFinite(tb)&&tb<ta)return false;
+ if(b.fetchedAt<a.fetchedAt)return false;
+ if(b.fetchedAt===a.fetchedAt&&a.enrichment==='complete'&&b.enrichment!=='complete')return false;
+ return true;
+}
+// Preview proposal: 20% is the existing boundary between weak probability and a worthwhile chance.
+function nearestRain(d,now=Date.now(),minimum=20){
+ if(!isFresh(d,now)||!prob(minimum)||minimum<=0)return {state:'unavailable'};
+ const h=d.hourly;if(!Array.isArray(h?.time)||h.precipitation_probability?.length!==h.time.length)return {state:'unavailable'};
+ let missing=false,remaining=0;
+ for(let i=0;i<h.time.length;i++){
+  const start=stamp(h.time[i]);if(!Number.isFinite(start)||start+HOUR<=now)continue;remaining++;
+  const chance=h.precipitation_probability[i];if(!prob(chance)){missing=true;continue;}
+  if(chance>=minimum)return missing?{state:'partial',candidate:{start,end:start+HOUR,chance}}:{state:'found',start,end:start+HOUR,chance};
+ }
+ return {state:!remaining||missing?'unavailable':'none',until:h.time.at(-1)};
+}
 function bestWeek(d,now=Date.now()){
  if(!isFresh(d,now))return null;let best=null;
  // Today's daily chance describes the whole day, including hours already past.
@@ -58,5 +79,12 @@ function alerts(d,now=Date.now()){
  const missing=[];const expected=Math.ceil((stamp(days[2])+12*HOUR-Math.floor(now/HOUR)*HOUR)/HOUR);if(!complete||count!==expected)missing.push('بعض ساعات الطقس');if(!dustComplete||dustCount!==expected)missing.push('الغبار');
  items.sort((a,b)=>stamp(a.time)-stamp(b.time)||b.severity-a.severity);return {items,complete:missing.length===0,missing};
 }
-return {ZONE,DAY,HOUR,finite,prob,dayKey,stamp,weekday,number,description,direction,isFresh,bestWeek,stars,reflection,ramadan,dayWeather,cardData,alerts};
+// An hourly forecast advisory; not a measured warning or seven-day rain total.
+function currentAdvisory(d,now=Date.now()){
+ const result=alerts(d,now);const items=result.items.filter(x=>stamp(x.time)<=now&&stamp(x.time)+HOUR>now);
+ if(!items.length)return {candidate:null,complete:result.complete};
+ const item=items.sort((a,b)=>b.severity-a.severity)[0];
+ return {complete:result.complete,candidate:{kind:item.kind,eventKey:item.kind+':'+dayKey(now),title:'تنبيه جوي لهدى',text:'وفق توقعات الساعة الحالية: '+item.text+' · التوقعات قابلة للتغيّر.',time:item.time}};
+}
+return {ZONE,DAY,HOUR,finite,prob,dayKey,stamp,weekday,number,description,direction,isFresh,acceptNewer,nearestRain,currentAdvisory,bestWeek,stars,reflection,ramadan,dayWeather,cardData,alerts};
 });

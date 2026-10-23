@@ -1,0 +1,30 @@
+{
+  "baseline_commit": "bddd4a3ae2c44d68609f3c30e986c53d9e0cbb51",
+  "baseline_status": {
+    "weather_http": 200,
+    "models_available": 5,
+    "days": 7,
+    "hours": 168,
+    "quakes_http": 200,
+    "quake_events": 3,
+    "notification_config_ready": true,
+    "manual_sends": 0,
+    "sections": [
+      "current",
+      "dailyCalendar",
+      "bestRain",
+      "prayer",
+      "tracking",
+      "hours",
+      "week",
+      "stars",
+      "weatherMapHub",
+      "earthquakes",
+      "sponsor",
+      "advertisement",
+      "aboutSite",
+      "installModal"
+    ]
+  },
+  "purpose": "Compare section existence and behavior; no promise that later live forecast values should equal an earlier run."
+}
