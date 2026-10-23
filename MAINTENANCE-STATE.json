@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-23",
+  "scope": "Retired preview services only. Production, rasid-hada, morning notifications and stored data are excluded.",
+  "status": "verified via Cloudflare API: four legacy preview workers.dev/preview URLs disabled; retired sea cron removed",
+  "before": [
+    {
+      "worker": "hada-sea-map-preview",
+      "workers_dev": true,
+      "preview_urls": true,
+      "crons": [
+        "0 */6 * * *"
+      ]
+    },
+    {
+      "worker": "hada-ui-data-fixes-preview",
+      "workers_dev": true,
+      "preview_urls": false,
+      "crons": []
+    },
+    {
+      "worker": "hada-weather-preview-v4",
+      "workers_dev": true,
+      "preview_urls": true,
+      "crons": []
+    },
+    {
+      "worker": "hada-weather-web-v3-review",
+      "workers_dev": true,
+      "preview_urls": false,
+      "crons": []
+    }
+  ],
+  "desired": {
+    "workers_dev": false,
+    "preview_urls": false,
+    "crons": []
+  },
+  "retained": [
+    "All Worker code and version history",
+    "All KV namespaces and contents",
+    "Owner portal D1 database",
+    "Legacy daily bulletin and hazard service bindings"
+  ],
+  "follow_up": {
+    "www": "Requires separate production approval: proxy existing www CNAME and add www.hada-weather.com/* to the production Worker routes. Existing production code already returns canonical 308. Preserve main routing and notifications.",
+    "old_preview_v4": "An existing preview-v4 Git build can restore workers.dev if redeployed; its source configuration must be reviewed before any future deployment.",
+    "production_analytics": "Not enabled. Preview analytics integration removed because owner requested viewing existing statistics."
+  },
+  "rollback": "Restore each before entry via the Cloudflare schedules/subdomain endpoints. No Worker code, versions or stored data were deleted. Cron propagation may take up to 15 minutes."
+}

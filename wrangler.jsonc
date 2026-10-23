@@ -22,9 +22,7 @@
   },
   "vars": {
     "PUBLIC_NOTIFICATIONS_ENABLED": "0",
-    "PUBLIC_SCHEDULE_ENABLED": "0",
-    "WEB_ANALYTICS_HOST": "hada-weather-blocks-preview.humairi855.workers.dev",
-    "WEB_ANALYTICS_TOKEN": "7677837ae06f4c83b64315aaa78185c9"
+    "PUBLIC_SCHEDULE_ENABLED": "0"
   },
   "observability": {
     "enabled": true
