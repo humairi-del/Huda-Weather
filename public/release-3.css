@@ -41,7 +41,7 @@
 .alert-strip-title{margin:0;font-weight:700}.smart-alert-strip ul{padding-right:20px;margin:8px 0 0}.smart-alert-strip li{margin:8px 0}.smart-alert-strip small{color:var(--muted)}
 .earthquake-map{height:380px;border-radius:14px;background:#0a1728;isolation:isolate;direction:ltr}.earthquake-map .leaflet-popup-content{font-family:Tahoma,Arial,sans-serif;line-height:1.8}
 .quake-event{display:block;width:100%;background:#11263b;color:#e3f0fa;border:1px solid #294963;border-radius:10px;padding:12px;margin:10px 0;font:inherit;text-align:right;cursor:pointer}
-.ad-banner{display:grid;place-items:center;min-height:110px;width:100%;max-width:100%;overflow:hidden;border-style:dashed;color:var(--muted);font-size:13px}.ad-banner:has(iframe){min-height:0}
+.ad-banner{display:block;width:100%;max-width:100%;overflow:hidden;border-style:dashed;color:var(--muted);font-size:13px}.ad-banner-space{width:100%;aspect-ratio:1000/952;border-radius:12px;background:#0b1728}
 @media(max-width:600px){.daily-calendar{padding:12px}.earthquake-map{height:300px}.smart-alert-strip{padding:13px;font-size:13px}}
 
 /* Keep the map renderer at its geographic size, independent of weather icon sizes. */
