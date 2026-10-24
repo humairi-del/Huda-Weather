@@ -2,7 +2,7 @@
 const frame=document.getElementById('windyLiveMap'),button=document.getElementById('refreshLiveClouds'),status=document.getElementById('liveCloudRefreshStatus');if(!frame||!button||!status)return;
 const host=frame.parentElement,interval=15*60000;let last=0,pending=false,timer=null,failed=false;
 const fallback=document.createElement('p');fallback.className='small-note';fallback.style.padding='20px';fallback.id='liveCloudFallback';host.appendChild(fallback);
-function unavailable(message){clearTimeout(timer);pending=false;failed=true;frame.style.display='none';host.style.height='auto';fallback.hidden=false;fallback.textContent=message+' افتح صور السحب في Windy من الزر أعلاه.';status.textContent='لم يُتحقق من وقت التقاط الصور؛ لا تُعد هذه حالة طقس هادئة.';}
+function unavailable(message){clearTimeout(timer);pending=false;failed=true;frame.style.display='none';host.style.height='auto';fallback.hidden=false;fallback.textContent=message+' افتح صور السحب في Windy من الزر أعلاه.';status.textContent='وقت التقاط الصور غير متاح داخل الموقع.';}
 function graphicsSupported(){try{const canvas=document.createElement('canvas'),gl=canvas.getContext('webgl2')||canvas.getContext('webgl');if(!gl)return false;gl.getExtension('WEBGL_lose_context')?.loseContext();return true;}catch{return false;}}
 function refresh(){
  if(pending||Date.now()-last<10000)return;last=Date.now();
