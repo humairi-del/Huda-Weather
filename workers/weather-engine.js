@@ -11,12 +11,14 @@ async function read(url,fetcher,timeout=10000){return boundedJson(await fetcher(
 const nullable=(values,test)=>Array.isArray(values)&&values.every(v=>v===null||test(v));
 export function validate(d,now=Date.now()){
  const f=core.finite,p=core.prob;
- if(d?.timezone!==core.ZONE||!f(d.latitude)||!f(d.longitude)||Math.abs(d.latitude-14.230586)>.3||Math.abs(d.longitude-47.199415)>.3||!f(d.current?.temperature_2m)||d.current_units?.temperature_2m!=='°C'||d.current_units?.wind_speed_10m!=='km/h'||d.current_units?.relative_humidity_2m!=='%'||d.hourly_units?.temperature_2m!=='°C'||d.hourly_units?.wind_speed_10m!=='km/h'||d.hourly_units?.relative_humidity_2m!=='%'||d.hourly_units?.wind_direction_10m!=='°'||d.hourly_units?.precipitation!=='mm'||d.hourly_units?.precipitation_probability!=='%'||d.daily_units?.temperature_2m_min!=='°C'||d.daily_units?.temperature_2m_max!=='°C'||d.daily_units?.precipitation_probability_max!=='%'||d.daily_units?.precipitation_sum!=='mm')throw Error('invalid_units_or_location');
+ if(d?.timezone!==core.ZONE||!f(d.latitude)||!f(d.longitude)||Math.abs(d.latitude-14.230586)>.3||Math.abs(d.longitude-47.199415)>.3||!d.current||(d.current.temperature_2m!==null&&!f(d.current.temperature_2m))||d.current_units?.temperature_2m!=='°C'||d.current_units?.wind_speed_10m!=='km/h'||d.current_units?.relative_humidity_2m!=='%'||d.hourly_units?.temperature_2m!=='°C'||d.hourly_units?.wind_speed_10m!=='km/h'||d.hourly_units?.relative_humidity_2m!=='%'||d.hourly_units?.wind_direction_10m!=='°'||d.hourly_units?.precipitation!=='mm'||d.hourly_units?.precipitation_probability!=='%'||d.daily_units?.temperature_2m_min!=='°C'||d.daily_units?.temperature_2m_max!=='°C'||d.daily_units?.precipitation_probability_max!=='%'||d.daily_units?.precipitation_sum!=='mm')throw Error('invalid_units_or_location');
  if(!Array.isArray(d.daily?.time)||d.daily.time.length!==7||d.daily.time.some((t,i)=>t!==core.dayKey(core.stamp(core.dayKey(now))+i*core.DAY)))throw Error('invalid_days');
  const h=d.hourly;if(!Array.isArray(h?.time)||h.time.length<168||h.time.some((t,i)=>t!==new Date(Date.parse(d.daily.time[0]+'T00:00:00Z')+i*core.HOUR).toISOString().slice(0,16)))throw Error('incomplete_hours');
  for(const key of HOURLY.split(','))if(!Array.isArray(h[key])||h[key].length!==h.time.length)throw Error('incomplete_'+key);
  for(const key of DAILY.split(','))if(d.daily[key]?.length!==7)throw Error('invalid_daily');
- for(const k of ['temperature_2m_min','temperature_2m_max'])if(!d.daily[k].every(f))throw Error('missing_daily_temperature');
+ for(const k of ['temperature_2m_min','temperature_2m_max'])if(!nullable(d.daily[k],f))throw Error('missing_daily_temperature');
+ const code=v=>Number.isInteger(v)&&[0,1,2,3,45,48,51,53,55,56,57,61,63,65,66,67,71,73,75,77,80,81,82,85,86,95,96,99].includes(v);
+ if(!nullable(h.temperature_2m,f)||!nullable(h.weather_code,code)||!nullable(d.daily.weather_code,code)||!nullable(h.uv_index,v=>f(v)&&v>=0)||!nullable(h.wind_gusts_10m,v=>f(v)&&v>=0)||!nullable(d.daily.precipitation_sum,v=>f(v)&&v>=0))throw Error('invalid_weather_values');
  if(!nullable(d.daily.precipitation_probability_max,p)||!nullable(h.precipitation_probability,p)||!nullable(h.relative_humidity_2m,p)||!nullable(h.wind_direction_10m,v=>f(v)&&v>=0&&v<=360)||!nullable(h.wind_speed_10m,v=>f(v)&&v>=0)||!nullable(h.precipitation,v=>f(v)&&v>=0))throw Error('invalid_values');
  if(!Number.isFinite(core.stamp(d.current.time))||now-core.stamp(d.current.time)>90*60000||core.stamp(d.current.time)>now+300000)throw Error('stale_current');return d;
 }
@@ -35,10 +37,11 @@ export async function enrichEngine(base,fetcher=fetch){
 }
 export async function engineResponse(request,ctx,fetcher=fetch,now=Date.now()){
  if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405,headers:{Allow:'GET, HEAD'}});if(request.method==='HEAD')return new Response(null,{headers:{'cache-control':'no-store'}});
+ const outbound=d=>Response.json(d,{headers:{'cache-control':'no-store','x-content-type-options':'nosniff'}});
  const key=new Request(new URL('/__cache/weather-repair-v2/'+core.dayKey(now)+'/'+Math.floor(now/TTL),request.url));let cache;
- try{if(globalThis.caches){cache=await caches.open('hada-weather-repair-v2');const hit=await cache.match(key);if(hit){const d=await hit.clone().json();if(core.isFresh(d,now)&&now-d.engine.fetchedAt<TTL)return hit;}}}catch{cache=null;}
+ try{if(globalThis.caches){cache=await caches.open('hada-weather-repair-v2');const hit=await cache.match(key);if(hit){const d=await hit.clone().json();if(core.isFresh(d,now)&&now-d.engine.fetchedAt<TTL)return outbound(d);}}}catch{cache=null;}
  const response=d=>Response.json(d,{headers:{'cache-control':'public,max-age=0,s-maxage=900','x-content-type-options':'nosniff'}});
- try{const d=await readEngine(now,fetcher);if(cache)await cache.put(key,response(d));
- if(ctx?.waitUntil)ctx.waitUntil(enrichEngine(d,fetcher).then(async complete=>{if(!cache)return;const previous=await cache.match(key),existing=previous?await previous.json():null;if(!existing||core.acceptNewer(existing,complete))await cache.put(key,response(complete));}).catch(()=>{}));
- return response(d);}catch{return Response.json({error:'weather_unavailable'},{status:503,headers:{'cache-control':'no-store'}});}
+ try{const d=await readEngine(now,fetcher);const initialWrite=cache?cache.put(key,response(d)).catch(()=>{}):Promise.resolve();
+ if(ctx?.waitUntil)ctx.waitUntil(Promise.all([initialWrite,enrichEngine(d,fetcher)]).then(async ([,complete])=>{if(!cache)return;const previous=await cache.match(key),existing=previous?await previous.json():null;if(!existing||core.acceptNewer(existing,complete))await cache.put(key,response(complete));}).catch(()=>{}));
+ return outbound(d);}catch{return Response.json({error:'weather_unavailable'},{status:503,headers:{'cache-control':'no-store'}});}
 }

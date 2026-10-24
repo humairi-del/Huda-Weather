@@ -11,6 +11,7 @@ function description(c){return c===0?'صحو':c===1?'صحو غالبًا':c===2?
 function direction(v){return finite(v)&&v>=0&&v<=360?['شمالية','شمالية شرقية','شرقية','جنوبية شرقية','جنوبية','جنوبية غربية','غربية','شمالية غربية'][Math.round(v/45)%8]:'الاتجاه غير متاح';}
 function isFresh(d,now=Date.now()){return d?.engine?.schema==='hada-weather-engine-v1'&&finite(d.engine.fetchedAt)&&d.engine.fetchedAt<=now+300000&&now-d.engine.fetchedAt<45*60000&&d.daily?.time?.[0]===dayKey(now);}
 // Reject late responses and upgrades from an older forecast valid time.
+function currentFresh(d,now=Date.now()){const t=stamp(d?.current?.time||'');return Number.isFinite(t)&&t<=now+300000&&now-t<=90*60000;}
 function acceptNewer(previous,next){
  if(!next?.engine)return false;if(!previous?.engine)return true;
  const a=previous.engine,b=next.engine,ta=stamp(previous.current?.time||''),tb=stamp(next.current?.time||'');
@@ -19,13 +20,13 @@ function acceptNewer(previous,next){
  if(b.fetchedAt===a.fetchedAt&&a.enrichment==='complete'&&b.enrichment!=='complete')return false;
  return true;
 }
-// Preview proposal: 20% is the existing boundary between weak probability and a worthwhile chance.
+// Owner-approved display criterion: first eligible hour >=20%; never an emergency trigger.
 function nearestRain(d,now=Date.now(),minimum=20){
  if(!isFresh(d,now)||!prob(minimum)||minimum<=0)return {state:'unavailable'};
  const h=d.hourly;if(!Array.isArray(h?.time)||h.precipitation_probability?.length!==h.time.length)return {state:'unavailable'};
- let missing=false,remaining=0;
+ let missing=false,remaining=0,expected=Math.floor(now/HOUR)*HOUR;
  for(let i=0;i<h.time.length;i++){
-  const start=stamp(h.time[i]);if(!Number.isFinite(start)||start+HOUR<=now)continue;remaining++;
+  const start=stamp(h.time[i]);if(!Number.isFinite(start)||start+HOUR<=now)continue;remaining++;if(start!==expected)missing=true;expected=start+HOUR;
   const chance=h.precipitation_probability[i];if(!prob(chance)){missing=true;continue;}
   if(chance>=minimum)return missing?{state:'partial',candidate:{start,end:start+HOUR,chance}}:{state:'found',start,end:start+HOUR,chance};
  }
@@ -75,7 +76,7 @@ function alerts(d,now=Date.now()){
   if([95,96,99].includes(code))add('thunder',i,code===99?'عواصف رعدية قد يصحبها برد قوي':code===96?'عواصف رعدية قد يصحبها برد':'فرص عواصف رعدية',code===99?3:2);
  }
  const dust=d.engine.dust;let dustComplete=!!dust?.hourly?.time;let dustCount=0;
- if(dustComplete)for(let i=0;i<dust.hourly.time.length;i++){const time=dust.hourly.time[i];if(!days.includes(time.slice(0,10))||stamp(time)+HOUR<=now)continue;dustCount++;const v=dust.hourly.dust?.[i];if(!finite(v)||v<0){dustComplete=false;continue;}if(v>=150){const j=h.time.indexOf(time),wind=h.wind_speed_10m?.[j];if(finite(wind)&&wind>=20)add('dust',j,'غبار صحراوي ورياح نشطة متوقعة',v>=300?3:2);}}
+ if(dustComplete)for(let i=0;i<dust.hourly.time.length;i++){const time=dust.hourly.time[i];if(!days.includes(time.slice(0,10))||stamp(time)+HOUR<=now)continue;dustCount++;const v=dust.hourly.dust?.[i];if(!finite(v)||v<0){dustComplete=false;continue;}if(v>=150){const j=h.time.indexOf(time),wind=h.wind_speed_10m?.[j];if(!finite(wind))dustComplete=false;if(finite(wind)&&wind>=20)add('dust',j,'غبار صحراوي ورياح نشطة متوقعة',v>=300?3:2);}}
  const missing=[];const expected=Math.ceil((stamp(days[2])+12*HOUR-Math.floor(now/HOUR)*HOUR)/HOUR);if(!complete||count!==expected)missing.push('بعض ساعات الطقس');if(!dustComplete||dustCount!==expected)missing.push('الغبار');
  items.sort((a,b)=>stamp(a.time)-stamp(b.time)||b.severity-a.severity);return {items,complete:missing.length===0,missing};
 }
@@ -86,5 +87,5 @@ function currentAdvisory(d,now=Date.now()){
  const item=items.sort((a,b)=>b.severity-a.severity)[0];
  return {complete:result.complete,candidate:{kind:item.kind,eventKey:item.kind+':'+dayKey(now),title:'تنبيه جوي لهدى',text:'وفق توقعات الساعة الحالية: '+item.text+' · التوقعات قابلة للتغيّر.',time:item.time}};
 }
-return {ZONE,DAY,HOUR,finite,prob,dayKey,stamp,weekday,number,description,direction,isFresh,acceptNewer,nearestRain,currentAdvisory,bestWeek,stars,reflection,ramadan,dayWeather,cardData,alerts};
+return {ZONE,DAY,HOUR,finite,prob,dayKey,stamp,weekday,number,description,direction,isFresh,currentFresh,acceptNewer,nearestRain,currentAdvisory,bestWeek,stars,reflection,ramadan,dayWeather,cardData,alerts};
 });
