@@ -1,3 +1,7 @@
+# Current branch: isolated central Rasid preview
+
+Only hada-rasid-central-preview may be deployed from rasid-central-preview-20261025. No production routes, schedules, AI, secrets, KV, Neon or OneSignal bindings. The sole new storage binding is RASID_COORDINATOR, a SQLite Durable Object for the temporary weather point, quotas and weather cache. The build guard validates this target. No payment or paid plan change. Production, previous repair preview and legacy Rasid remain unchanged. This paragraph takes precedence for this branch; older phase policies below are historical.
+
 # Isolated repair phase 1
 
 Owner-approved scope is repair preparation and isolated preview only. Target hada-weather-repair-phase1 on branch repair-phase1-20261023. No main changes or production deployments, production Cloudflare setting changes, real notifications, OneSignal setting changes, Rasid Hada or Neon writes are authorized.

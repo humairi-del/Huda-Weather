@@ -1,10 +1,11 @@
 (()=>{'use strict';
 const frame=document.getElementById('windyLiveMap'),button=document.getElementById('refreshLiveClouds'),status=document.getElementById('liveCloudRefreshStatus');if(!frame||!button||!status)return;
-const host=frame.parentElement,interval=15*60000;let last=0,pending=false,timer=null,failed=false;
+const host=frame.parentElement,interval=15*60000;let requested=false,last=0,pending=false,timer=null,failed=false;
 const fallback=document.createElement('p');fallback.className='small-note';fallback.style.padding='20px';fallback.id='liveCloudFallback';host.appendChild(fallback);
 function unavailable(message){clearTimeout(timer);pending=false;failed=true;frame.style.display='none';host.style.height='auto';fallback.hidden=false;fallback.textContent=message+' افتح صور السحب في Windy من الزر أعلاه.';status.textContent='وقت التقاط الصور غير متاح داخل الموقع.';}
 function graphicsSupported(){try{const canvas=document.createElement('canvas'),gl=canvas.getContext('webgl2')||canvas.getContext('webgl');if(!gl)return false;gl.getExtension('WEBGL_lose_context')?.loseContext();return true;}catch{return false;}}
 function refresh(){
+ requested=true;
  if(pending||Date.now()-last<10000)return;last=Date.now();
  if(navigator.onLine===false){unavailable('تعذر عرض السحب مع انقطاع الاتصال.');return;}
  if(!graphicsSupported()){unavailable('هذا المتصفح لا يدعم عرض صور السحب داخل الموقع.');return;}
@@ -14,6 +15,7 @@ function refresh(){
 frame.addEventListener('load',()=>{if(!pending)return;try{if(frame.contentWindow.location.href==='about:blank')return;}catch{}clearTimeout(timer);pending=false;fallback.hidden=true;status.textContent='تحقق من وقت التقاط الصورة داخل Windy. إذا لم تظهر الصور أو ظهرت الرياح، افتح العرض الأصلي من الزر أعلاه.';});
 frame.addEventListener('error',()=>unavailable('تعذر عرض صور السحب من المصدر.'));
 button.addEventListener('click',()=>{last=0;refresh();});
-function resume(){if(!document.hidden&&!failed&&Date.now()-last>=interval)refresh();}
-setInterval(resume,interval);document.addEventListener('visibilitychange',resume);window.addEventListener('online',()=>{last=0;refresh();});refresh();
+function resume(){if(requested&&!document.hidden&&!failed&&Date.now()-last>=interval)refresh();}
+setInterval(resume,interval);document.addEventListener('visibilitychange',resume);window.addEventListener('online',()=>{if(requested&&!document.hidden){last=0;refresh();}});
+if(typeof IntersectionObserver==='function'){const observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){observer.disconnect();refresh();}},{rootMargin:'200px'});observer.observe(host);}else refresh();
 })();

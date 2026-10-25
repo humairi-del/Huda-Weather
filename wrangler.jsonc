@@ -1,8 +1,8 @@
 {
-  "name": "hada-weather-repair-phase1",
+  "name": "hada-rasid-central-preview",
   "account_id": "1a16d4f178bae474099aa23095030294",
-  "main": "workers/rain-entry.js",
-  "compatibility_date": "2026-10-21",
+  "main": "workers/rasid-entry.js",
+  "compatibility_date": "2026-10-25",
   "compatibility_flags": [
     "nodejs_compat"
   ],
@@ -28,7 +28,23 @@
   },
   "observability": {
     "enabled": true,
-    "head_sampling_rate": 1
+    "head_sampling_rate": 0.1
   },
-  "logpush": false
+  "logpush": false,
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "RASID_COORDINATOR",
+        "class_name": "RasidCoordinator"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "rasid-sqlite-v1",
+      "new_sqlite_classes": [
+        "RasidCoordinator"
+      ]
+    }
+  ]
 }

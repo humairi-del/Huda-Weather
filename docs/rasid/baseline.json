@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-10-25T16:25:07.350587+00:00",
+  "productionCommit": "bddd4a3ae2c44d68609f3c30e986c53d9e0cbb51",
+  "productionDeployment": "fbb7b3af-2e05-473a-8108-1def645094c6",
+  "repairCommit": "4fd36600f86886e6c83f30d3fe6295ef33c3afe2",
+  "repairDeployment": "faadaae6-6e0b-4472-aed3-21be9e2bf912",
+  "repairTree": "3dad5cde60b46eeadbaa3e709f42dec0f8ec6bd9",
+  "legacyRasidVersion": "dfcfb291-fc42-4e45-a04e-1da52cb29d23",
+  "originalSha256": {
+    "public/index.html": "d6c4367dd4c6d65100b0a42f60316d77bf63c98374262df5764769cd5f2130ae",
+    "public/weather-core.js": "e6c192d9906394db82961e18723952d0685a605aae7154a9ba90ccac1ff36b8c",
+    "workers/weather-engine.js": "dee598f5fd734f91fef448318ec02f75bcdee8d9a9ac8df86603cb14c0c383aa",
+    "workers/notifications.js": "04e1c632776bd685a4e7718635212970ad9a750de2f5e9251be0d992c300e616",
+    "public/prayer-7day.js": "508d5a3e68cd0565736a419795645e18fe3fbcb439ee73d37275b6204da14442",
+    "public/star-calendar.js": "cfcbdbc02145aeab1da54b695a0a08053b57193c85892e8581de043a98189033",
+    "wrangler.jsonc": "4d900ab97f97df34c1b777b8ac08e44c8ea7031127360119a74207b85f6cdb82"
+  },
+  "scope": "New isolated preview only; no production, old preview, legacy Rasid, Neon or OneSignal settings changes."
+}

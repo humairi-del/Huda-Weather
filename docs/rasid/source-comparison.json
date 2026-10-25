@@ -1,0 +1,94 @@
+{
+  "at": "2026-10-25T16:20:16.152Z",
+  "method": "Direct source reads; no production endpoints or sending. Both at the same requested point. Not field accuracy validation.",
+  "centralValidTime": "2026-10-25T19:15",
+  "previousValidTime": "2026-10-25T19:15",
+  "sameCurrent": {
+    "temperature_2m": true,
+    "relative_humidity_2m": true,
+    "apparent_temperature": true,
+    "wind_speed_10m": true,
+    "wind_gusts_10m": true,
+    "wind_direction_10m": true,
+    "weather_code": true,
+    "precipitation": true
+  },
+  "sameDaily": {
+    "time": true,
+    "weather_code": true,
+    "temperature_2m_max": true,
+    "temperature_2m_min": true,
+    "precipitation_probability_max": true,
+    "precipitation_sum": true
+  },
+  "models": [
+    {
+      "model": "ecmwf_ifs",
+      "available": true,
+      "partial": false
+    },
+    {
+      "model": "gfs_seamless",
+      "available": true,
+      "partial": false
+    },
+    {
+      "model": "icon_seamless",
+      "available": true,
+      "partial": false
+    },
+    {
+      "model": "gem_global",
+      "available": true,
+      "partial": false
+    },
+    {
+      "model": "ecmwf_aifs025_single",
+      "available": true,
+      "partial": false
+    }
+  ],
+  "dustAvailable": true,
+  "trace": [
+    {
+      "model": "api.open-meteo.com",
+      "status": 200,
+      "elapsed": 4229
+    },
+    {
+      "model": "ecmwf_ifs",
+      "status": 200,
+      "elapsed": 153
+    },
+    {
+      "model": "api.open-meteo.com",
+      "status": 200,
+      "elapsed": 4665
+    },
+    {
+      "model": "gfs_seamless",
+      "status": 200,
+      "elapsed": 3767
+    },
+    {
+      "model": "gem_global",
+      "status": 200,
+      "elapsed": 3872
+    },
+    {
+      "model": "ecmwf_aifs025_single",
+      "status": 200,
+      "elapsed": 3890
+    },
+    {
+      "model": "icon_seamless",
+      "status": 200,
+      "elapsed": 4110
+    },
+    {
+      "model": "air-quality-api.open-meteo.com",
+      "status": 200,
+      "elapsed": 4461
+    }
+  ]
+}
