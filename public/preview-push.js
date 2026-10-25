@@ -2,7 +2,7 @@
 (()=>{'use strict';
  const HOST='redesign-hada-2026-10.hada-weather-aifs-preview.pages.dev';
  const production=location.hostname==='hada-weather.com';
- if(location.hostname==='hada-weather-repair-phase1.humairi855.workers.dev'){const button=document.getElementById('activateUnifiedAlerts'),status=document.getElementById('unifiedAlertsStatus');if(button)button.disabled=true;if(status)status.textContent='معاينة معزولة: لا تُرسل إشعارات حقيقية.';return;}
+ if(!production){const button=document.getElementById('activateUnifiedAlerts'),status=document.getElementById('unifiedAlertsStatus');if(button)button.disabled=true;if(status)status.textContent='معاينة معزولة: لا تُرسل إشعارات حقيقية.';return;}
  if(location.hostname!==HOST&&!production)return;
  const button=document.getElementById('activateUnifiedAlerts');
  const status=document.getElementById('unifiedAlertsStatus');

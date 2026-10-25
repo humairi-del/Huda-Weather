@@ -1,7 +1,7 @@
 (()=>{'use strict';
-const ZONE='Asia/Aden',CACHE='hada-rasid-client-v1',MAX_CACHE_AGE=45*60*1000;
-const $=id=>document.getElementById(id),fmt=n=>new Intl.NumberFormat('ar-YE',{maximumFractionDigits:0}).format(n),finite=n=>typeof n==='number'&&Number.isFinite(n);
 const previous=new URL(location.href).searchParams.get('engine')==='previous';
+const ZONE='Asia/Aden',CACHE='hada-rasid-client-v1'+(previous?'-previous':''),MAX_CACHE_AGE=45*60*1000;
+const $=id=>document.getElementById(id),fmt=n=>new Intl.NumberFormat('ar-YE',{maximumFractionDigits:0}).format(n),finite=n=>typeof n==='number'&&Number.isFinite(n);
 const url=new URL(previous?'./api/weather-engine':'./api/rasid-weather',location.href);
 let pending=null,weather=null,weatherAt=0,nextAttemptAt=0,failures=0,retryTimer=null,calendarDay='',currentHazard=null,enrichmentTimer=null,enrichmentAttempts=0,enrichmentFor=0,showingCached=false;
 function dayKey(now=new Date()){const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:ZONE,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now).map(x=>[x.type,x.value]));return `${p.year}-${p.month}-${p.day}`;}
