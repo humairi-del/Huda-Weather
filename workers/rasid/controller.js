@@ -11,7 +11,8 @@ export class Controller {
  constructor(store,fetcher=fetch,clock=Date.now,background=p=>p.catch(()=>{})){this.store=store;this.fetcher=fetcher;this.clock=clock;this.background=background;this.pending=null;this.enriching=null;this.previousPending=null;}
  async request(url,timeout=8000){
   const now=this.clock(),units=estimateUnits(url);if(!this.store.reserve(now,units))throw Error('usage_limit');
-  try{return await boundedJson(await this.fetcher(url,{headers:{Accept:'application/json'},redirect:'manual',signal:AbortSignal.timeout(timeout)}));}catch(e){throw Error(e.message==='usage_limit'?'usage_limit':e.name==='TimeoutError'||e.name==='AbortError'?'source_timeout':/^source_http_/.test(e.message)?e.message:'source_unavailable');}
+  const fetcher=this.fetcher;
+  try{return await boundedJson(await fetcher(url,{headers:{Accept:'application/json'},redirect:'manual',signal:AbortSignal.timeout(timeout)}));}catch(e){throw Error(e.message==='usage_limit'?'usage_limit':e.name==='TimeoutError'||e.name==='AbortError'?'source_timeout':/^source_http_/.test(e.message)?e.message:e.message.includes('Illegal invocation')?'fetch_receiver':e instanceof SyntaxError?'source_json':'source_unavailable');}
  }
  async basic(){const started=this.clock();let error;for(const model of [null,'gfs_seamless']){try{return normalise(await this.request(sourceUrl('primary',model),7000),started,this.clock(),model||'best_match');}catch(e){error=e.message;if(error==='usage_limit')break;}}throw Error(error||'source_unavailable');}
  usable(data,now){return core.isFresh(data,now)&&data.engine.centralSchema==='hada-rasid-v1';}
