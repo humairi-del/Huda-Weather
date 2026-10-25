@@ -175,8 +175,10 @@ let service=null,busy=false,revision=0;
 const ALERT_PREFS_KEY='hada_alert_preferences_v1';
 const button=$('activateUnifiedAlerts'),status=$('unifiedAlertsStatus');
 function message(text,state='idle'){status.textContent=text;status.dataset.state=state;}
+function isolatedPreview(){if(location.hostname==='hada-weather.com')return false;button.disabled=true;message('معاينة معزولة: لا تُرسل إشعارات حقيقية.','preview');return true;}
 
 function permissionState(){
+ if(isolatedPreview())return;
  if(service||busy)return;
  button.disabled=false;button.textContent='🔔 تفعيل التنبيهات';
  if(!window.Notification){message('هذا المتصفح لا يدعم إذن الإشعارات. افتح الموقع مباشرة في متصفح حديث.');return;}
@@ -188,6 +190,7 @@ function permissionState(){
  }else message('اضغط للسماح بالإشعارات وحفظ النشرة والتنبيهات معًا.');
 }
 async function requestBrowserPermission(){
+ if(isolatedPreview())return;
  if(!window.Notification||typeof Notification.requestPermission!=='function'){message('هذا المتصفح لا يدعم الإشعارات. افتح الموقع مباشرة في متصفح حديث.','error');return;}
  if(Notification.permission==='denied'){message('الإشعارات محظورة. اسمح بها من إعدادات الموقع في المتصفح ثم أعد المحاولة.','error');return;}
  busy=true;++revision;button.disabled=true;message('بانتظار موافقتك على إذن الإشعارات…');
@@ -210,6 +213,7 @@ function active(){button.textContent='التنبيهات مفعّلة';button.di
 function validSubscription(s){return !!(s?.id&&!s.id.startsWith('local-')&&s.token&&s.optedIn);}
 function waitSubscription(sdk,timeout=12000){const s=sdk.User.PushSubscription;if(validSubscription(s))return Promise.resolve(s.id);return new Promise((resolve,reject)=>{let timer;const finish=()=>{if(!validSubscription(s))return;clearTimeout(timer);s.removeEventListener('change',finish);resolve(s.id);};s.addEventListener('change',finish);timer=setTimeout(()=>{s.removeEventListener('change',finish);reject(new Error('subscription_timeout'));},timeout);finish();});}
 async function configureAlerts(config){
+ if(isolatedPreview())return;
  if(!config?.sdk?.Notifications||!config.sdk.User?.PushSubscription||typeof config.subscribe!=='function'||typeof config.getStatus!=='function')throw new TypeError('An initialized SDK and server subscribe/getStatus adapters are required.');
  service=config;const token=++revision;button.disabled=false;button.textContent='🔔 تفعيل التنبيهات';message('صباح هدى وتنبيهات الطقس.');
  // Read-only status refresh. Never requests permission or enrolls on page load.
@@ -219,6 +223,7 @@ async function configureAlerts(config){
  }
 }
 button.onclick=async()=>{
+ if(isolatedPreview())return;
  if(busy)return;
  if(location.protocol!=='https:'||!window.isSecureContext){message('لتفعيل التنبيهات، افتح الموقع من رابطه الآمن في المتصفح. هذا ملف معاينة.','error');return;}
  const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
