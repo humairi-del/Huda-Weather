@@ -8,14 +8,15 @@ function leaflet(){if(window.L)return Promise.resolve();return new Promise((reso
 function show(){
  hide();if(!fresh()){status.textContent='الصور قديمة أو غير متاحة؛ لا يمكن تأكيد وجود عاصفة قرب هدى.';return;}
  const token=generation,time=metadata.times[index],b=metadata.bounds;status.textContent='جارٍ تحميل صورة القمر الصناعي…';
- const candidate=L.imageOverlay('/api/dust-satellite/image?time='+encodeURIComponent(time),[[b[1],b[0]],[b[3],b[2]]],{opacity:1,interactive:false});overlay=candidate;
+ const candidate=L.imageOverlay('/api/dust-satellite/image?time='+encodeURIComponent(time),[[b[1],b[0]],[b[3],b[2]]],{opacity:1,interactive:false,pane:'dustRaster'});overlay=candidate;
  candidate.once('load',()=>{if(token!==generation)return;if(!fresh()){hide();status.textContent='انتهت صلاحية الصور؛ حدّث العرض.';return;}status.textContent='صورة '+(index+1)+' من '+metadata.times.length+' · وصول العاصفة إلى هدى غير مؤكد.';timeLabel.textContent='وقت الصورة: '+stamp(time)+' بتوقيت اليمن';});
  candidate.once('error',()=>{if(token!==generation)return;hide();status.textContent='لم تصل الصورة؛ لا يمكن تأكيد حالة العواصف الرملية.';});candidate.addTo(map);
  clearTimeout(expires);expires=setTimeout(()=>{hide();status.textContent='انتهت صلاحية الصور؛ حدّث العرض.';},Math.max(0,3600001-(Date.now()-Date.parse(metadata.times.at(-1)))));
 }
 async function refresh(){if(pending||!section.open)return;pending=true;last=Date.now();hide();status.textContent='جارٍ التحقق من صور حديثة…';try{
  const [r]=await Promise.all([fetch('/api/dust-satellite',{cache:'no-store',signal:AbortSignal.timeout(15000)}),leaflet()]);if(!r.ok)throw Error('source');const d=await r.json();if(!Array.isArray(d.times)||!d.times.length||d.times.some(t=>!Number.isFinite(Date.parse(t)))||Date.now()-Date.parse(d.times.at(-1))>3600000)throw Error('stale');metadata=d;index=d.times.length-1;if(!section.open)return;
- if(!map){const b=d.bounds;map=L.map('dustMap',{crs:L.CRS.EPSG4326,scrollWheelZoom:false,maxZoom:9}).fitBounds([[b[1],b[0]],[b[3],b[2]]]);
+ if(!map){const b=d.bounds;map=L.map('dustMap',{crs:L.CRS.EPSG4326,zoomSnap:0,scrollWheelZoom:false,maxZoom:9}).fitBounds([[b[1],b[0]],[b[3],b[2]]]);
+ map.createPane('dustRaster').style.zIndex='200';
  // Geographic outlines remain legible without loading a second remote basemap.
  fetch('./yemen-monitoring-area.json').then(r=>r.ok?r.json():null).then(area=>{if(area)L.geoJSON(area,{interactive:false,style:{color:'#ffffff',weight:1.5,fillOpacity:0}}).addTo(map);}).catch(()=>{});
  const cfg=window.HadaRasidConfig;if(cfg)L.circleMarker([cfg.latitude,cfg.longitude],{radius:5,color:'#fff',fillColor:'#111',fillOpacity:1}).addTo(map).bindTooltip('هدى · نقطة الطقس المؤقتة',{permanent:true,direction:'top'});
@@ -28,4 +29,5 @@ document.getElementById('dustNext').onclick=()=>{if(metadata){index=(index+1)%me
 setInterval(()=>{if(section.open&&!document.hidden&&Date.now()-last>=600000)refresh();},60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&section.open){if(!fresh()||Date.now()-last>=600000)refresh();else show();}});
 window.addEventListener('online',()=>{if(section.open)refresh();});
+if(section.open)refresh();
 })();
