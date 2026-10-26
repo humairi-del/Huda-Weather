@@ -5,7 +5,7 @@ import {boundedJson,readEngine,enrichEngine} from '../weather-engine.js';
 import {config,sourceUrl} from './registry.js';
 import {normalise,comparison,dust,attach} from './normalise.js';
 export const estimateUnits=url=>{const p=new URL(url).searchParams,n=['current','hourly','daily'].reduce((sum,k)=>sum+(p.get(k)||'').split(',').filter(Boolean).length,0);return Math.max(1,Math.ceil(n/10))*Math.max(1,Math.ceil(Number(p.get('forecast_days')||7)/14));};
-export function views(data,now){let morning=null;try{morning=bulletin.build(data,new Date(now),calendar);}catch{}return {asOf:now,currentFresh:core.currentFresh(data,now),nearestRain:core.nearestRain(data,now,config.minimumRainChance),alerts:core.alerts(data,now),card:core.cardData(data,calendar,now),morning};}
+export function views(data,now){let morning=null;try{morning=bulletin.build(data,new Date(now),calendar);}catch{}return {asOf:now,currentFresh:core.currentFresh(data,now),nearestRain:core.nearestRain(data,now,config.minimumRainChance),alerts:core.alerts(data,now),sandstorm:core.sandstormForecast(data,now),card:core.cardData(data,calendar,now),morning};}
 // One controller per location coordinator, never module-level request state.
 export class Controller {
  constructor(store,fetcher=fetch,clock=Date.now,background=p=>p.catch(()=>{})){this.store=store;this.fetcher=fetcher;this.clock=clock;this.background=background;this.pending=null;this.enriching=null;this.previousPending=null;}

@@ -1,5 +1,5 @@
 /* Shared, deterministic weather presentation. No network, credentials or UI. */
-(function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.HadaWeatherCore=factory();})(typeof window==='undefined'?globalThis:window,function(){
+(function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory(require('./sandstorm.js'));else root.HadaWeatherCore=factory(root.HadaSandstorm);})(typeof window==='undefined'?globalThis:window,function(Sandstorm){
 'use strict';
 const ZONE='Asia/Aden',DAY=86400000,HOUR=3600000;
 const finite=v=>typeof v==='number'&&Number.isFinite(v),prob=v=>finite(v)&&v>=0&&v<=100;
@@ -63,6 +63,7 @@ function cardData(d,calendar,now=Date.now()){
  const day=dayKey(now),valid=isFresh(d,now),i=valid?d.daily.time.indexOf(day):-1,summary=dayWeather(valid?d:null,day);
  return {day,min:i>=0?d.daily.temperature_2m_min[i]:null,max:i>=0?d.daily.temperature_2m_max[i]:null,chance:i>=0&&prob(d.daily.precipitation_probability_max[i])?d.daily.precipitation_probability_max[i]:null,code:i>=0?d.daily.weather_code[i]:null,...summary,best:bestWeek(d,now),stars:stars(calendar,now),reflection:reflection(now),ramadan:ramadan(now),fresh:valid};
 }
+function sandstormForecast(d,now=Date.now()){return Sandstorm?Sandstorm.assess(d,now):{schema:'huda-sandstorm-screen-v1',state:'unavailable',events:[],missing:['screen_unavailable']};}
 function alerts(d,now=Date.now()){
  if(!isFresh(d,now))return {items:[],complete:false,missing:['الطقس']};
  const h=d.hourly,days=d.daily.time.slice(0,3),items=[],groups=new Map();let complete=true;
@@ -76,9 +77,10 @@ function alerts(d,now=Date.now()){
   if([95,96,99].includes(code))add('thunder',i,code===99?'عواصف رعدية قد يصحبها برد قوي':code===96?'عواصف رعدية قد يصحبها برد':'فرص عواصف رعدية',code===99?3:2);
  }
  const dust=d.engine.dust;let dustComplete=!!dust?.hourly?.time;let dustCount=0;
- if(dustComplete)for(let i=0;i<dust.hourly.time.length;i++){const time=dust.hourly.time[i];if(!days.includes(time.slice(0,10))||stamp(time)+HOUR<=now)continue;dustCount++;const v=dust.hourly.dust?.[i];if(!finite(v)||v<0){dustComplete=false;continue;}if(v>=150){const j=h.time.indexOf(time),wind=h.wind_speed_10m?.[j];if(!finite(wind))dustComplete=false;if(finite(wind)&&wind>=20)add('dust',j,'غبار صحراوي ورياح نشطة متوقعة',v>=300?3:2);}}
- const missing=[];const expected=Math.ceil((stamp(days[2])+12*HOUR-Math.floor(now/HOUR)*HOUR)/HOUR);if(!complete||count!==expected)missing.push('بعض ساعات الطقس');if(!dustComplete||dustCount!==expected)missing.push('الغبار');
- items.sort((a,b)=>stamp(a.time)-stamp(b.time)||b.severity-a.severity);return {items,complete:missing.length===0,missing};
+ const central=d.engine.centralSchema==='hada-rasid-v1',sandstorm=central?sandstormForecast(d,now):null;
+ if(!central&&dustComplete)for(let i=0;i<dust.hourly.time.length;i++){const time=dust.hourly.time[i];if(!days.includes(time.slice(0,10))||stamp(time)+HOUR<=now)continue;dustCount++;const v=dust.hourly.dust?.[i];if(!finite(v)||v<0){dustComplete=false;continue;}if(v>=150){const j=h.time.indexOf(time),wind=h.wind_speed_10m?.[j];if(!finite(wind))dustComplete=false;if(finite(wind)&&wind>=20)add('dust',j,'غبار صحراوي ورياح نشطة متوقعة',v>=300?3:2);}}
+ const missing=[];const expected=Math.ceil((stamp(days[2])+12*HOUR-Math.floor(now/HOUR)*HOUR)/HOUR);if(!complete||count!==expected)missing.push('بعض ساعات الطقس');if(central){if(!sandstorm||['unavailable','partial'].includes(sandstorm.state))missing.push('تقدير العاصفة الرملية');}else if(!dustComplete||dustCount!==expected)missing.push('الغبار');
+ items.sort((a,b)=>stamp(a.time)-stamp(b.time)||b.severity-a.severity);return {items,complete:missing.length===0,missing,sandstorm};
 }
 // An hourly forecast advisory; not a measured warning or seven-day rain total.
 function currentAdvisory(d,now=Date.now()){
@@ -87,5 +89,5 @@ function currentAdvisory(d,now=Date.now()){
  const item=items.sort((a,b)=>b.severity-a.severity)[0];
  return {complete:result.complete,candidate:{kind:item.kind,eventKey:item.kind+':'+dayKey(now),title:'تنبيه جوي لهدى',text:'وفق توقعات الساعة الحالية: '+item.text+' · التوقعات قابلة للتغيّر.',time:item.time}};
 }
-return {ZONE,DAY,HOUR,finite,prob,dayKey,stamp,weekday,number,description,direction,isFresh,currentFresh,acceptNewer,nearestRain,currentAdvisory,bestWeek,stars,reflection,ramadan,dayWeather,cardData,alerts};
+return {ZONE,DAY,HOUR,finite,prob,dayKey,stamp,weekday,number,description,direction,isFresh,currentFresh,acceptNewer,nearestRain,currentAdvisory,bestWeek,stars,reflection,ramadan,dayWeather,cardData,alerts,sandstormForecast};
 });
