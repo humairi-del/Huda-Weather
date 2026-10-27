@@ -1,3 +1,4 @@
+@font-face{font-family:Tajawal;src:url("./fonts/Tajawal-Bold.ttf") format("truetype");font-style:normal;font-weight:700;font-display:swap}
 @font-face{font-family:Tajawal;src:url("./fonts/Tajawal-Regular.ttf") format("truetype");font-style:normal;font-weight:400;font-display:swap}
 /* Hada night almanac. RTL grid: 2×(1fr) + 16px = content width; 4 stats share one plane. */
 :root{--bg:#0b1119;--card:#141e2a;--raised:#1c2937;--line:#334354;--muted:#b6c1cd;--blue:#a8d2ed;--cyan:#b9d7ce;--white:#f4f2eb;--gold:#dcc39a;--radius:16px;--gap:20px;color-scheme:dark}

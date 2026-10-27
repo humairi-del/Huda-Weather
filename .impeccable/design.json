@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-27T18:02:17.206583+00:00",
+  "title": "Design System: طقس هدى وما جاورها",
+  "extensions": {
+    "source": "public/luxe-2026.css; public/index.html; public/luxe-ui.js; public/smart-alerts.js",
+    "verificationStatus": "source-only; not deployed; not visually verified",
+    "shadows": [
+      {
+        "name": "modal",
+        "value": "0 16px 60px #0005",
+        "purpose": "Modal box only; cards have none."
+      }
+    ],
+    "motion": [
+      {
+        "name": "control-transition",
+        "value": "background-color .16s ease,color .16s ease,transform .16s ease",
+        "purpose": "Buttons, links and summaries; disabled under reduced motion."
+      },
+      {
+        "name": "press",
+        "value": "translateY(1px)",
+        "purpose": "Active buttons and summaries."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact",
+        "value": "max-width: 359px"
+      },
+      {
+        "name": "phone",
+        "value": "max-width: 760px"
+      },
+      {
+        "name": "hero-grid",
+        "value": "min-width: 900px"
+      }
+    ],
+    "focus": {
+      "outline": "3px solid var(--gold)",
+      "outlineOffset": "4px"
+    },
+    "backdrops": {
+      "modal": "#060b12ed",
+      "cardZoom": "#060b12eb"
+    }
+  },
+  "components": [
+    {
+      "name": "Primary card action",
+      "kind": "button",
+      "description": "Extracted presentation primitive; preview inherits project CSS custom properties.",
+      "html": "<button class=\"ds-primary\">حفظ البطاقة</button>",
+      "css": ".ds-primary{font-family:Tajawal,Tahoma,Arial,sans-serif;background:var(--white);color:var(--bg);border:0;border-radius:9px;padding:11px 18px;min-height:48px;font-size:15px;font-weight:600;transition:background-color .16s ease,color .16s ease,transform .16s ease}.ds-primary:active{transform:translateY(1px)}.ds-primary:focus-visible{outline:3px solid var(--gold);outline-offset:4px}",
+      "refersTo": "button-primary"
+    },
+    {
+      "name": "Star table action",
+      "kind": "button",
+      "description": "Extracted presentation primitive; preview inherits project CSS custom properties.",
+      "html": "<button class=\"ds-star\">عرض جدول النجوم</button>",
+      "css": ".ds-star{font-family:Tajawal,Tahoma,Arial,sans-serif;background:var(--raised);color:var(--white);border:0;border-radius:9px;padding:11px;min-height:46px;font-size:14px;transition:background-color .16s ease,color .16s ease,transform .16s ease}.ds-star:active{transform:translateY(1px)}.ds-star:focus-visible{outline:3px solid var(--gold);outline-offset:4px}",
+      "refersTo": "button-secondary"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "description": "Extracted presentation primitive; preview inherits project CSS custom properties.",
+      "html": "<nav class=\"ds-nav\" dir=\"rtl\"><a href=\"#current\">الطقس الآن</a><a href=\"#stars\">النجوم الزراعية</a></nav>",
+      "css": ".ds-nav{font-family:Tajawal,Tahoma,Arial,sans-serif;display:flex;gap:8px;overflow:auto}.ds-nav a{color:var(--muted);padding:9px 15px;min-height:44px;border-radius:8px;font-size:14px;text-decoration:none;white-space:nowrap}.ds-nav a:first-child{background:var(--raised);color:var(--white)}.ds-nav a:hover{background:var(--card);color:var(--white)}.ds-nav a:focus-visible{outline:3px solid var(--gold);outline-offset:4px}",
+      "refersTo": "nav-active"
+    },
+    {
+      "name": "Content plane",
+      "kind": "card",
+      "description": "Extracted presentation primitive; preview inherits project CSS custom properties.",
+      "html": "<article class=\"ds-card\" dir=\"rtl\">مواقيت الصلاة</article>",
+      "css": ".ds-card{font-family:Tajawal,Tahoma,Arial,sans-serif;background:var(--card);color:var(--white);padding:28px;border-radius:16px;border:0;box-shadow:none;font-size:22px;line-height:1.6}",
+      "refersTo": "card"
+    },
+    {
+      "name": "Disclosure",
+      "kind": "custom",
+      "description": "Extracted presentation primitive; preview inherits project CSS custom properties.",
+      "html": "<details class=\"ds-details\" dir=\"rtl\"><summary>بطاقة تقويم طقس هدى</summary><p>حفظ البطاقة أو تكبيرها</p></details>",
+      "css": ".ds-details{font-family:Tajawal,Tahoma,Arial,sans-serif;background:var(--card);color:var(--white);border-radius:16px;padding:22px 28px}.ds-details summary{min-height:44px;font-size:19px;font-weight:600;cursor:pointer}.ds-details summary:focus-visible{outline:3px solid var(--gold);outline-offset:4px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Hada night almanac",
+    "overview": "This is a source-derived checkpoint of the calm luxury Arabic redesign, not a claim of a rendered or approved result. The durable identity is Arabic, local, readable on a phone, and economical on weak connections. The existing logo and Albaqira sponsor image remain identity assets.\n\nThe implementation adapts a flat dark reference while intentionally retaining the brand's navy palette and Tajawal. The reference's true-black colors and Inter font are not the implemented system. The metaphor and descriptive language here are session direction, not newly confirmed user preferences.",
+    "keyCharacteristics": [
+      "Quiet navy tonal planes and restrained warm highlights.",
+      "Arabic-first reading order with stable numerical alignment.",
+      "Two independent agricultural calendars: Thaybi on the right, Qushar on the left.",
+      "Visible source, missing-data and uncertainty language."
+    ],
+    "rules": [
+      {
+        "name": "The Data Truth Rule",
+        "body": "Do not use a reassuring appearance to erase partial, stale or missing data.",
+        "section": "colors"
+      },
+      {
+        "name": "The Arabic Readability Rule",
+        "body": "Keep Arabic letter spacing neutral except the isolated temperature number; do not apply Latin uppercase or wide tracking conventions.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "Do preserve Arabic labels, logical RTL spacing and separate star calendars.",
+      "Do keep loading, partial, missing and outdated states distinguishable.",
+      "Do retain visible focus and respect reduced motion.",
+      "Do verify the final cascade and phone interactions before calling this design complete."
+    ],
+    "donts": [
+      "Don't replace retained brand navy and Tajawal with the unadapted reference preset.",
+      "Don't add atmospheric images, glow or decorative remote assets.",
+      "Don't expand dust into a standalone promotional section or imply calibrated certainty.",
+      "Don't report screenshots, deployment or visual approval that did not occur."
+    ]
+  }
+}
