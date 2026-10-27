@@ -1,0 +1,16 @@
+{
+  "mode": "operate",
+  "buildPath": "code",
+  "scope": "existing weather UI redesign",
+  "direction": "Hada night almanac",
+  "firstViewport": "Arabic identity and real current weather; forecast, independent star calendars, prayers remain one scroll away.",
+  "signature": "Two independently calculated local star cards, Thaybi right and Qushar left.",
+  "constraints": [
+    "real Rasid data only",
+    "weak mobile internet",
+    "no added remote imagery",
+    "no backend changes",
+    "no new paid resources"
+  ],
+  "conceptReview": "User supplied detailed constraints; optional first-screen question aborted without an answer. Weather-first is a session assumption."
+}

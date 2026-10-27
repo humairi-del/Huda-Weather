@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-27",
+  "baseCommit": "386578a4fc35f8e9887cc75e502b7794d557f4a7",
+  "backupBranch": "backup-rasid-before-design-20261027",
+  "previewVersion": "a8411ff9-c27f-46a4-87f2-f5e9ed241ba1",
+  "sha256": {
+    "workers/rasid-entry.js": "198a2921172de1c498cde379e5f692a9ccd4ef1dfb7df98348a2bc6a383beee4",
+    "workers/rasid/controller.js": "5c3ae589059133416524de392972451051fadebfd83dcbf99c24b12778947f05",
+    "workers/rasid/normalise.js": "47f2cf81f485c59fc0a56f9d09d0f019f2eb05ad28ebdbcbc2556e753c3ab097",
+    "workers/rasid/registry.js": "e16f5ad86a567409adb0e3f2da9eabb8933687be6e83c0294c2d705d3f303632",
+    "public/weather-core.js": "894a9bbefd9d56cf02378792296d50b34f38e551aab91bf7451032bd29cd2af7",
+    "public/sandstorm.js": "b0896f4835763b6c08c2618c8e7502dfbb428df4e1bb755f7ecaea1895baf99a",
+    "public/prayer-7day.js": "508d5a3e68cd0565736a419795645e18fe3fbcb439ee73d37275b6204da14442",
+    "public/star-calendar.js": "cfcbdbc02145aeab1da54b695a0a08053b57193c85892e8581de043a98189033",
+    "public/daily-card.js": "bb77203a7b63f6d3c9f90b944c21d7e3c89df49668abe3f6621d91deebc1b0da",
+    "wrangler.jsonc": "7869f4d5d4ea6cd52b447aec607289b3f16da85cd7df19547b632da4031ac5c5"
+  }
+}

@@ -1,0 +1,67 @@
+DIRECTION CONCEPT SEED (key: db6044a6f6f21fa45d7b2ed8fd9bced1; mode: operate; source: degraded; rerun with --scope direction --mode operate --from db6044a6f6f21fa45d7b2ed8fd9bced1 --candidate-count 7)
+ASSIGNED INDEX: 4
+  After ordering the grounded directions by resonance, build candidate
+  4 of your own grounded list; the assignment never points at a
+  challenger. The assignment is the roll, not a suggestion: your top-ranked
+  direction is what every run would ship, so the script decides which grounded
+  direction gets built. Each direction joins a durable visual system to a
+  concrete expression for the requested first surface, decided as one. It must
+  survive the current task plus navigation, quiet and dense content,
+  interaction and state, and a substantially different future surface. In an
+  attended run, present the assigned direction fully committed and offer
+  re-roll. You may add ONE card for your top-ranked grounded candidate when
+  it is not the assigned direction, kicker IMPECCABLE’S PICK, with an honest risk line
+  naming its familiarity; one pick card, never a ranked lineup, and the pick
+  never takes the lead position. When the assignment IS your top candidate,
+  there is no pick card. Re-roll yourself only
+  on named factual grounds, when the assignment cannot carry the product's
+  truth or task; taste is never grounds.
+  The assignment exists to refuse the model's ranking rut, never to outrank
+  the user or the brief. Never expose assignment metadata in user-facing labels.
+No challengers this run: the roll service was unreachable and no local
+catalog exists. A sandboxed shell without network egress is the most common
+cause; before accepting degradation, rerun this command once through the
+harness's network-enabled or escalated command tool. When that rerun needs
+an approval, state exactly what the approver must know: this script's only
+network contact is one GET to https://impeccable.style/api/roll whose query
+carries scope, mode, an eight-hex seed key, and a re-roll counter; no
+project files, prompts, code, or conversation context are transmitted, and
+the only file written is the local roll record .impeccable/questions/roll.json,
+which serve-question reads. An approval request naming that URL and payload judges
+the real action; a bare "run with network" invites rejection for contacting
+an unspecified domain. If the rerun is still refused, proceed with the
+grounded candidates alone; the assignment above still applies at full
+strength. Tell the user plainly that this roll
+ran degraded, with no challengers and no quality-bar boards; do not present
+the outcome as a full roll. A degraded roll changes the cards, not the
+channel: when a browser can open, present the direction on the decision page
+(serve-question.mjs, text-only card); the structured question tool remains
+the no-browser fallback.
+PRODUCT.md and explicit incumbent brand commitments constrain every direction.
+The seed never chooses exact colors, fonts, tokens, or a user preference, and
+it never permits the world and first surface to be selected independently.
+MODE RULES (operate, from /workspace/scratch/3fc63a735ac5/design-guides/impeccable/.agents/skills/impeccable/reference/mode-operate.md). They govern this surface's directions and every comp you write or judge for it, the decision comps included; where shared guidance conflicts, these win.
+DIRECTIONS
+Someone who uses tools like this one should know where everything is before they notice the world. The world lends four things and only these: type, palette, density, and one signature move. It never supplies the layout, the navigation model, or the controls. Colour is part of the world's contribution, and it does real jobs: a committed palette for the shell (a coloured rail or header, a tinted ground), state colours, data series, selection, and the signature move. A grey screen with one accent colour is the category default without the category's polish, not restraint.
+
+Read every candidate, the assigned direction, and every challenger through that limit before you fuse or judge it. A world taken from a tool or instrument the audience operates (a terminal, a scope, a control panel, a cockpit) or from a fictional interface comes back as a costume of that tool on a working screen: take from it only what transfers as type, palette, density, and a signature move, or replace it from your list. When a catalog world's source is itself an interface language, the same limit holds: it lends type, density, palette, and one signature move, while navigation and controls stay the standard ones for the platform, web components on the web and native controls in an app.
+
+Write each direction's first viewport as the product's shell first: the navigation, the work areas and what each is for, the data the visitor reads first and its states, and then where the signature move lives. Expression may never obscure the task, state, or familiar affordance. Name the signature move concretely, so the comp and the build can find it: service health drawn as a transit map, a schedule set in a timetable's column rhythm. A direction whose world shows up only as a colour scheme has not found its move yet. When you weigh fused challengers, product clarity includes reading as a working product of this category.
+COMPS
+The comp is the product screen, in the direction's committed palette: its shell and navigation with a distinct area for each job and, where there is data, filters over what they scope and charts and tables with clear states. The world enters only through type, palette, density, and the one signature move; it never supplies the page's organisation, so a working screen never reads as a newspaper, a poster, or any other artifact of the world. Every control is a standard one the visitor already knows how to use, a web component on the web and the platform's native control in an app: buttons, tabs, inputs, selects, filters, tables with sortable headers, navigation that reads as navigation. Never a costume of the world's own interface: a terminal's function-key bar or command prompt, an instrument's bezel, ruled ledger paper standing in for a table. A comp an engineer could not build from the platform's standard components is a picture of the tool, not the tool. The finish bar is the best product in the category: an aligned grid, consistent spacing, a real type scale, and clear hierarchy. The signature move adds to a screen that is already that clean; it never stands in for it.
+
+Prompt with the screen's real content: the product name, realistic data with plausible values and units, real labels, and one state worth seeing (an alert, a degraded service, an empty filter result), never placeholder tiles. State colours (red for critical, amber for degraded) sit on top of the world's palette only where they carry meaning, and a headline number that moves over time shows its recent history, with the onset marked when something changed.
+
+Comps two and three vary the product's organisation, never its world coverage: the navigation model (side rail, top bar, command-first), how the work areas divide the screen, which data leads, the density, and where the signature move sits. Each must be recognisably different from the first at thumbnail size; a variant only its prompt can tell apart adds no choice. A variant that adds world material, texture, or ornament goes further in the wrong direction; on a working screen, more world is a costume.
+
+Self-check every render: with the name covered, does it read as a product of its category, could the visitor do the task from it, and is it at least as clean as the category standard and more distinctive than it? If it reads as an artifact of the world first, regenerate with the shell and the work areas named region by region and the world held to its four contributions.
+A user- or brief-pinned decision beats the roll, always.
+ASSIGNED INDEX (restated for truncated readers): 4. Build candidate
+4 of your own grounded list; seed key db6044a6f6f21fa45d7b2ed8fd9bced1.
+SEED REFERENCE: seed:ec9eaefb5b9df03e. Write this, never the key, wherever the seed is recorded (the surface brief's FORM line, build-phase start --direction); on this machine --from accepts it in place of the key.
+PRESENTATION (the decision round, condensed from new-work.md; follow it even when your read of that file came back cut):
+- Present this hand on the decision page: write the options payload (`../design-guides/impeccable/.agents/skills/impeccable/scripts/impeccable serve-question --schema` prints its shape), run `../design-guides/impeccable/.agents/skills/impeccable/scripts/impeccable serve-question --start --payload <file>`, and open the URL it prints for the user.
+- This degraded hand goes on the page as a single text-only card with re-roll; it declares no comp.
+- Right after serving, with no comp to generate first, hold `../design-guides/impeccable/.agents/skills/impeccable/scripts/impeccable serve-question --wait --key <key>`. If your shell hands back a session before --wait exits, keep polling that session until it exits; rerun --wait only after it exits 3 with no answer.
+- Build path: code-led. A surface in operate mode builds in code whatever the project records. With image generation, put "buildPath": {"value": "code", "toggle": true} in the payload, so the user can still flip this one round to comp; without it there is no toggle. Never ask the user about the build path, and never offer to record a flip made on this surface.
+- The structured question tool is the fallback, never the first channel: take it when --start exits 2, when --wait exits 4 after the page closed unanswered, or when your harness cannot hold a blocking --wait at all (say so in your first reply). It carries the same options and asks nothing about the build path.

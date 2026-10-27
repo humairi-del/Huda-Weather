@@ -1,0 +1,1 @@
+(()=>{document.querySelectorAll('[data-width]').forEach(button=>button.onclick=()=>{const width=Number(button.dataset.width),height=Number(button.dataset.height);window.open('./','hada-review-'+width,'popup,width='+width+',height='+height);document.getElementById('reviewStatus').textContent='القياس المطلوب '+width+' × '+height+'؛ تحقّق من القياس الفعلي في لقطة الفحص.';});})();
