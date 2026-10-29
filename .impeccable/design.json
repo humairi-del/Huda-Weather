@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-27T18:02:17.206583+00:00",
+  "generatedAt": "2026-10-29T12:32:25.894886+00:00",
   "title": "Design System: طقس هدى وما جاورها",
   "extensions": {
     "source": "public/luxe-2026.css; public/index.html; public/luxe-ui.js; public/smart-alerts.js",
-    "verificationStatus": "source-only; not deployed; not visually verified",
+    "verificationStatus": "isolated preview deployed; partial desktop verification at 1363x988; mobile pending; reviewer recapture",
     "shadows": [
       {
         "name": "modal",
@@ -45,6 +45,44 @@
     "backdrops": {
       "modal": "#060b12ed",
       "cardZoom": "#060b12eb"
+    },
+    "evidence": {
+      "date": "2026-10-29",
+      "sourceCommit": "a2341e8820aaab200998f2ea6b3146cbbd61088a",
+      "branch": "design-luxe-preview-20261027",
+      "workerVersion": "8efba1f3-fa5e-4d4b-a4c8-84bda88ad47d",
+      "bundleSha256": "0ec239953bb0f8898d7fd290ea25ac17c8f8b67cb5ceb07aca05bb82e9639800",
+      "viewport": {
+        "width": 1363,
+        "height": 988
+      },
+      "screenshots": [
+        "/workspace/scratch/hada-design-home-20261029.jpg",
+        "/workspace/scratch/hada-design-stars-final-20261029.jpg",
+        "/workspace/scratch/hada-design-card-20261029.jpg",
+        "/workspace/scratch/hada-design-forecast-20261029.jpg"
+      ],
+      "testsPassed": 103,
+      "publicAssets": 47,
+      "visualApproval": false,
+      "mobileVerified": false,
+      "cloudImageryVerified": false,
+      "fullAutomaticRefreshCycleObserved": false,
+      "contrastPairs": [
+        {
+          "pair": "muted on card",
+          "ratio": 9.21
+        },
+        {
+          "pair": "main text on card",
+          "ratio": 15.01
+        },
+        {
+          "pair": "primary text/background",
+          "ratio": 16.91
+        }
+      ],
+      "contrastScope": "Three measured pairs only; not an all-element audit."
     }
   },
   "components": [
@@ -90,11 +128,11 @@
   ],
   "narrative": {
     "northStar": "Hada night almanac",
-    "overview": "This is a source-derived checkpoint of the calm luxury Arabic redesign, not a claim of a rendered or approved result. The durable identity is Arabic, local, readable on a phone, and economical on weak connections. The existing logo and Albaqira sponsor image remain identity assets.\n\nThe implementation adapts a flat dark reference while intentionally retaining the brand's navy palette and Tajawal. The reference's true-black colors and Inter font are not the implemented system. The metaphor and descriptive language here are session direction, not newly confirmed user preferences.",
+    "overview": "This documents the calm luxury Arabic redesign deployed to an isolated preview with explicit authorization on 2026-10-29. Actual browser evidence is limited to a 1363 × 988 viewport; mobile verification and visual approval remain pending. The durable identity is Arabic, local, readable on a phone, and economical on weak connections. The existing logo and Albaqira sponsor image remain identity assets.\n\nThe implementation adapts a flat dark reference while intentionally retaining the brand's navy palette and Tajawal. The reference's true-black colors and Inter font are not the implemented system. The metaphor and descriptive language here are session direction, not newly confirmed user preferences.",
     "keyCharacteristics": [
       "Quiet navy tonal planes and restrained warm highlights.",
       "Arabic-first reading order with stable numerical alignment.",
-      "Two independent agricultural calendars: Thaybi on the right, Qushar on the left.",
+      "Two independent agricultural calendars: Al-Tuhaybi (الطهيبي) on the right, Qashar (قشعر) on the left.",
       "Visible source, missing-data and uncertainty language."
     ],
     "rules": [
