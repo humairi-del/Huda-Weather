@@ -22,3 +22,5 @@ button,a,summary{transition:background-color .16s ease,color .16s ease,transform
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}}
 .hero .weather-now-title{font-size:21px;font-weight:500;margin:0 0 8px;grid-column:1/-1;color:var(--white)}@media(max-width:760px){.hero .weather-now-title{font-size:19px}}
 .alert-details{margin-top:6px;color:var(--muted);font-size:13px}.alert-details summary{min-height:36px;cursor:pointer;padding-block:5px}.alert-details p{margin:4px 0 0;font-size:13px}
+
+.current-star-symbol{width:.8em;height:.8em;vertical-align:-.05em;margin-inline-end:.15em}
