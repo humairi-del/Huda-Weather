@@ -67,7 +67,7 @@
       "visualApproval": false,
       "mobileVerified": false,
       "cloudImageryVerified": false,
-      "fullAutomaticRefreshCycleObserved": false,
+      "fullAutomaticRefreshCycleObserved": true,
       "contrastPairs": [
         {
           "pair": "muted on card",
