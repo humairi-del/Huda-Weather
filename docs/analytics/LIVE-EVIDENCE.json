@@ -1,0 +1,53 @@
+{
+  "checkedAt": "2026-11-07T00:47:00+03:00",
+  "previewSource": "5aecc003911e3ddd091ae1a815d499e34e70f05f",
+  "previewWorkerVersion": "cac9b1c3-e4f4-49c5-a1af-3f132f7ef0a3",
+  "moduleSha256": "b6861d3696626b36f7563779e15dc8dbc4d920d339a05acbe9cd9b0ccb6159bd",
+  "productionWorkerUnchanged": "3d14f989-ad97-4cd0-8828-813266d32783",
+  "testWindowUTC": {
+    "from": "2026-11-06T21:40:00Z",
+    "until": "2026-11-06T21:45:00Z"
+  },
+  "beaconsPerDocument": 1,
+  "scriptLoadersPerDocument": 1,
+  "spaMeasurement": false,
+  "rows": [
+    {
+      "avg": {
+        "sampleInterval": 1
+      },
+      "count": 1,
+      "dimensions": {
+        "bot": 0,
+        "datetimeMinute": "2026-11-06T21:41:00Z",
+        "navigationType": "navigate",
+        "requestHost": "hada-rasid-central-preview.humairi855.workers.dev",
+        "siteTag": "c31e89de7e414055a7fa30eef5951636"
+      },
+      "sum": {
+        "visits": 1
+      }
+    },
+    {
+      "avg": {
+        "sampleInterval": 1
+      },
+      "count": 1,
+      "dimensions": {
+        "bot": 0,
+        "datetimeMinute": "2026-11-06T21:42:00Z",
+        "navigationType": "reload",
+        "requestHost": "hada-rasid-central-preview.humairi855.workers.dev",
+        "siteTag": "c31e89de7e414055a7fa30eef5951636"
+      },
+      "sum": {
+        "visits": 1
+      }
+    }
+  ],
+  "testsPassed": 111,
+  "previewNotifications": false,
+  "previewSchedules": false,
+  "verificationMethod": "Cloudflare Web Analytics GraphQL data source; dashboard visual layout was not inspected",
+  "previewIsPublicLink": true
+}

@@ -1,0 +1,28 @@
+{
+  "scope": "preview",
+  "host": "hada-rasid-central-preview.humairi855.workers.dev",
+  "timezone": "Asia/Aden",
+  "windowUTC": {
+    "from": "2026-11-06T21:00:00.000Z",
+    "until": "2026-11-06T21:45:00.000Z"
+  },
+  "botPolicy": "exclude_known_bots",
+  "definitions": {
+    "visits": "Cloudflare referrer-based visits; not unique people or timed sessions",
+    "pageViews": "Provider-owned document pageviews including reload; SPA measurement disabled",
+    "httpRequests": "Independent server request metric; never added to visits",
+    "uniquePeople": "Unavailable in this dataset"
+  },
+  "days": [
+    {
+      "day": "2026-11-07",
+      "visits": 2,
+      "pageViews": 2,
+      "uniquePeople": null,
+      "httpRequests": null,
+      "sampled": false,
+      "status": "recorded_only_not_guaranteed_complete",
+      "partial": true
+    }
+  ]
+}

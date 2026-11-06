@@ -1,0 +1,35 @@
+{
+  "scope": "preview",
+  "from": "2026-11-07",
+  "through": "2026-11-07",
+  "asOf": "2026-11-06T21:45:00Z",
+  "rum": {
+    "data": {
+      "viewer": {
+        "accounts": [
+          {
+            "rumPageloadEventsAdaptiveGroups": [
+              {
+                "avg": {
+                  "sampleInterval": 1
+                },
+                "count": 2,
+                "dimensions": {
+                  "bot": 0,
+                  "datetimeHour": "2026-11-06T21:00:00Z",
+                  "requestHost": "hada-rasid-central-preview.humairi855.workers.dev",
+                  "siteTag": "c31e89de7e414055a7fa30eef5951636"
+                },
+                "sum": {
+                  "visits": 2
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "errors": null
+  },
+  "http": null
+}
