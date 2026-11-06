@@ -1,0 +1,14 @@
+{
+  "dateYemen": "2026-11-07",
+  "sourceBranch": "design-luxe-preview-20261027",
+  "sourceCommit": "3058e9d9712aa7fe771f7c4f0b1e4e04e4ba63f4",
+  "rollbackBranch": "backup-preview-before-analytics-20261107",
+  "productionMain": "bddd4a3ae2c44d68609f3c30e986c53d9e0cbb51",
+  "productionWorkerVersion": "3d14f989-ad97-4cd0-8828-813266d32783",
+  "previewWorker": "hada-rasid-central-preview",
+  "previewWorkerVersion": "8efba1f3-fa5e-4d4b-a4c8-84bda88ad47d",
+  "productionAnalyticsAutoInstall": false,
+  "productionAnalyticsRulesEnabled": false,
+  "previewSafety": {"notifications": false, "schedules": false, "mode": "simulate"},
+  "scope": "Manual page measurement on the existing isolated preview only; no production, Rasid logic or notification changes."
+}

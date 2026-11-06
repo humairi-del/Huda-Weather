@@ -1,0 +1,15 @@
+{
+  "timezone": "Asia/Aden",
+  "utcOffsetMinutes": 180,
+  "scopes": {
+    "preview": {
+      "host": "hada-rasid-central-preview.humairi855.workers.dev",
+      "siteTag": "c31e89de7e414055a7fa30eef5951636"
+    },
+    "production": {
+      "host": "hada-weather.com",
+      "siteTag": "cca5defdcf934bc6bd3be83895d00d38",
+      "collectorCurrentlyMissing": true
+    }
+  }
+}
