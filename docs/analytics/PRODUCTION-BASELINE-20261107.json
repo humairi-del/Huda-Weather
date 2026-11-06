@@ -1,0 +1,29 @@
+{
+  "checkedAtUTC": "2026-11-06T21:56:31Z",
+  "main": "bddd4a3ae2c44d68609f3c30e986c53d9e0cbb51",
+  "rollbackBranch": "backup-main-before-analytics-20261107",
+  "worker": "hada-weather-web-v3",
+  "workerVersion": "3d14f989-ad97-4cd0-8828-813266d32783",
+  "workerDeployment": "fbb7b3af-2e05-473a-8108-1def645094c6",
+  "moduleSha256": "4d8cb607f2dc7f059a7630673bda90cace5a2b22251be8319b13a4ed53966df5",
+  "sourceMapSha256": "72818e60dbd479cb5eb10716839bfef81f7ce335c8a1296b3df1fa81da6163f4",
+  "analytics": {
+    "siteTag": "cca5defdcf934bc6bd3be83895d00d38",
+    "createdUTC": "2026-09-22T08:02:39.321908Z",
+    "auto_install": false,
+    "ruleset": {"zone_tag":"e6bed25f68bfd6054bbf85eb5cd0163a","zone_name":"hada-weather.com","enabled":false,"id":"00b0d7b9-0323-4194-b204-ce7f06902eac","lite":false}
+  },
+  "route": "hada-weather.com/*",
+  "compatibility_date": "2026-10-21",
+  "compatibility_flags": ["nodejs_compat"],
+  "bindings": [
+    {"name":"ONESIGNAL_APP_ID","type":"secret_text","value":"not read; retained by existing deployment"},
+    {"name":"ONESIGNAL_REST_API_KEY","type":"secret_text","value":"not read; retained by existing deployment"},
+    {"name":"PUBLIC_BULLETINS","type":"kv_namespace","namespace_id":"101e4b5a321c415897f3e98b360d5af5"},
+    {"name":"PUBLIC_NOTIFICATIONS_ENABLED","type":"plain_text","text":"1"},
+    {"name":"PUBLIC_SCHEDULE_ENABLED","type":"plain_text","text":"1"}
+  ],
+  "crons": ["0 4 * * *","*/15 * * * *"],
+  "deployPath": {"provider":"Cloudflare Workers Builds","source":"GitHub main push","trigger":"8a6507c2-3edd-405e-94b5-83aed53fd06c","deploy_command":"npx wrangler deploy"},
+  "restore": "Revert only this analytics release through the approved GitHub main build path after owner approval. Existing immutable Worker version and this branch provide additional rollback references. Never restore unrelated preview files or reset analytics history."
+}
