@@ -1,0 +1,35 @@
+{
+  "scope": "production",
+  "from": "2026-11-07",
+  "through": "2026-11-07",
+  "asOf": "2026-11-06T22:07:26.525Z",
+  "rum": {
+    "data": {
+      "viewer": {
+        "accounts": [
+          {
+            "rumPageloadEventsAdaptiveGroups": [
+              {
+                "avg": {
+                  "sampleInterval": 1
+                },
+                "count": 1,
+                "dimensions": {
+                  "bot": 0,
+                  "datetimeHour": "2026-11-06T22:00:00Z",
+                  "requestHost": "hada-weather.com",
+                  "siteTag": "cca5defdcf934bc6bd3be83895d00d38"
+                },
+                "sum": {
+                  "visits": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "errors": null
+  },
+  "http": null
+}

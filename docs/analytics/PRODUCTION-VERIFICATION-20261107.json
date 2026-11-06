@@ -1,0 +1,90 @@
+{
+  "scope": "official-production-only",
+  "productionCommit": "5489be0d6d3b0433c7df547e4aa415c395e0f351",
+  "pullRequest": 15,
+  "build": {
+    "id": "e5b490a2-51f4-4ac8-a619-1bc149f1776c",
+    "outcome": "success",
+    "completedUTC": "2026-11-06T22:00:42.165Z"
+  },
+  "workerVersion": "c146465a-cd1a-4d4e-88f0-6b9caf0e9f67",
+  "deploymentUTC": "2026-11-06T22:00:38.411787Z",
+  "moduleSha256": "f4177beb8b24fb072be66416e210988af0bfc27faaec1e6e352d35d5081e6119",
+  "matchesLocalDryRun": true,
+  "rollbackBranch": "backup-main-before-analytics-20261107",
+  "priorWorkerVersion": "3d14f989-ad97-4cd0-8828-813266d32783",
+  "firstConfirmedRecordMinuteUTC": "2026-11-06T22:03:00Z",
+  "records": [
+    {
+      "avg": {
+        "sampleInterval": 1
+      },
+      "count": 1,
+      "dimensions": {
+        "bot": 0,
+        "datetimeMinute": "2026-11-06T22:03:00Z",
+        "navigationType": "reload",
+        "requestHost": "hada-weather.com",
+        "requestPath": "/",
+        "siteTag": "cca5defdcf934bc6bd3be83895d00d38"
+      },
+      "sum": {
+        "visits": 1
+      }
+    }
+  ],
+  "priorHistory": [
+    {
+      "avg": {
+        "sampleInterval": 10
+      },
+      "count": 500,
+      "sum": {
+        "visits": 500
+      }
+    }
+  ],
+  "beaconsPerDocument": 1,
+  "loadersPerDocument": 1,
+  "productionIdentifierMatched": true,
+  "spaMeasurement": false,
+  "autoInjectionStillDisabled": true,
+  "previewUnchanged": true,
+  "testCount": 27,
+  "smokeChecks": {
+    "currentWeather": "20 C; 90% humidity; 3 km/h wind",
+    "forecast": "24 hourly entries and 7 days present",
+    "prayers": "6 times for 2026-11-07; Yemen time",
+    "stars": "both tables opened; 28 star buttons plus close in each",
+    "card": {
+      "downloaded": true,
+      "format": "PNG",
+      "width": 1080,
+      "height": 1920,
+      "day": "2026-11-07"
+    },
+    "earthquakes": "USGS list and map populated; magnitude 4.9 at 2026-10-24 14:20 Yemen",
+    "notifications": {
+      "schema": "hada-notifications-status-v1",
+      "ready": true,
+      "channels": {
+        "morning": true,
+        "emergency": true
+      },
+      "morningTime": "07:00",
+      "timezone": "Asia/Aden",
+      "crons": [
+        "0 4 * * *",
+        "*/15 * * * *"
+      ],
+      "testSent": false,
+      "deviceDeliveryVerified": false
+    }
+  },
+  "limits": [
+    "Received counts are not unique people",
+    "A full reload can be another pageview and referrer-defined visit",
+    "One aggregate record was confirmed at this snapshot, not a guaranteed count of every browser test action",
+    "Historical data gap is not filled or converted from HTTP traffic"
+  ]
+}
