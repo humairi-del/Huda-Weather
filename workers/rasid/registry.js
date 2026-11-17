@@ -15,7 +15,7 @@ export function sourceUrl(role='primary',model=null){
  const p=new URLSearchParams({latitude:String(config.latitude),longitude:String(config.longitude),timezone:config.timezone,forecast_days:dust?'3':String(config.days)});
  if(dust){p.set('hourly','dust');p.set('domains','cams_global');}
  else{p.set('temperature_unit','celsius');p.set('wind_speed_unit','kmh');p.set('precipitation_unit','mm');if(model)p.set('models',model);
- if(role==='comparison')p.set('daily','temperature_2m_max,temperature_2m_min,precipitation_sum');
+ if(role==='comparison'){p.set('daily','temperature_2m_max,temperature_2m_min,precipitation_sum');p.set('hourly','temperature_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,relative_humidity_2m,weather_code,precipitation');}
  else{p.set('current',Object.keys(fields).filter(k=>!['uv_index','visibility','precipitation_probability'].includes(k)).join(','));p.set('hourly',Object.keys(fields).join(','));p.set('daily',Object.keys(dailyFields).join(','));}}
  u.search=p;return u.href;
 }

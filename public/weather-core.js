@@ -1,5 +1,5 @@
 /* Shared, deterministic weather presentation. No network, credentials or UI. */
-(function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory(require('./sandstorm.js'));else root.HadaWeatherCore=factory(root.HadaSandstorm);})(typeof window==='undefined'?globalThis:window,function(Sandstorm){
+(function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory(require('./sandstorm.js'),require('./winter-weather.js'));else root.HadaWeatherCore=factory(root.HadaSandstorm,root.HadaWinterWeather);})(typeof window==='undefined'?globalThis:window,function(Sandstorm,Winter){
 'use strict';
 const ZONE='Asia/Aden',DAY=86400000,HOUR=3600000;
 const finite=v=>typeof v==='number'&&Number.isFinite(v),prob=v=>finite(v)&&v>=0&&v<=100;
@@ -60,27 +60,29 @@ function dayWeather(d,day){
  return {humidity:range(humidity),wind:range(wind),humidityMean:mean(humidity),windMean:mean(wind),direction:prevailing};
 }
 function cardData(d,calendar,now=Date.now()){
- const day=dayKey(now),valid=isFresh(d,now),i=valid?d.daily.time.indexOf(day):-1,summary=dayWeather(valid?d:null,day);
- return {day,min:i>=0?d.daily.temperature_2m_min[i]:null,max:i>=0?d.daily.temperature_2m_max[i]:null,chance:i>=0&&prob(d.daily.precipitation_probability_max[i])?d.daily.precipitation_probability_max[i]:null,code:i>=0?d.daily.weather_code[i]:null,...summary,best:bestWeek(d,now),stars:stars(calendar,now),reflection:reflection(now),ramadan:ramadan(now),fresh:valid};
+ const day=dayKey(now),valid=isFresh(d,now),i=valid?d.daily.time.indexOf(day):-1,summary=dayWeather(valid?d:null,day),winter=Winter?.assess(d,now),start=stamp(day)-12*HOUR,end=start+DAY,all=valid?alerts(d,now):{items:[]},candidates=[...(winter?.events||[]),...all.items.filter(e=>!e.winterEvent).map(e=>({...e,start:stamp(e.time),end:stamp(e.end)+HOUR,peakStart:null,peakEnd:null})),...(all.sandstorm?.events||[]).map(e=>({...e,text:e.type==='possible_sandstorm'?'احتمال عاصفة رملية؛ التوقيت تقديري':'احتمال غبار مثار؛ التوقيت تقديري',peakStart:null,peakEnd:null}))],alert=candidates.filter(e=>e.start<end&&e.end>Math.max(start,now)).sort((a,b)=>b.severity-a.severity||a.start-b.start)[0]||null;let feelsLike=null;if(alert)for(let j=0;j<(d?.hourly?.time?.length||0);j++){const t=stamp(d.hourly.time[j]);if(t>=Math.max(start,alert.start)&&t<Math.min(end,alert.end)&&t+HOUR>now){const v=Winter.windChill(d.hourly.temperature_2m?.[j],d.hourly.wind_speed_10m?.[j]);if(finite(v))feelsLike=feelsLike===null?v:Math.min(feelsLike,v);}}
+ return {day,winter,cardAlert:alert?{...alert,start:Math.max(start,alert.start),end:Math.min(end,alert.end),feelsLike}:null,min:i>=0?d.daily.temperature_2m_min[i]:null,max:i>=0?d.daily.temperature_2m_max[i]:null,chance:i>=0&&prob(d.daily.precipitation_probability_max[i])?d.daily.precipitation_probability_max[i]:null,code:i>=0?d.daily.weather_code[i]:null,...summary,best:bestWeek(d,now),stars:stars(calendar,now),reflection:reflection(now),ramadan:ramadan(now),fresh:valid};
 }
 function sandstormForecast(d,now=Date.now()){return Sandstorm?Sandstorm.assess(d,now):{schema:'huda-sandstorm-screen-v1',state:'unavailable',events:[],missing:['screen_unavailable']};}
 function alerts(d,now=Date.now()){
- if(!isFresh(d,now))return {items:[],complete:false,missing:['الطقس']};
- const h=d.hourly,days=d.daily.time.slice(0,3),items=[],groups=new Map();let complete=true;
- function add(kind,i,text,severity){const day=h.time[i].slice(0,10),key=kind+day;const existing=groups.get(key);if(existing){existing.end=h.time[i];return;}const item={kind,day,time:h.time[i],end:h.time[i],text,severity};groups.set(key,item);items.push(item);}
- let count=0;
- for(let i=0;i<h.time.length;i++){
-  if(!days.includes(h.time[i].slice(0,10))||stamp(h.time[i])+HOUR<=now)continue;count++;
+ if(!isFresh(d,now))return {items:[],complete:false,missing:['الطقس'],winter:Winter?.assess(d,now)};
+ const h=d.hourly,items=[],groups=new Map(),winter=Winter?.assess(d,now);let complete=true,held=false,count=0,previousHour=null;
+ function add(kind,i,text,severity){const day=h.time[i].slice(0,10),key=kind+day,prior=groups.get(key);if(prior&&stamp(prior.end)+HOUR===stamp(h.time[i])){prior.end=h.time[i];return;}const item={kind,day,time:h.time[i],end:h.time[i],text,severity};groups.set(key,item);items.push(item);}
+ function candidate(kind,i,text,severity){if(Winter&&!Winter.support(d,i,kind,now).allowed){held=true;return;}add(kind,i,text,severity);}
+ for(let i=0;i<(h?.time?.length||0);i++){
+  const t=stamp(h.time[i]);if(!Number.isFinite(t)||t+HOUR<=now)continue;if(previousHour===null?t>now:t!==previousHour+HOUR)complete=false;previousHour=t;count++;
   const temp=h.temperature_2m?.[i],code=h.weather_code?.[i];if(!finite(temp)||!finite(code))complete=false;
-  if(finite(temp)&&temp<15)add('cold',i,'انخفاض الحرارة إلى '+number(temp)+'°',2);
-  if(finite(temp)&&temp>40)add('hot',i,'ارتفاع الحرارة إلى '+number(temp)+'°',2);
-  if([95,96,99].includes(code))add('thunder',i,code===99?'عواصف رعدية قد يصحبها برد قوي':code===96?'عواصف رعدية قد يصحبها برد':'فرص عواصف رعدية',code===99?3:2);
+  const inDrop=winter?.events.some(e=>(e.components.includes('temperature_drop')||e.cool)&&e.start<=t&&e.end>t);
+  if(finite(temp)&&temp<15&&!inDrop)candidate('cold',i,'برودة متوقعة؛ الحرارة '+number(temp)+'°',2);
+  if(finite(temp)&&temp>40)candidate('hot',i,'ارتفاع الحرارة إلى '+number(temp)+'°',2);
+  if([95,96,99].includes(code))candidate('thunder',i,code===99?'عواصف رعدية قد يصحبها برد قوي':code===96?'عواصف رعدية قد يصحبها برد':'فرص عواصف رعدية',code===99?3:2);
+  else if([65,82].includes(code)||finite(h.precipitation?.[i])&&h.precipitation[i]>=7.5)candidate('rain',i,'فرص أمطار غزيرة؛ انتبه لمجاري السيول',2);
  }
- const dust=d.engine.dust;let dustComplete=!!dust?.hourly?.time;let dustCount=0;
- const central=d.engine.centralSchema==='hada-rasid-v1',sandstorm=central?sandstormForecast(d,now):null;
- if(!central&&dustComplete)for(let i=0;i<dust.hourly.time.length;i++){const time=dust.hourly.time[i];if(!days.includes(time.slice(0,10))||stamp(time)+HOUR<=now)continue;dustCount++;const v=dust.hourly.dust?.[i];if(!finite(v)||v<0){dustComplete=false;continue;}if(v>=150){const j=h.time.indexOf(time),wind=h.wind_speed_10m?.[j];if(!finite(wind))dustComplete=false;if(finite(wind)&&wind>=20)add('dust',j,'غبار صحراوي ورياح نشطة متوقعة',v>=300?3:2);}}
- const missing=[];const expected=Math.ceil((stamp(days[2])+12*HOUR-Math.floor(now/HOUR)*HOUR)/HOUR);if(!complete||count!==expected)missing.push('بعض ساعات الطقس');if(central){if(!sandstorm||['unavailable','partial'].includes(sandstorm.state))missing.push('تقدير العاصفة الرملية');}else if(!dustComplete||dustCount!==expected)missing.push('الغبار');
- items.sort((a,b)=>stamp(a.time)-stamp(b.time)||b.severity-a.severity);return {items,complete:missing.length===0,missing,sandstorm};
+ const dust=d.engine.dust,central=d.engine.centralSchema==='hada-rasid-v1',sandstorm=central?sandstormForecast(d,now):null;let dustComplete=!!dust?.hourly?.time?.length,dustCount=0;
+ if(!central&&dustComplete)for(let i=0;i<dust.hourly.time.length;i++){const time=dust.hourly.time[i];if(stamp(time)+HOUR<=now)continue;dustCount++;const v=dust.hourly.dust?.[i];if(!finite(v)||v<0){dustComplete=false;continue;}if(v>=150){const j=h.time.indexOf(time),wind=h.wind_speed_10m?.[j];if(!finite(wind))dustComplete=false;if(j>=0&&finite(wind)&&wind>=20)add('dust',j,'غبار صحراوي ورياح نشطة متوقعة',v>=300?3:2);}}
+ const missing=[];if(!complete||!count)missing.push('بعض ساعات الطقس');if(held)missing.push('دعم النماذج للفترات البعيدة');if(central){if(!sandstorm||['unavailable','partial'].includes(sandstorm.state))missing.push('تقدير العاصفة الرملية');}else if(!dustComplete||!dustCount)missing.push('الغبار');
+ if(winter){missing.push(...winter.missing);for(const e of winter.events){const local=t=>new Date(t+3*HOUR).toISOString().slice(0,16);items.push({...e,time:local(e.start),end:local(e.end-HOUR),day:dayKey(e.start),text:e.text,winterEvent:e});}}
+ items.sort((a,b)=>stamp(a.time)-stamp(b.time)||b.severity-a.severity);return {items,complete:missing.length===0,missing:[...new Set(missing)],sandstorm,winter,until:winter?.until||null};
 }
 // An hourly forecast advisory; not a measured warning or seven-day rain total.
 function currentAdvisory(d,now=Date.now()){
@@ -89,5 +91,5 @@ function currentAdvisory(d,now=Date.now()){
  const item=items.sort((a,b)=>b.severity-a.severity)[0];
  return {complete:result.complete,candidate:{kind:item.kind,eventKey:item.kind+':'+dayKey(now),title:'تنبيه جوي لهدى',text:'وفق توقعات الساعة الحالية: '+item.text+' · التوقعات قابلة للتغيّر.',time:item.time}};
 }
-return {ZONE,DAY,HOUR,finite,prob,dayKey,stamp,weekday,number,description,direction,isFresh,currentFresh,acceptNewer,nearestRain,currentAdvisory,bestWeek,stars,reflection,ramadan,dayWeather,cardData,alerts,sandstormForecast};
+return {ZONE,DAY,HOUR,finite,prob,dayKey,stamp,weekday,number,description,direction,isFresh,currentFresh,acceptNewer,nearestRain,currentAdvisory,bestWeek,stars,reflection,ramadan,dayWeather,cardData,alerts,sandstormForecast,winter:Winter};
 });
